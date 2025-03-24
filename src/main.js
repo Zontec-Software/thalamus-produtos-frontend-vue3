@@ -22,7 +22,7 @@ const vuetify = createVuetify({
 })
 
 const app = createApp(App)
-app.config.globalProperties.$moduleName = 'Fluxo de Vendas'
+app.config.globalProperties.$moduleName = 'Produtos'
 app.use(router)
 app.use(vuetify)
 app.mount('#app')
