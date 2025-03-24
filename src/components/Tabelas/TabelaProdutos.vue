@@ -24,12 +24,12 @@
         </th>
         <th>Ações</th>
       </tr>
-      <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index">
+      <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index" @click="abrirDetalhes(item.id)">
         <td> {{ item.cod }} </td>
         <td> {{ item.desc }} </td>
         <td> {{ item.tipo?.nome ?? "-" }} </td>
         <td> {{ item.familia_produto?.familia_nome ?? "-" }} </td>
-        <td style="padding: 0;">
+        <td style="padding: 0;" @click.stop>
           <div style="display: flex; width: 3rem; justify-content: space-between;">
             <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
                 class="fa-regular fa-copy"></i></span>

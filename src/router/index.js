@@ -1,8 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 // import { sso } from "roboflex-thalamus-sso-lib";
 // import { getPermissao } from "../services/permissao-service";
-import PortfolioProduto from '@/views/PortfolioProduto.vue';
-
+import PortfolioProduto from '@/views/Produtos/PortfolioProduto.vue';
+import CadastroProduto from '@/views/Produtos/CadastroProduto.vue'
+import TemplateView from '@/views/Produtos/TemplateView.vue'
+import Aprovacao from "@/views/Produtos/AprovacaoView.vue"
 
 
 // redireciona usuario para LOGIN baseado no env
@@ -57,18 +59,39 @@ import PortfolioProduto from '@/views/PortfolioProduto.vue';
 // }
 
 const routes = [
-    {
-        path: '/',
-        name: 'portfolioView',
-        component: PortfolioProduto,
-        // beforeEnter: guardPermissaoRoute
-    
-      },
+  {
+    path: '/',
+    name: 'portfolioView',
+    component: PortfolioProduto,
+    // beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/cadastroProduto/:id',
+    name: 'cadastroProduto',
+    component: CadastroProduto,
+    props: true,
+    // beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/template/:id',
+    name: 'template',
+    component: TemplateView,
+    props: true,
+    // beforeEnter: guardPermissaoRoute,
+  },
+  {
+    path: '/aprovacao',
+    name: 'aprovacao',
+    component: Aprovacao,
+    // beforeEnter: guardPermissaoRoute
+  },
+
+
   {
     path: "/login",
     redirect: "http://portal.thalamus.com.br/#/login",
   },
-  
+
 ]
 
 const router = createRouter({
