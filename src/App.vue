@@ -1,26 +1,67 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <body>
+    <HeaderComponent :moduleName="$moduleName" :buildMode="envMode" />
+    <!-- class="esconde" -->
+    <main id="main">
+      <aside>
+        <MenuLateralComponent />
+      </aside>
+      <section>
+        <RouterView />
+      </section>
+    </main>
+  </body>
 </template>
-
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import { HeaderComponent } from "roboflex-thalamus-componentes-vue3-lib";
+import MenuLateralComponent from "./components/MenuLateral/MenuLateralComponent.vue";
 
 export default {
-  name: 'App',
+
+  data() {
+    return {
+      envMode: process.env.NODE_ENV
+    }
+  },
   components: {
-    HelloWorld
+    MenuLateralComponent,
+    HeaderComponent
   }
 }
 </script>
-
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+
+*::-webkit-scrollbar {
+  width: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--cor-separador);
+  border-radius: 20px;
+}
+
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-container {
+  background-color: var(--cor-bg);
+  border-radius: 8px;
+  padding: 100px;
+  width: 90%;
+  max-width: 1500px;
+  max-height: 80%;
+  /* overflow-y: auto; */
+  position: relative;
 }
 </style>
