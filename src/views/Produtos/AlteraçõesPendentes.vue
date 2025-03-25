@@ -8,30 +8,31 @@
         <button v-if="isTemplate" @click="enviarAprovacao()">Enviar para Aprovação</button>
       </div>
       <div class=" bloco2">
-        <fieldset class="margem grid-4">
-          <div>
-            <label>Código do Produto</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cod"
-              @input="atualizarPayLoad('cod', produto_original.cod)">
-          </div>
-          <div>
-            <label>Descrição</label>
-            <textarea :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.desc"
-              @input="atualizarPayLoad('desc', produto_original.desc)"></textarea>
-            <!-- <span v-if="alteracoes.desc"> Alterado por {{ alteracoes.desc.usuario }} </span> -->
-          </div>
-          <div>
-            <label>Unidade <i title="Editar unidade" @click="abrirModalEditarCombo('und')"></i></label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.und"
-              @change="atualizarPayLoad('und', produto_original.und)">
-              <option v-for="item in und" :key="item.id" :value="item.nome"> {{ item.nome }}</option>
-            </select>
-          </div>
-          <div>
-            <label>NCM : {{ produto_original.ncm }}</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm"
-              @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
-            <div v-if="listaAbertaNcm && filteredNcm.length" style="
+        <fieldset class="margem">
+          <div class="grid-4">
+            <div>
+              <label>Código do Produto</label>
+              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cod"
+                @input="atualizarPayLoad('cod', produto_original.cod)">
+            </div>
+            <div>
+              <label>Descrição</label>
+              <textarea :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.desc"
+                @input="atualizarPayLoad('desc', produto_original.desc)"></textarea>
+              <!-- <span v-if="alteracoes.desc"> Alterado por {{ alteracoes.desc.usuario }} </span> -->
+            </div>
+            <div>
+              <label>Unidade <i title="Editar unidade" @click="abrirModalEditarCombo('und')"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.und"
+                @change="atualizarPayLoad('und', produto_original.und)">
+                <option v-for="item in und" :key="item.id" :value="item.nome"> {{ item.nome }}</option>
+              </select>
+            </div>
+            <div>
+              <label>NCM : {{ produto_original.ncm }}</label>
+              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm"
+                @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
+              <div v-if="listaAbertaNcm && filteredNcm.length" style="
               background-color: var(--cor-bg);
               z-index: 99999;
               max-height: 20rem;
@@ -40,96 +41,100 @@
               width: 20.5rem;
               border: 1px solid var(--cor-separador);
             ">
-              <ul style="list-style: none">
-                <li v-for="item in filteredNcm" :key="item.id" @click="selecionarNcm(item)" style="margin: .5rem; cursor: pointer;"
-                  @change="atualizarPayLoad('ncm', produto_original.ncm)">{{ item.codigo }} {{ item.descricao }} </li>
-              </ul>
+                <ul style="list-style: none">
+                  <li v-for="item in filteredNcm" :key="item.id" @click="selecionarNcm(item)"
+                    style="margin: .5rem; cursor: pointer;" @change="atualizarPayLoad('ncm', produto_original.ncm)">{{
+                      item.codigo }} {{ item.descricao }} </li>
+                </ul>
+              </div>
+            </div>
+            <div>
+              <label>Código EAN (GTIN)</label>
+              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.ean"
+                @change="atualizarPayLoad('ean', produto_original.ean)" />
+            </div>
+            <div> <label>Família</label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.familia_id"
+                @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
+                <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
+              </select>
+            </div>
+            <div>
+              <label>Tipo do Produto</label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.tipoProduto_id"
+                @change="atualizarPayLoad('tipoProduto_id', produto_original.tipoProduto_id)">
+                <option v-for="item in tipos" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              </select>
+            </div>
+            <div>
+              <label>Linha <i title="Editar Linhas" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('linha')"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.linha_id"
+                @change="atualizarPayLoad('linha_id', produto_original.linha_id)">
+                <option v-for="item in linha" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              </select>
+            </div>
+            <div>
+              <label>Modelo <i title="Editar Modelos" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('modelo')"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.modelo_id"
+                @change="atualizarPayLoad('modelo_id', produto_original.modelo_id)">
+                <option v-for="item in modelo" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              </select>
+            </div>
+            <div>
+              <label>Device <i title="Editar Devices" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('device')"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.device_id"
+                @change="atualizarPayLoad('device_id', produto_original.device_id)">
+                <option v-for="item in device" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              </select>
+            </div>
+            <div>
+              <label>Fixação <i title="Editar Fixações" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('fixacao')"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.fixacao_id"
+                @change="atualizarPayLoad('fixacao_id', produto_original.fixacao_id)">
+                <option v-for="item in fixacao" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              </select>
+            </div>
+            <div>
+              <label>Tamanho <i title="Editar Tamanhos" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('tamanho')"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.tamanho_id"
+                @change="atualizarPayLoad('tamanho_id', produto_original.tamanho_id)">
+                <option v-for="item in tamanho" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              </select>
+            </div>
+            <div>
+              <label>Preço Unitário</label>
+              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.valor_unitario"
+                @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
+              <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
+            </div>
+            <div>
+              <label>Status</label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.status"
+                @change="atualizarPayLoad('status', produto_original.status)">
+                <option value="1">Ativo</option>
+                <option value="0">Desativado</option>
+              </select>
             </div>
           </div>
-          <div>
-            <label>Código EAN (GTIN)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.ean"
-              @change="atualizarPayLoad('ean', produto_original.ean)" />
+          <br>
+          <div class="grid">
+            <label>Especificações </label>
+            <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao"
+              @change="atualizarPayLoad('especificacao', produto_original.especificacao)"> </textarea>
           </div>
-          <div> <label>Família</label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.familia_id"
-              @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
-              <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
-            </select>
-          </div>
-          <div>
-            <label>Tipo do Produto</label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.tipoProduto_id"
-              @change="atualizarPayLoad('tipoProduto_id', produto_original.tipoProduto_id)">
-              <option v-for="item in tipos" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-            </select>
-          </div>
-          <div>
-            <label>Linha <i title="Editar Linhas" class="bi bi-gear-fill adicionarItem"
-                @click="abrirModalEditarCombo('linha')"></i></label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.linha_id"
-              @change="atualizarPayLoad('linha_id', produto_original.linha_id)">
-              <option v-for="item in linha" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-            </select>
-          </div>
-          <div>
-            <label>Modelo <i title="Editar Modelos" class="bi bi-gear-fill adicionarItem"
-                @click="abrirModalEditarCombo('modelo')"></i></label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.modelo_id"
-              @change="atualizarPayLoad('modelo_id', produto_original.modelo_id)">
-              <option v-for="item in modelo" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-            </select>
-          </div>
-          <div>
-            <label>Device <i title="Editar Devices" class="bi bi-gear-fill adicionarItem"
-                @click="abrirModalEditarCombo('device')"></i></label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.device_id"
-              @change="atualizarPayLoad('device_id', produto_original.device_id)">
-              <option v-for="item in device" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-            </select>
-          </div>
-          <div>
-            <label>Fixação <i title="Editar Fixações" class="bi bi-gear-fill adicionarItem"
-                @click="abrirModalEditarCombo('fixacao')"></i></label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.fixacao_id"
-              @change="atualizarPayLoad('fixacao_id', produto_original.fixacao_id)">
-              <option v-for="item in fixacao" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-            </select>
-          </div>
-          <div>
-            <label>Tamanho <i title="Editar Tamanhos" class="bi bi-gear-fill adicionarItem"
-                @click="abrirModalEditarCombo('tamanho')"></i></label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.tamanho_id"
-              @change="atualizarPayLoad('tamanho_id', produto_original.tamanho_id)">
-              <option v-for="item in tamanho" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-            </select>
-          </div>
-          <div>
-            <label>Especificações <i title="Editar Especificações" class="bi bi-gear-fill adicionarItem"
-                @click="abrirModalEditarCombo('especificacao')"></i></label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
+          <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
               @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
               <option v-for="item in especificacao" :key="item.id" :value="item.id"> {{ item.nome }} </option>
-            </select>
-          </div>
-          <div>
-            <label>Preço Unitário</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.valor_unitario"
-              @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
-            <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
-          </div>
-          <div>
-            <label>Status</label>
-            <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.status"
-              @change="atualizarPayLoad('status', produto_original.status)">
-              <option value="1">Ativo</option>
-              <option value="0">Desativado</option>
-            </select>
-          </div>
+            </select> -->
         </fieldset>
       </div>
       <br>
-      <div class="tags m-b">
+      <div class="tags m-b" style="cursor: pointer;">
         <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')">Informações
           Adicionais</a>
         <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')">Recomendações Fiscais</a>
