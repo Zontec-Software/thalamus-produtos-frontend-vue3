@@ -185,7 +185,7 @@ const funções = {
         }
     },
   
-
+    //ALTERAR NO OMIE, SEM APROVAÇÃO
     async finalizarCadastro(id, payload) {
         try {
             const response = await api.patch(`/produto/omie/atualizar/${id}`, payload);
@@ -196,6 +196,7 @@ const funções = {
         }
     },
     
+    //ALTERA APENAS NO THALAMUS
     async salvarLocal(id, alteracoes) {
         try {
             const response = await api.post(`/produto/alterar/${id}`, alteracoes);
