@@ -244,9 +244,10 @@
       </div>
       <div class="submit m-b direita">
         <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
-        <button @click="salvarProduto()">Salvar</button>
-        <button v-if="isFinanceiro" :disabled="validaçãoCampos" style="background-color: var(--cor-sucesso)"
-          class="acao-secundaria bg-sucesso">Cadastrar Produto</button>
+        <!-- <button @click="salvarProduto()">Salvar</button> -->
+        <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
+          style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso"
+          @click="cadastrarOMIE">Cadastrar Produto</button>
         <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
       </div>
     </div>
@@ -317,7 +318,7 @@ export default {
     isFinanceiro() {
       return this.funcionalidades.includes(113);
     },
-    validaçãoCampos() {
+    camposVazios() {
       return ['origem_mercadoria', 'preco_tabelado', 'cest', 'indicador_escala', 'cnpj_fabricante', 'cupom_fiscal', 'market_place']
         .some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '')
     }
@@ -348,6 +349,14 @@ export default {
     }
   },
   methods: {
+    async cadastrarOMIE() {
+      if (!this.camposVazios) {
+        var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
+        if (response) {
+          toaster.success("Produto cadastrado com sucesso!");
+        }
+      }
+    },
     abrirModalEditarCombo(itemEditado) {
       switch (itemEditado) {
         case 'und':
@@ -518,7 +527,6 @@ export default {
         if (this.isCadastro) {
           await serviceProdutos.salvarNovoProduto(this.payLoad)
           toaster.success("Produto enviado com sucesso!");
-
         }
 
         else {
