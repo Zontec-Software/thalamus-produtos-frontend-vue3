@@ -17,11 +17,11 @@
         <a>Produtos para Recomendações Fiscal</a>
       </div> -->
       <br />
-      <div class="tags m-b" style="cursor: pointer;">
+      <!-- <div class="tags m-b" style="cursor: pointer;">
         <a :class="{ ativo: blocoVisivel === 'portfolio' }" @click="mostrarBloco('portfolio')">Portfólio</a>
         <a :class="{ ativo: blocoVisivel === 'novosProdutos' }" @click="mostrarBloco('novosProdutos')">Novos
           Produtos</a>
-      </div>
+      </div> -->
       <div class="bloco margem">
         <div class="alinha-v" style="display: flex; justify-content: space-between">
           <!-- <div class="tags" style="cursor: pointer">
@@ -34,7 +34,7 @@
             >
           </div> -->
           <div title="Clique aqui para adicionar">
-            <BotaoFlutuante />
+            <BotaoFlutuante v-if="funcionalidades.includes(113)" />
           </div>
         </div>
         <br />

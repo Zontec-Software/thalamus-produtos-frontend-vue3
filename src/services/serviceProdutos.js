@@ -93,8 +93,8 @@ const funções = {
         }
     },
 
-    async listarFamilia(){
-        try{
+    async listarFamilia() {
+        try {
             const response = await api.get(`produto/familia/listar`)
             return response.data;
         } catch (error) {
@@ -102,8 +102,8 @@ const funções = {
             throw error;
         }
     },
-    async getNcmbyId(id){
-        try{
+    async getNcmbyId(id) {
+        try {
             const response = await api.get(`ncm/buscar/${id}`)
             return response.data;
         } catch (error) {
@@ -111,8 +111,8 @@ const funções = {
             throw error;
         }
     },
-    async getAllNcm(){
-        try{
+    async getAllNcm() {
+        try {
             const response = await api.get(`ncm/listar`)
             return response.data;
         } catch (error) {
@@ -120,9 +120,9 @@ const funções = {
             throw error;
         }
     },
-   
-    async getDevice(){
-        try{
+
+    async getDevice() {
+        try {
             const response = await api.get(`device/listar`)
             return response.data;
         } catch (error) {
@@ -130,8 +130,8 @@ const funções = {
             throw error;
         }
     },
-    async getEspecificacao(){
-        try{
+    async getEspecificacao() {
+        try {
             const response = await api.get(`especificacao/listar`)
             return response.data;
         } catch (error) {
@@ -139,8 +139,8 @@ const funções = {
             throw error;
         }
     },
-    async getFixacao(){
-        try{
+    async getFixacao() {
+        try {
             const response = await api.get(`fixacao/listar`)
             return response.data;
         } catch (error) {
@@ -148,8 +148,8 @@ const funções = {
             throw error;
         }
     },
-    async getLinha(){
-        try{
+    async getLinha() {
+        try {
             const response = await api.get(`linha/listar`)
             return response.data;
         } catch (error) {
@@ -157,8 +157,8 @@ const funções = {
             throw error;
         }
     },
-    async getModelo(){
-        try{
+    async getModelo() {
+        try {
             const response = await api.get(`modelo/listar`)
             return response.data;
         } catch (error) {
@@ -166,8 +166,8 @@ const funções = {
             throw error;
         }
     },
-    async getTamanho(){
-        try{
+    async getTamanho() {
+        try {
             const response = await api.get(`tamanho-produto/listar`)
             return response.data;
         } catch (error) {
@@ -175,8 +175,8 @@ const funções = {
             throw error;
         }
     },
-    async getUnidade(){
-        try{
+    async getUnidade() {
+        try {
             const response = await api.get(`unidade-medida/listar`)
             return response.data;
         } catch (error) {
@@ -184,7 +184,7 @@ const funções = {
             throw error;
         }
     },
-  
+
     //ALTERAR NO OMIE, SEM APROVAÇÃO
     async finalizarCadastro(id, payload) {
         try {
@@ -195,7 +195,7 @@ const funções = {
             throw error;
         }
     },
-    
+
     //ALTERA APENAS NO THALAMUS
     async salvarLocal(id, alteracoes) {
         try {
@@ -207,7 +207,7 @@ const funções = {
         }
     },
 
-    async salvarNovoProduto(payload){
+    async salvarNovoProduto(payload) {
         try {
             const response = await api.post(`/produto-novo/gravar`, payload);
             return response.data;
@@ -216,10 +216,10 @@ const funções = {
             throw error;
         }
     },
-    
 
-    async getTipoProduto(){
-        try{
+
+    async getTipoProduto() {
+        try {
             const response = await api.get(`produto/tipo/listar`)
             return response.data;
         } catch (error) {
@@ -250,7 +250,7 @@ const funções = {
         }
     },
 
-    async listarProdutosEmDesenv(){
+    async listarProdutosEmDesenv() {
         try {
             const response = await api.get(`/produto-novo/listar`)
             return response.data;
@@ -259,31 +259,43 @@ const funções = {
             console.error("Erro ao listar produtos")
             throw error;
         }
-    } ,
+    },
 
     //LISTA DE MATERIAIS 
 
-   async listarMateriaisProjeto(payload){
-    try {
-        const response = await api.post(`material-utilizado/buscar`,payload)
-        return response.data;
+    async listarMateriaisProjeto(payload) {
+        try {
+            const response = await api.post(`material-utilizado/buscar`, payload)
+            return response.data;
 
-    } catch (error) {
-        console.error("Erro ao listar materiais")
-        throw error;
-    }
-   },
+        } catch (error) {
+            console.error("Erro ao listar materiais")
+            throw error;
+        }
+    },
 
-   async gravarMateriaisProjeto(payload){
-    try {
-        const response = await api.post(`material-utilizado/gravar`,payload)
-        return response.data;
+    async gravarMateriaisProjeto(payload) {
+        try {
+            const response = await api.post(`material-utilizado/gravar`, payload)
+            return response.data;
 
-    } catch (error) {
-        console.error("Erro ao gravar produtos")
-        throw error;
-    }
-   }
+        } catch (error) {
+            console.error("Erro ao gravar produtos")
+            throw error;
+        }
+    },
+
+    //    Cadastro no OMIE
+    async cadastrarProdutoOMIE(payload) {
+        try {
+            const response = await api.post(`/produto/omie/cadastrar`, payload)
+            return response.data;
+
+        } catch (error) {
+            console.error("Erro ao cadastrar Produto", error)
+            throw error;
+        }
+    },
 
 }
 
