@@ -4,22 +4,12 @@
             <div class="margem container">
                 <div class="m-icone esquerda"><a @click="this.$router.back();" style="cursor: pointer;"
                         class="icone-voltar m-d"></a></div>
-                <!-- <div class="m-icone direita">
-                    <div class="pesquisa">
-                        <input type="text" v-model="pesquisa" placeholder="Pesquisa por código, descrição ou tipo" />
-                        <a class="icone-pesquisa" title="Pesquise"></a>
-                    </div>
-                </div> -->
                 <h2> Aprovação</h2>
             </div>
         </div>
         <div class="margem container">
             <div class="bloco margem">
                 <div class="tags m-b" style="cursor: pointer;">
-                    <!-- <a @click="filtrarPorBotao('Aguardando Aprovação')"
-                        :class="filtro == 'Aguardando Aprovação' ? 'ativo' : ''">Aguardando Aprovação</a> -->
-                    <!-- <a @click="filtrarPorBotao('Aprovados e Reprovados')"
-                        :class="filtro == 'Aprovados e Reprovados' ? 'ativo' : ''">Aprovados e Reprovados</a> -->
                 </div>
                 <table class="tabela">
                     <tbody>
@@ -50,7 +40,7 @@
                                 Data da Aprovação </th>
                             <!-- <th scope="col">Status</th> -->
                         </tr>
-                        <tr v-for="item in produtosFiltrados" :key="item.id" @click="abrirModal(item)"
+                        <tr v-for="item in produtosFiltrados" :key="item.id" @click="abrirDetalhes(item.id)"
                             style="cursor: pointer;">
                             <td>{{ item.codigo }}</td>
                             <td>{{ item.desc }}</td>
@@ -155,6 +145,9 @@ export default {
 
 
     methods: {
+        abrirDetalhes(id) {
+            this.$router.push({ name: "cadastroProduto", params: { id } });
+        },
         async carregarProdutos() {
             try {
                 const response = await serviceAprovacao.listarProdutosPendentes();
@@ -211,8 +204,6 @@ export default {
 
         abrirModal(produto) {
             this.produtoSelecionado = { ...produto };
-
-
         },
         fecharModal() {
             this.produtoSelecionado = null;

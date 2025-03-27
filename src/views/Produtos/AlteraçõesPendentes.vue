@@ -9,7 +9,8 @@
       </div>
       <div class=" bloco2">
         <fieldset class="margem">
-          <div class="grid-4"> jhgkjhgjhfg: {{ isCadastro }} <div>
+          <div class="grid-4">
+            <div>
               <label>Código do Produto</label>
               <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cod"
                 @input="atualizarPayLoad('cod', produto_original.cod)">
@@ -197,60 +198,44 @@
         <fieldset class="margem grid-4">
           <div>
             <label>Origem da Mercadoria</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.origem_mercadoria"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.origem_mercadoria"
               @input="atualizarPayLoad('origem_mercadoria', produto_original.origem_mercadoria)" />
             <!-- <span v-if="alteracoes.peso"> Alterado por {{ alteracoes.peso.usuario }} </span> -->
           </div>
           <div>
             <label>Preço Tabelado (Pauta)</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.preco_tabelado"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.preco_tabelado"
               @input="atualizarPayLoad('preco_tabelado', produto_original.preco_tabelado)">
           </div>
           <!-- <div>
             <label>Número da FCI (Ficha de Conteúdo de Importação)</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" >
+            <input :disabled="!isFinanceiro" type="text" >
           </div> -->
           <div>
             <label>CEST (Código Especificador da Substituição Tributária)</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cest"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cest"
               @input="atualizarPayLoad('cest', produto_original.cest)">
           </div>
           <div>
             <label>Indicador de Produção em Escala Relevante</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.indicador_escala"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.indicador_escala"
               @input="atualizarPayLoad('indicador_escala', produto_original.indicador_escala)">
           </div>
           <div>
             <label>CNPJ Fabricante</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cnpj_fabricante"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cnpj_fabricante"
               @input="atualizarPayLoad('cnpj_fabricante', produto_original.cnpj_fabricante)">
           </div>
           <div>
             <label>Cupom Fiscal</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cupom_fiscal"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cupom_fiscal"
               @input="atualizarPayLoad('cupom_fiscal', produto_original.cupom_fiscal)">
           </div>
           <div>
             <label>Market Place</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.market_place"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.market_place"
               @input="atualizarPayLoad('market_place', produto_original.market_place)">
           </div>
-          <!-- <div>
-            <label>Quantidade</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
-          </div>
-          <- <div>
-            <label>Unidade Tributável</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text"   >
-          </div> -->
-          <!-- <div>
-            <label>Quantidade</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
-          </div>
-          <div>
-            <label>Fator Conversão</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
-          </div> -->
         </fieldset>
       </div>
       <div style="text-align: center;">
@@ -260,6 +245,8 @@
       <div class="submit m-b direita">
         <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
         <button @click="salvarProduto()">Salvar</button>
+        <button v-if="isFinanceiro" :disabled="validaçãoCampos" style="background-color: var(--cor-sucesso)"
+          class="acao-secundaria bg-sucesso">Cadastrar Produto</button>
         <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
       </div>
     </div>
@@ -274,7 +261,7 @@ import serviceAprovacao from '@/services/aprovacao-service'
 import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
-
+import { getPermissao } from '@/services/permissao-service'
 const toaster = createToaster({
   position: "top-right",
   duration: 6000,
@@ -298,6 +285,7 @@ export default {
   },
   data() {
     return {
+      funcionalidades: [],
       aguardandoAprovaçãoFiscal: false,
       produto_original: {},
       // produto_editado: {},
@@ -326,9 +314,17 @@ export default {
     };
   },
   computed: {
-
+    isFinanceiro() {
+      return this.funcionalidades.includes(113);
+    },
+    validaçãoCampos() {
+      return ['origem_mercadoria', 'preco_tabelado', 'cest', 'indicador_escala', 'cnpj_fabricante', 'cupom_fiscal', 'market_place']
+        .some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '')
+    }
   },
   async created() {
+    this.funcionalidades = await getPermissao();
+    this.blocoVisivel = this.funcionalidades.includes(113) ? 'fiscais' : 'informacoes';
     this.payLoad.usuario_id = sso.getUsuarioLogado().id;
     this.isLoading = true;
     try {
