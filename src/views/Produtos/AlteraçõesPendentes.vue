@@ -124,8 +124,8 @@
           <br>
           <div class="grid">
             <label>Especificações </label>
-            <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao"
-              @change="atualizarPayLoad('especificacao', produto_original.especificacao)"> </textarea>
+            <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes"
+              @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)"> </textarea>
           </div>
           <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
               @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
@@ -198,36 +198,43 @@
         <fieldset class="margem grid-4">
           <div>
             <label>Origem da Mercadoria</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text" />
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.origem_mercadoria"
+              @input="atualizarPayLoad('origem_mercadoria', produto_original.origem_mercadoria)" />
             <!-- <span v-if="alteracoes.peso"> Alterado por {{ alteracoes.peso.usuario }} </span> -->
           </div>
           <div>
             <label>Preço Tabelado (Pauta)</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.preco_tabelado"
+              @input="atualizarPayLoad('preco_tabelado', produto_original.preco_tabelado)">
           </div>
-          <div>
+          <!-- <div>
             <label>Número da FCI (Ficha de Conteúdo de Importação)</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
-          </div>
+            <input :disabled="!isFinanceiro" type="text" >
+          </div> -->
           <div>
             <label>CEST (Código Especificador da Substituição Tributária)</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cest"
+              @input="atualizarPayLoad('cest', produto_original.cest)">
           </div>
           <div>
             <label>Indicador de Produção em Escala Relevante</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.indicador_escala"
+              @input="atualizarPayLoad('indicador_escala', produto_original.indicador_escala)">
           </div>
           <div>
-            <label>Unidade Tributável</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
+            <label>CNPJ Fabricante</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cnpj_fabricante"
+              @input="atualizarPayLoad('cnpj_fabricante', produto_original.cnpj_fabricante)">
           </div>
           <div>
-            <label>Quantidade</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
+            <label>Cupom Fiscal</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cupom_fiscal"
+              @input="atualizarPayLoad('cupom_fiscal', produto_original.cupom_fiscal)">
           </div>
           <div>
-            <label>Fator Conversão</label>
-            <input :disabled="!aguardandoAprovaçãoFiscal" type="text">
+            <label>Market Place</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.market_place"
+              @input="atualizarPayLoad('market_place', produto_original.market_place)">
           </div>
         </fieldset>
       </div>
@@ -237,13 +244,11 @@
       </div>
       <div class="submit m-b direita">
         <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
-        <button @click="salvarProduto()">Salvar</button>
+        <!-- <button @click="salvarProduto()">Salvar</button> -->
+        <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
+          style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso"
+          @click="cadastrarOMIE">Cadastrar Produto</button>
         <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
-        <!-- <button class="acao-secundaria" :class="aguardandoAprovaçãoFiscal ? 'bg-sucesso' : ''"
-          :style="{ 'background-color': (aguardandoAprovaçãoFiscal ? 'var(--cor-sucesso)' : 'orange') }"
-          @click="aguardandoAprovaçãoFiscal ? aguardandoAprovaçãoFiscal = null : aguardandoAprovaçãoFiscal = true"> {{
-            aguardandoAprovaçãoFiscal == false ? 'Avaliação fiscal' : aguardandoAprovaçãoFiscal == null ? 'Reavaliação
-          Fiscal' : 'Aprovação fiscal' }} </button> -->
       </div>
     </div>
   </section>
@@ -257,7 +262,7 @@ import serviceAprovacao from '@/services/aprovacao-service'
 import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
-
+import { getPermissao } from '@/services/permissao-service'
 const toaster = createToaster({
   position: "top-right",
   duration: 6000,
@@ -274,10 +279,14 @@ export default {
     },
     isTemplate: {
       required: false,
+    },
+    isCadastro: {
+      required: true
     }
   },
   data() {
     return {
+      funcionalidades: [],
       aguardandoAprovaçãoFiscal: false,
       produto_original: {},
       // produto_editado: {},
@@ -289,7 +298,6 @@ export default {
       linha: [],
       modelo: [],
       tamanho: [],
-      especificacao: [],
       ncm: [],
       und: [],
       searchQueryNcm: "",
@@ -307,9 +315,17 @@ export default {
     };
   },
   computed: {
-
+    isFinanceiro() {
+      return this.funcionalidades.includes(113);
+    },
+    camposVazios() {
+      return ['origem_mercadoria', 'preco_tabelado', 'cest', 'indicador_escala', 'cnpj_fabricante', 'cupom_fiscal', 'market_place']
+        .some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '')
+    }
   },
   async created() {
+    this.funcionalidades = await getPermissao();
+    this.blocoVisivel = this.funcionalidades.includes(113) ? 'fiscais' : 'informacoes';
     this.payLoad.usuario_id = sso.getUsuarioLogado().id;
     this.isLoading = true;
     try {
@@ -325,7 +341,6 @@ export default {
         this.carregarTamanho(),
         this.carregarNcmPorId(),
         this.carregarUnidades(),
-        this.carregarEspecificacoes()
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -334,6 +349,14 @@ export default {
     }
   },
   methods: {
+    async cadastrarOMIE() {
+      if (!this.camposVazios) {
+        var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
+        if (response) {
+          toaster.success("Produto cadastrado com sucesso!");
+        }
+      }
+    },
     abrirModalEditarCombo(itemEditado) {
       switch (itemEditado) {
         case 'und':
@@ -378,13 +401,7 @@ export default {
             combo: this.tamanho
           };
           break;
-        case 'especificacao':
-          this.itemEditado = {
-            tipo: 'Especificações',
-            url: itemEditado,
-            combo: this.especificacao
-          };
-          break;
+
         default:
           null
       }
@@ -425,14 +442,7 @@ export default {
       this.produto_original.ncm = ncm.codigo;
       this.listaAbertaNcm = false;
     },
-    async carregarEspecificacoes() {
-      try {
-        const response = await serviceProdutos.getEspecificacao();
-        this.especificacao = response;
-      } catch (error) {
-        console.error("Erro ao carregar especificações de produtos:", error);
-      }
-    },
+
     async carregarUnidades() {
       try {
         const response = await serviceProdutos.getUnidade();
@@ -513,8 +523,17 @@ export default {
     },
     async salvarProduto() {
       try {
-        await serviceProdutos.salvarLocal(this.produto_cod, this.payLoad);
-        toaster.success("Produto salvo com sucesso!");
+
+        if (this.isCadastro) {
+          await serviceProdutos.salvarNovoProduto(this.payLoad)
+          toaster.success("Produto enviado com sucesso!");
+        }
+
+        else {
+          await serviceProdutos.salvarLocal(this.produto_cod, this.payLoad);
+          toaster.success("Produto salvo com sucesso!");
+
+        }
       } catch (error) {
         toaster.error("Erro ao salvar produto")
         console.error("Erro ao salvar produto:", error);

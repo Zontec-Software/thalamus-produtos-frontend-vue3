@@ -17,6 +17,11 @@
         <a>Produtos para Recomendações Fiscal</a>
       </div> -->
       <br />
+      <!-- <div class="tags m-b" style="cursor: pointer;">
+        <a :class="{ ativo: blocoVisivel === 'portfolio' }" @click="mostrarBloco('portfolio')">Portfólio</a>
+        <a :class="{ ativo: blocoVisivel === 'novosProdutos' }" @click="mostrarBloco('novosProdutos')">Novos
+          Produtos</a>
+      </div> -->
       <div class="bloco margem">
         <div class="alinha-v" style="display: flex; justify-content: space-between">
           <!-- <div class="tags" style="cursor: pointer">
@@ -29,11 +34,12 @@
             >
           </div> -->
           <div title="Clique aqui para adicionar">
-            <BotaoFlutuante />
+            <BotaoFlutuante v-if="funcionalidades.includes(113)" />
           </div>
         </div>
         <br />
-        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" />
+        <TabelaProdutos v-if="blocoVisivel === 'portfolio'" ref="tabela" :searchQuery="searchQuery" :filtro="filtro" />
+        <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos>
       </div>
     </div>
   </section>
@@ -41,12 +47,16 @@
 <script>
 import TabelaProdutos from "@/components/Tabelas/TabelaProdutos.vue";
 import BotaoFlutuante from "@/components/Botão/BotaoFlutuante.vue";
+import { getPermissao } from '@/services/permissao-service'
+import NovosProdutos from "@/components/Tabelas/NovosProdutos.vue";
+
 
 export default {
   name: "ControleProdutos",
   components: {
     TabelaProdutos,
-    BotaoFlutuante
+    BotaoFlutuante,
+    NovosProdutos
   },
   data() {
     return {
@@ -58,9 +68,26 @@ export default {
       ],
       searchQuery: "",
       filtro: "",
+      blocoVisivel: 'portfolio',
+      funcionalidades: [],
+
     };
   },
+  async created() {
+    this.funcionalidades = await getPermissao();
+
+    this.blocoVisivel = this.funcionalidades.includes(113) ? 'portfolio' : 'novosProdutos';
+
+
+  },
   methods: {
+    mostrarBloco(bloco) {
+      if (this.blocoVisivel === bloco) {
+        this.blocoVisivel = null;
+      } else {
+        this.blocoVisivel = bloco;
+      }
+    },
     filtrarPorBotao(item) {
       if (this.filtro === item) {
         this.filtro = "";
