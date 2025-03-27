@@ -164,12 +164,12 @@ export default {
     async created() {
         const usuario = sso.getUsuarioLogado();
         if (!usuario || !usuario.id) {
-            console.error("Usuário não encontrado ou sem ID válido:", usuario);
+            // console.error("Usuário não encontrado ou sem ID válido:", usuario);
             toaster.error("Erro ao carregar o usuário logado.");
             return;
         }
         this.usuario_id = usuario.id;
-        console.log("Usuário logado com ID:", this.usuario_id);
+        // console.log("Usuário logado com ID:", this.usuario_id);
 
         await this.carregarProdutos();
     },
