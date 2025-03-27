@@ -73,55 +73,34 @@
             <div class="jm" @click.stop>
                 <h2>Detalhes do Produto</h2>
                 <fieldset class="margem">
-                    <div class="grid-2">
+                    <div class="grid-3">
                         <div>
-                            <label>Código:</label>
+                            <label>Código</label>
                             <input type="text" v-model="produtoSelecionado.codigo" />
-                            <small v-if="produtoSelecionado.valoresOriginais?.codigo"> Valor original: {{
-                                produtoSelecionado.valoresOriginais.codigo.valor }} Editado por: {{
-                                    produtoSelecionado.valoresOriginais.codigo.usuario }} </small>
                         </div>
                         <div>
-                            <label>Descrição:</label>
+                            <label>Descrição</label>
                             <textarea v-model="produtoSelecionado.desc"></textarea>
-                            <small v-if="produtoSelecionado.valoresOriginais?.desc"><!--  Valor original: {{
-                                produtoSelecionado.valoresOriginais.desc.valor }}--> Editado por: {{
-                                    produtoSelecionado.valoresOriginais.desc.usuario }} </small>
                         </div>
                         <div>
-                            <label>Família:</label>
-                            <input type="text" v-model="produtoSelecionado.familia" />
-                            <small v-if="produtoSelecionado.valoresOriginais?.familia"> Valor original: {{
-                                produtoSelecionado.valoresOriginais.familia.valor }} Editado por: {{
-                                    produtoSelecionado.valoresOriginais.familia.usuario }} </small>
-                        </div>
-                        <div>
-                            <label>Unidade:</label>
+                            <label>Unidade</label>
                             <input type="text" v-model="produtoSelecionado.unidade" />
-                            <small v-if="produtoSelecionado.valoresOriginais?.unidade"> Valor original: {{
-                                produtoSelecionado.valoresOriginais.unidade.valor }} Editado por: {{
-                                    produtoSelecionado.valoresOriginais.unidade.usuario }} </small>
                         </div>
                         <div>
-                            <label>Valor Unitário:</label>
+                            <label>Família</label>
+                            <input type="text" v-model="produtoSelecionado.familia" />
+                        </div>
+                        <div>
+                            <label>Valor Unitário</label>
                             <input type="text" v-model="produtoSelecionado.valor_unitario" />
-                            <small v-if="produtoSelecionado.original_valor_unitario"> Valor original: {{
-                                produtoSelecionado.original_valor_unitario.valor }} Editado por {{
-                                    produtoSelecionado.original_valor_unitario.usuario }} </small>
                         </div>
                         <div>
-                            <label>Peso:</label>
+                            <label>Peso</label>
                             <input type="text" v-model="produtoSelecionado.peso" />
-                            <small v-if="produtoSelecionado.valoresOriginais?.peso"> Valor original: {{
-                                produtoSelecionado.valoresOriginais.peso.valor }} Editado por: {{
-                                    produtoSelecionado.valoresOriginais.peso.usuario }} </small>
                         </div>
                         <div>
-                            <label>Status:</label>
+                            <label>Status</label>
                             <input type="text" v-model="produtoSelecionado.status" />
-                            <small v-if="produtoSelecionado.valoresOriginais?.status"> Valor original: {{
-                                produtoSelecionado.valoresOriginais.status.valor }} Editado por: {{
-                                    produtoSelecionado.valoresOriginais.status.usuario }} </small>
                         </div>
                     </div>
                 </fieldset>
@@ -137,7 +116,7 @@
 </template>
 <script>
 import serviceAprovacao from '@/services/aprovacao-service'
-import serviceProdutos from '@/services/serviceProdutos'
+// import serviceProdutos from '@/services/serviceProdutos'
 import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 
@@ -183,7 +162,7 @@ export default {
                 if (Array.isArray(response)) {
                     this.produtos = response.map(item => ({
                         id: item.id,
-                        codigo: item.produto_cod,
+                        codigo: item.cod_integracao,
                         desc: item.desc,
                         tipoProduto_id: item.tipoProduto_id,
                         familia_id: item.familia_id,
@@ -231,30 +210,9 @@ export default {
         },
 
         abrirModal(produto) {
-            this.produtoSelecionado = { ...produto, valoresOriginais: {} };
+            this.produtoSelecionado = { ...produto };
 
-            serviceProdutos.carregarAlteracoes(produto.codigo)
-                .then((response) => {
-                    const alteracoesPendentes = response.alteracoes_pendentes || {};
 
-                    for (const campo in alteracoesPendentes) {
-                        if (alteracoesPendentes[campo]?.length > 0) {
-                            const alteracao = alteracoesPendentes[campo][0];
-
-                            this.produtoSelecionado[campo] = parseFloat(alteracao.valor) || alteracao.valor;
-
-                            this.produtoSelecionado.valoresOriginais[campo] = {
-                                valor: response.produto[campo],
-                                usuario: alteracao.usuario,
-                            };
-                        }
-                    }
-
-                    console.log("Produto Selecionado com Alterações Aplicadas:", this.produtoSelecionado);
-                })
-                .catch((error) => {
-                    console.error("Erro ao carregar alterações do produto:", error);
-                });
         },
         fecharModal() {
             this.produtoSelecionado = null;

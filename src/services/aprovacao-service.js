@@ -13,7 +13,7 @@ function enviarParaAprovacao(idProduto, idUsuario) {
 
 function listarProdutosPendentes() {
     return new Promise((resolve, reject) => {
-        return api.get(`produto/pendente-aprovacao`)
+        return api.get(`produto-novo/listar/fiscal`)
             .then(response => resolve(response.data))
             .catch(error => reject(error));
     });

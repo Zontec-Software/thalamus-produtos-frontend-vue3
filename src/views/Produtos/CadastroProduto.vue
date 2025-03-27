@@ -1,25 +1,28 @@
 <template>
-    <div class="titulo">
-      <div class="margem container">
-        <div class="m-icone esquerda">
-          <a @click="this.$router.back()" class="icone-voltar m-d" title="Voltar"></a>
-        </div>
-        <h2> {{ tiposProduto.includes(this.id) ? `Cadastro de ${this.id}` : "Editar Produto" }} </h2>
-      </div>
-    </div>
+  <div class="titulo">
     <div class="margem container">
-      <div style="display: flex; flex-flow: column">
-        <div class="bloco margem">
-            <AlteraçõesPendentes v-if="produto" :produto_cod="produto.produto_cod" />
-            <div v-else class="loading"><div></div></div>
+      <div class="m-icone esquerda">
+        <a @click="this.$router.back()" class="icone-voltar m-d" title="Voltar"></a>
+      </div>
+      <h2> {{ tiposProduto.includes(this.id) ? `Cadastro de ${this.id}` : "Editar Produto" }} </h2>
+    </div>
+  </div>
+  <div class="margem container">
+    <div style="display: flex; flex-flow: column">
+      <div class="bloco margem">
+        <AlteraçõesPendentes v-if="produto" :produto_cod="produto.produto_cod"
+          :isCadastro="tiposProduto.includes(this.id)" />
+        <div v-else class="loading">
+          <div></div>
         </div>
-        <!-- <div class="bloco margem">
+      </div>
+      <!-- <div class="bloco margem">
           <header class="alinha-centro">
             <h2>Lista de Materiais</h2>
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-        <!-- <div class="bloco margem">
+      <!-- <div class="bloco margem">
           <header class="alinha-centro">
             <h2>Estrutura</h2>
           </header>
@@ -43,16 +46,16 @@
             <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
           </div>
         </div> -->
-        <!-- <div class="bloco margem">
+      <!-- <div class="bloco margem">
           <div class="alinha-centro">
             <h2>Roteiro</h2>
           </div>
           <RoteiroComponente :produto="produto" @atualizar="getProduto" />
         </div> -->
-      </div>
-      <br>
-      <!-- <button @click="salvarProduto">Salvar</button> -->
     </div>
+    <br>
+    <!-- <button @click="salvarProduto">Salvar</button> -->
+  </div>
 </template>
 <script>
 import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";

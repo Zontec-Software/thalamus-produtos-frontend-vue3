@@ -9,8 +9,7 @@
       </div>
       <div class=" bloco2">
         <fieldset class="margem">
-          <div class="grid-4">
-            <div>
+          <div class="grid-4"> jhgkjhgjhfg: {{ isCadastro }} <div>
               <label>Código do Produto</label>
               <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cod"
                 @input="atualizarPayLoad('cod', produto_original.cod)">
@@ -262,11 +261,6 @@
         <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
         <button @click="salvarProduto()">Salvar</button>
         <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
-        <!-- <button class="acao-secundaria" :class="aguardandoAprovaçãoFiscal ? 'bg-sucesso' : ''"
-          :style="{ 'background-color': (aguardandoAprovaçãoFiscal ? 'var(--cor-sucesso)' : 'orange') }"
-          @click="aguardandoAprovaçãoFiscal ? aguardandoAprovaçãoFiscal = null : aguardandoAprovaçãoFiscal = true"> {{
-            aguardandoAprovaçãoFiscal == false ? 'Avaliação fiscal' : aguardandoAprovaçãoFiscal == null ? 'Reavaliação
-          Fiscal' : 'Aprovação fiscal' }} </button> -->
       </div>
     </div>
   </section>
@@ -297,6 +291,9 @@ export default {
     },
     isTemplate: {
       required: false,
+    },
+    isCadastro: {
+      required: true
     }
   },
   data() {
@@ -521,8 +518,18 @@ export default {
     },
     async salvarProduto() {
       try {
-        await serviceProdutos.salvarLocal(this.produto_cod, this.payLoad);
-        toaster.success("Produto salvo com sucesso!");
+
+        if (this.isCadastro) {
+          await serviceProdutos.salvarNovoProduto(this.payLoad)
+          toaster.success("Produto enviado com sucesso!");
+
+        }
+
+        else {
+          await serviceProdutos.salvarLocal(this.produto_cod, this.payLoad);
+          toaster.success("Produto salvo com sucesso!");
+
+        }
       } catch (error) {
         toaster.error("Erro ao salvar produto")
         console.error("Erro ao salvar produto:", error);
