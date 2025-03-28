@@ -22,7 +22,7 @@
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-      <!-- <div class="bloco margem">
+        <div class="bloco margem">
           <header class="alinha-centro">
             <h2>Estrutura</h2>
           </header>
@@ -41,36 +41,36 @@
               <span class="produto-tipo-indicador lembrete"></span>Não cadastrado
             </div>
           </div>
-          <EstruturaComponent v-if="mostrarEstrutura" :iniciarAberto="true" :item="produto" />
+          <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto" />
           <div class="alinha-centro" v-else>
             <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
           </div>
-        </div> -->
-      <!-- <div class="bloco margem">
+        </div>
+        <div class="bloco margem">
           <div class="alinha-centro">
             <h2>Roteiro</h2>
           </div>
-          <RoteiroComponente :produto="produto" @atualizar="getProduto" />
-        </div> -->
+          <RoteiroComponente v-if="produto" :produto="produto" @atualizar="getProduto" />
+        </div>
+      </div>
+      <br>
+      <!-- <button @click="salvarProduto">Salvar</button> -->
     </div>
-    <br>
-    <!-- <button @click="salvarProduto">Salvar</button> -->
-  </div>
 </template>
 <script>
 import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
-// import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.vue"
+import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.vue"
 // import ListaComponent from "@/components/ListaMateriais/ListaComponente.vue"
 import serviceProdutos from "@/services/serviceProdutos";
-// import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
+import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
 import { sso } from "roboflex-thalamus-sso-lib";
 
 export default {
   name: "CadastroProduto",
   components: {
     AlteraçõesPendentes,
-    // EstruturaComponent,
-    // RoteiroComponente,
+    EstruturaComponent,
+    RoteiroComponente,
     // ListaComponent
   },
   props: ["id"],
