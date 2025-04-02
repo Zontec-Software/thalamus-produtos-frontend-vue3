@@ -83,14 +83,6 @@
               </select>
             </div>
             <div>
-              <label>Device <i title="Editar Devices" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('device')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.device_id"
-                @change="atualizarPayLoad('device_id', produto_original.device_id)">
-                <option v-for="item in device" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
               <label>Fixação <i title="Editar Fixações" class="bi bi-gear-fill adicionarItem"
                   @click="abrirModalEditarCombo('fixacao')"></i></label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.fixacao_id"
@@ -263,6 +255,7 @@ import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
 import { getPermissao } from '@/services/permissao-service'
+
 const toaster = createToaster({
   position: "top-right",
   duration: 6000,
@@ -271,6 +264,7 @@ export default {
   name: "AlteracoesProduto",
   components: {
     ModalEditarCombo,
+
   },
   props: {
     produto_cod: {
@@ -293,7 +287,7 @@ export default {
       alteracoes: {},
       familias: [],
       tipos: [],
-      device: [],
+
       fixacao: [],
       linha: [],
       modelo: [],
@@ -311,7 +305,8 @@ export default {
       blocoVisivel: 'informacoes',
       showModalEditarCombo: false,
       itemEditado: null,
-      isLoading: true
+      isLoading: true,
+      especificacoes: ''
     };
   },
   computed: {
@@ -336,7 +331,6 @@ export default {
         this.carregarFamilias(),
         this.carregarLinhas(),
         this.carregarModelos(),
-        this.carregarDevice(),
         this.carregarFixacao(),
         this.carregarTamanho(),
         this.carregarNcmPorId(),
@@ -364,13 +358,6 @@ export default {
             tipo: 'unidade',
             url: 'unidade-medida',
             combo: this.und
-          };
-          break;
-        case 'device':
-          this.itemEditado = {
-            tipo: 'Device',
-            url: itemEditado,
-            combo: this.device
           };
           break;
         case 'fixacao':
