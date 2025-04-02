@@ -34,12 +34,12 @@
             >
           </div> -->
           <div title="Clique aqui para adicionar">
-            <BotaoFlutuante v-if="funcionalidades.includes(113)" />
+            <BotaoFlutuante />
           </div>
         </div>
         <br />
-        <TabelaProdutos v-if="blocoVisivel === 'portfolio'" ref="tabela" :searchQuery="searchQuery" :filtro="filtro" />
-        <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos>
+        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" />
+        <!-- <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos> -->
       </div>
     </div>
   </section>
@@ -48,7 +48,7 @@
 import TabelaProdutos from "@/components/Tabelas/TabelaProdutos.vue";
 import BotaoFlutuante from "@/components/Botão/BotaoFlutuante.vue";
 import { getPermissao } from '@/services/permissao-service'
-import NovosProdutos from "@/components/Tabelas/NovosProdutos.vue";
+// import NovosProdutos from "@/components/Tabelas/NovosProdutos.vue";
 
 
 export default {
@@ -56,7 +56,7 @@ export default {
   components: {
     TabelaProdutos,
     BotaoFlutuante,
-    NovosProdutos
+    // NovosProdutos
   },
   data() {
     return {
