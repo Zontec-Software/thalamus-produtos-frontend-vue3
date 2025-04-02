@@ -18,6 +18,7 @@
     "roboflex-thalamus-request-handler": "^1.0.8",
     "roboflex-thalamus-sso-lib": "^1.0.8",
     "roboflex-thalamus-utils-lib": "^1.0.6",
+    "sass-loader": "^16.0.5",
     "vue": "^3.2.13",
     "vue-router": "^4.5.0",
     "vuedraggable": "^4.1.0",
