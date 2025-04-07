@@ -29,26 +29,6 @@
               </select>
             </div>
             <div>
-              <label>NCM : {{ produto_original.ncm }}</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm"
-                @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
-              <div v-if="listaAbertaNcm && filteredNcm.length" style="
-              background-color: var(--cor-bg);
-              z-index: 99999;
-              max-height: 20rem;
-              overflow: auto;
-              position: absolute;
-              width: 20.5rem;
-              border: 1px solid var(--cor-separador);
-            ">
-                <ul style="list-style: none">
-                  <li v-for="item in filteredNcm" :key="item.id" @click="selecionarNcm(item)"
-                    style="margin: .5rem; cursor: pointer;" @change="atualizarPayLoad('ncm', produto_original.ncm)">{{
-                      item.codigo }} {{ item.descricao }} </li>
-                </ul>
-              </div>
-            </div>
-            <div>
               <label>Código EAN (GTIN)</label>
               <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.ean"
                 @change="atualizarPayLoad('ean', produto_original.ean)" />
@@ -118,6 +98,12 @@
             <label>Especificações </label>
             <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes"
               @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)"> </textarea>
+          </div>
+          <br>
+          <div class="grid">
+            <label>Observações </label>
+            <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.observacoes"
+              @change="atualizarPayLoad('observacoes', produto_original.observacoes)"> </textarea>
           </div>
           <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
               @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
@@ -228,6 +214,26 @@
             <input :disabled="!isFinanceiro" type="text" v-model="produto_original.market_place"
               @input="atualizarPayLoad('market_place', produto_original.market_place)">
           </div>
+          <div>
+            <label>NCM : {{ produto_original.ncm }}</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm"
+              @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
+            <div v-if="listaAbertaNcm && filteredNcm.length" style="
+              background-color: var(--cor-bg);
+              z-index: 99999;
+              max-height: 20rem;
+              overflow: auto;
+              position: absolute;
+              width: 20.5rem;
+              border: 1px solid var(--cor-separador);
+            ">
+              <ul style="list-style: none">
+                <li v-for="item in filteredNcm" :key="item.id" @click="selecionarNcm(item)"
+                  style="margin: .5rem; cursor: pointer;" @change="atualizarPayLoad('ncm', produto_original.ncm)">{{
+                    item.codigo }} {{ item.descricao }} </li>
+              </ul>
+            </div>
+          </div>
         </fieldset>
       </div>
       <div style="text-align: center;">
@@ -238,8 +244,8 @@
         <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
         <!-- <button @click="salvarProduto()">Salvar</button> -->
         <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
-          style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso"
-          @click="cadastrarOMIE">Cadastrar Produto</button>
+          style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso" @click="cadastrarOMIE"> {{
+            isCadastro ? 'Cadastrar Produto' : 'Atualizar Produto' }}</button>
         <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
       </div>
     </div>
@@ -320,7 +326,9 @@ export default {
   },
   async created() {
     this.funcionalidades = await getPermissao();
-    this.blocoVisivel = this.funcionalidades.includes(113) ? 'fiscais' : 'informacoes';
+    // this.blocoVisivel = this.funcionalidades.includes(113) ? 'fiscais' : 'informacoes';
+    this.blocoVisivel = 'informacoes';
+
     this.payLoad.usuario_id = sso.getUsuarioLogado().id;
     this.isLoading = true;
     try {

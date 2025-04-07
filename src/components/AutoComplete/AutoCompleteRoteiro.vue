@@ -10,7 +10,6 @@
     </ul>
   </div>
 </template>
-
 <script>
 export default {
   name: "AutoCompleteRoteiro",
@@ -60,7 +59,6 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .tags {
   a {
@@ -82,6 +80,7 @@ input {
 
 .lista {
   background-color: var(--cor-bg);
+  z-index: 99999;
   width: 16rem;
   position: absolute;
   list-style-type: none;
