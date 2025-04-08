@@ -100,7 +100,7 @@
               @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)"> </textarea> -->
             <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.especificacoes)"
               :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.especificacoes"
-              content-type="html" style="height: 200px;" />
+              content-type="html" style="height: 80px;" />
           </div>
           <br>
           <div class="grid">
@@ -108,8 +108,8 @@
             <!-- <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.observacoes"
               @change="atualizarPayLoad('observacoes', produto_original.observacoes)"> </textarea> -->
             <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.observacoes)"
-              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes"
-              content-type="html" style="height: 200px;" />
+              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes" content-type="html"
+              style="height: 80px;" />
           </div>
           <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
               @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
