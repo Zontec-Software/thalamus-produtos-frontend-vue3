@@ -10,11 +10,11 @@
   },
   "dependencies": {
     "@meforma/vue-toaster": "^1.3.0",
+    "@vueup/vue-quill": "^1.2.0",
     "axios": "^1.8.4",
     "bootstrap-icons": "^1.11.3",
     "core-js": "^3.8.3",
     "dotenv": "^16.4.7",
-    "quill": "^2.0.3",
     "roboflex-thalamus-componentes-vue3-lib": "^0.1.30",
     "roboflex-thalamus-request-handler": "^1.0.8",
     "roboflex-thalamus-sso-lib": "^1.0.8",
@@ -22,7 +22,6 @@
     "sass-loader": "^16.0.5",
     "vue": "^3.2.13",
     "vue-router": "^4.5.0",
-    "vue3-quill": "^0.3.1",
     "vuedraggable": "^4.1.0",
     "vuetify": "^3.7.18"
   },

@@ -96,14 +96,20 @@
           <br>
           <div class="grid">
             <label>Especificações </label>
-            <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes"
-              @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)"> </textarea>
+            <!-- <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes"
+              @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)"> </textarea> -->
+            <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.especificacoes)"
+              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.especificacoes"
+              content-type="html" style="height: 200px;" />
           </div>
           <br>
           <div class="grid">
             <label>Observações </label>
-            <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.observacoes"
-              @change="atualizarPayLoad('observacoes', produto_original.observacoes)"> </textarea>
+            <!-- <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.observacoes"
+              @change="atualizarPayLoad('observacoes', produto_original.observacoes)"> </textarea> -->
+            <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.observacoes)"
+              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes"
+              content-type="html" style="height: 200px;" />
           </div>
           <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
               @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
@@ -260,7 +266,10 @@ import serviceAprovacao from '@/services/aprovacao-service'
 import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
-import { getPermissao } from '@/services/permissao-service'
+import { getPermissao } from '@/services/permissao-service';
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+
 
 const toaster = createToaster({
   position: "top-right",
@@ -270,7 +279,7 @@ export default {
   name: "AlteracoesProduto",
   components: {
     ModalEditarCombo,
-
+    QuillEditor
   },
   props: {
     produto_cod: {
