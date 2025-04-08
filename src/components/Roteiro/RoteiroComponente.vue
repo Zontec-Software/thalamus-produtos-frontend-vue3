@@ -7,7 +7,7 @@
                     <i style="position: absolute; font-size: 25px; cursor: grab;"
                         class="bi bi-grip-vertical drag-handle"></i>
                     <i class="bi bi-trash alinha-v" @click="abrirModalConfirmacao(index)"
-                        style="position: absolute; top: 5px; right: 5px; font-size: 20px; cursor: pointer; color: red;"></i>
+                        style="position: absolute; top: 5px; right: 5px; font-size: 18px; cursor: pointer; color: red;"></i>
                     <tr>
                         <th style="width: 1.5rem; padding: 0;" :rowspan="element.servicos.length + 2"
                             class="tituloSetor">
@@ -57,11 +57,12 @@
                             </ul>
                             <span v-else>n/a</span>
                         </td>
-                        <td>{{ i.obs }}</td>
-                        <td>{{ i.parametrosInspecao }}</td>
+                        <td @click="abrirModalObservacao(i)" :title="i.obs" style="cursor: pointer;">{{ i.obs }} </td>
+                        <td @click="abrirModalParametros(i)" :title="i.parametrosInspecao" style="cursor: pointer;">{{
+                            i.parametrosInspecao }}</td>
                         <td style="text-align: center;">
                             <i class="bi bi-trash" @click="abrirModalConfirmacaoServico(index, index2)"
-                                style="font-size: 18px; cursor: pointer; color: red;"></i>
+                                style="font-size: 16px; cursor: pointer; color: red;"></i>
                         </td>
                     </tr>
                     <tr>
@@ -143,6 +144,22 @@
             </div>
         </div>
     </div>
+    <!-- END MODAL-->
+    <!-- MODAL -->
+    <div class="modal-mask" v-if="modalEdicaoTexto" @click="modalEdicaoTexto = false">
+        <div class="jm margem" @click.stop>
+            <div class="alinha-centro">
+                <h3>Editar {{ campoEditando === 'obs' ? 'Observação' : 'Parâmetro de Inspeção' }}</h3>
+            </div>
+            <div>
+                <textarea v-model="textoEditando" rows="6" style="width: 100%; resize: none;"></textarea>
+            </div>
+            <div class="submit direita">
+                <button @click="salvarTextoEditado">Salvar</button>
+                <button class="acao-secundaria" @click="modalEdicaoTexto = false">Cancelar</button>
+            </div>
+        </div>
+    </div>
 </template>
 <script>
 import draggable from "vuedraggable";
@@ -172,7 +189,12 @@ export default {
             produtos: [],
             ferramentas: [],
             modalConfirmacao: false,
-            indexParaRemocao: null
+            indexParaRemocao: null,
+            modalEdicaoTexto: false,
+            textoEditando: '',
+            campoEditando: '',
+            servicoSelecionado: null,
+
         }
     },
     mounted() {
@@ -182,6 +204,28 @@ export default {
         this.servicos = serviceRoteiro.getServicosMockup()
     },
     methods: {
+        abrirModalObservacao(servico) {
+            this.servicoSelecionado = servico;
+            this.textoEditando = servico.obs;
+            this.campoEditando = 'obs';
+            this.modalEdicaoTexto = true;
+        },
+        abrirModalParametros(servico) {
+            this.servicoSelecionado = servico;
+            this.textoEditando = servico.parametrosInspecao;
+            this.campoEditando = 'parametrosInspecao';
+            this.modalEdicaoTexto = true;
+        },
+        salvarTextoEditado() {
+            if (this.servicoSelecionado && this.campoEditando) {
+                this.servicoSelecionado[this.campoEditando] = this.textoEditando;
+            }
+            this.modalEdicaoTexto = false;
+            this.servicoSelecionado = null;
+            this.campoEditando = '';
+            this.textoEditando = '';
+        },
+
         abrirModalConfirmacao(index) {
             this.indexSetorParaRemocao = index;
             this.modalConfirmacao = true;
