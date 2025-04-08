@@ -28,11 +28,6 @@
                 <option v-for="item in und" :key="item.id" :value="item.nome"> {{ item.nome }}</option>
               </select>
             </div>
-            <div>
-              <label>Código EAN (GTIN)</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.ean"
-                @change="atualizarPayLoad('ean', produto_original.ean)" />
-            </div>
             <div> <label>Família</label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.familia_id"
                 @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
@@ -77,12 +72,6 @@
                 @change="atualizarPayLoad('tamanho_id', produto_original.tamanho_id)">
                 <option v-for="item in tamanho" :key="item.id" :value="item.id"> {{ item.nome }}</option>
               </select>
-            </div>
-            <div>
-              <label>Preço Unitário</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.valor_unitario"
-                @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
-              <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
             </div>
             <div>
               <label>Status</label>
@@ -221,6 +210,17 @@
               @input="atualizarPayLoad('market_place', produto_original.market_place)">
           </div>
           <div>
+            <label>Preço Unitário</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.valor_unitario"
+              @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
+            <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
+          </div>
+          <div>
+            <label>Código EAN (GTIN)</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.ean"
+              @change="atualizarPayLoad('ean', produto_original.ean)" />
+          </div>
+          <div>
             <label>NCM : {{ produto_original.ncm }}</label>
             <input :disabled="!isFinanceiro" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm"
               @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
@@ -258,7 +258,7 @@
   </section>
   <!-- MODAL -->
   <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
-    @fecharModal="showModalEditarCombo = false" />
+    @fecharModal="showModalEditarCombo = false, atualizarSelect()" />
 </template>
 <script>
 import serviceProdutos from '@/services/serviceProdutos';
@@ -360,6 +360,17 @@ export default {
     }
   },
   methods: {
+    atualizarSelect() {
+      this.carregarNcm(),
+        this.carregarTiposProduto(),
+        this.carregarFamilias(),
+        this.carregarLinhas(),
+        this.carregarModelos(),
+        this.carregarFixacao(),
+        this.carregarTamanho(),
+        this.carregarNcmPorId(),
+        this.carregarUnidades()
+    },
     async cadastrarOMIE() {
       if (!this.camposVazios) {
         var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)

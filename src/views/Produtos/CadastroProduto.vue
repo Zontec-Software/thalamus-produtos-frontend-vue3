@@ -22,40 +22,40 @@
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-        <div class="bloco margem">
-          <header class="alinha-centro">
-            <h2>Estrutura</h2>
-          </header>
-          <br />
-          <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
-            <div class="legenda-item">
-              <span class="produto-tipo-indicador materia-prima"></span>Matéria Prima
-            </div>
-            <div class="legenda-item">
-              <span class="produto-tipo-indicador produto-processo"></span>Produto em Processo
-            </div>
-            <div class="legenda-item">
-              <span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado
-            </div>
-            <div class="legenda-item">
-              <span class="produto-tipo-indicador lembrete"></span>Não cadastrado
-            </div>
+      <div class="bloco margem">
+        <header class="alinha-centro">
+          <h2>Estrutura</h2>
+        </header>
+        <br />
+        <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
+          <div class="legenda-item">
+            <span class="produto-tipo-indicador materia-prima"></span>Matéria Prima
           </div>
-          <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto" />
-          <div class="alinha-centro" v-else>
-            <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
+          <div class="legenda-item">
+            <span class="produto-tipo-indicador produto-processo"></span>Produto em Processo
+          </div>
+          <div class="legenda-item">
+            <span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado
+          </div>
+          <div class="legenda-item">
+            <span class="produto-tipo-indicador lembrete"></span>Não cadastrado
           </div>
         </div>
-        <div class="bloco margem">
-          <div class="alinha-centro">
-            <h2>Roteiro</h2>
-          </div>
-          <RoteiroComponente v-if="produto" :produto="produto" @atualizar="getProduto" />
+        <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto" />
+        <div class="alinha-centro" v-else>
+          <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
         </div>
       </div>
-      <br>
-      <!-- <button @click="salvarProduto">Salvar</button> -->
+      <div class="bloco margem">
+        <div class="alinha-centro">
+          <h2>Roteiro</h2>
+        </div>
+        <RoteiroComponente v-if="produto" :produto="produto" @atualizar="getProduto" />
+      </div>
     </div>
+    <br>
+    <!-- <button @click="salvarProduto">Salvar</button> -->
+  </div>
 </template>
 <script>
 import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
