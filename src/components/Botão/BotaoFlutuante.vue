@@ -4,12 +4,7 @@
       <v-btn class="acao-secundaria" icon="mdi-plus" v-bind="props"></v-btn>
     </template>
     <v-list>
-      <v-list-item
-        v-for="(item, index) in opções"
-        :key="index"
-        @click="cadastrarProduto(item)"
-      >
-        {{ item }}
+      <v-list-item v-for="(item, index) in opções" :key="index" @click="cadastrarProduto(item)"> {{ item }}
       </v-list-item>
     </v-list>
   </v-menu>
@@ -22,7 +17,7 @@ export default {
       opções: [
         "Produto em Processo",
         "Produto Acabado"
-       
+
       ],
     };
   },

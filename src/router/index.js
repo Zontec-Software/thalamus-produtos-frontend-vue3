@@ -75,6 +75,7 @@ const routes = [
     props: true,
     beforeEnter: guardPermissaoRoute
   },
+
   {
     path: '/template/:id',
     name: 'template',
