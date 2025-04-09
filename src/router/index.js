@@ -5,7 +5,10 @@ import PortfolioProduto from '@/views/Produtos/PortfolioProduto.vue';
 import CadastroProduto from '@/views/Produtos/CadastroProduto.vue'
 import TemplateView from '@/views/Produtos/TemplateView.vue'
 import Aprovacao from "@/views/Produtos/AprovacaoView.vue"
-
+import Servico from "@/views/Produtos/ServicoView.vue"
+import GerenciarServico from "@/views/Produtos/GerenciarServico.vue"
+import Ferramenta from "@/views/Produtos/FerramentaView.vue"
+import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue"
 
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
@@ -72,6 +75,7 @@ const routes = [
     props: true,
     beforeEnter: guardPermissaoRoute
   },
+
   {
     path: '/template/:id',
     name: 'template',
@@ -83,6 +87,60 @@ const routes = [
     path: '/aprovacao',
     name: 'aprovacao',
     component: Aprovacao,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/servicos',
+    name: 'Servico',
+    component: Servico,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/servicos/novo',
+    name: 'AdicionarServico',
+    component: GerenciarServico,
+    props: true,
+    beforeEnter: guardPermissaoRoute,
+  },
+  {
+    path: '/servicos/editar/:id',
+    name: 'EditarServico',
+    component: GerenciarServico,
+    props: true,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/servicos/excluir',
+    name: 'ExcluirServico',
+    component: GerenciarServico,
+    props: true,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/ferramentas',
+    name: 'Ferramentas',
+    component: Ferramenta,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/ferramentas/novo',
+    name: 'AdicionarFerramenta',
+    component: GerenciarFerramenta,
+    props: true,
+    beforeEnter: guardPermissaoRoute,
+  },
+  {
+    path: '/ferramentas/editar/:id',
+    name: 'EditarFerramenta',
+    component: GerenciarFerramenta,
+    props: true,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/ferramentas/excluir',
+    name: 'ExcluirFerramenta',
+    component: GerenciarFerramenta,
+    props: true,
     beforeEnter: guardPermissaoRoute
   },
 
