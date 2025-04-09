@@ -89,7 +89,8 @@ input {
   margin-left: .4rem;
   color: var(--cor-fonte) !important;
   max-height: 30rem;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   li {
     margin-left: .5rem;
