@@ -34,29 +34,30 @@
             >
           </div> -->
           <div title="Clique aqui para adicionar">
-            <BotaoFlutuante v-if="funcionalidades.includes(113)" />
+            <!-- <BotaoFlutuante /> -->
           </div>
         </div>
         <br />
-        <TabelaProdutos v-if="blocoVisivel === 'portfolio'" ref="tabela" :searchQuery="searchQuery" :filtro="filtro" />
-        <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos>
+        <v-btn class="acao-secundaria" icon="mdi-plus" @click="cadastrarProduto()"></v-btn>
+        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" />
+        <!-- <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos> -->
       </div>
     </div>
   </section>
 </template>
 <script>
 import TabelaProdutos from "@/components/Tabelas/TabelaProdutos.vue";
-import BotaoFlutuante from "@/components/Botão/BotaoFlutuante.vue";
+// import BotaoFlutuante from "@/components/Botão/BotaoFlutuante.vue";
 import { getPermissao } from '@/services/permissao-service'
-import NovosProdutos from "@/components/Tabelas/NovosProdutos.vue";
+// import NovosProdutos from "@/components/Tabelas/NovosProdutos.vue";
 
 
 export default {
   name: "ControleProdutos",
   components: {
     TabelaProdutos,
-    BotaoFlutuante,
-    NovosProdutos
+    // BotaoFlutuante,
+    // NovosProdutos
   },
   data() {
     return {
@@ -81,6 +82,13 @@ export default {
 
   },
   methods: {
+
+    cadastrarProduto() {
+      this.$router.push({
+        name: "cadastroProduto",
+        params: { id: 'Produto Acabado' },
+      });
+    },
     mostrarBloco(bloco) {
       if (this.blocoVisivel === bloco) {
         this.blocoVisivel = null;

@@ -22,36 +22,36 @@
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-      <!-- <div class="bloco margem">
-          <header class="alinha-centro">
-            <h2>Estrutura</h2>
-          </header>
-          <br />
-          <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
-            <div class="legenda-item">
-              <span class="produto-tipo-indicador materia-prima"></span>Matéria Prima
-            </div>
-            <div class="legenda-item">
-              <span class="produto-tipo-indicador produto-processo"></span>Produto em Processo
-            </div>
-            <div class="legenda-item">
-              <span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado
-            </div>
-            <div class="legenda-item">
-              <span class="produto-tipo-indicador lembrete"></span>Não cadastrado
-            </div>
+      <div class="bloco margem">
+        <header class="alinha-centro">
+          <h2>Estrutura</h2>
+        </header>
+        <br />
+        <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
+          <div class="legenda-item">
+            <span class="produto-tipo-indicador materia-prima"></span>Matéria Prima
           </div>
-          <EstruturaComponent v-if="mostrarEstrutura" :iniciarAberto="true" :item="produto" />
-          <div class="alinha-centro" v-else>
-            <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
+          <div class="legenda-item">
+            <span class="produto-tipo-indicador produto-processo"></span>Produto em Processo
           </div>
-        </div> -->
-      <!-- <div class="bloco margem">
-          <div class="alinha-centro">
-            <h2>Roteiro</h2>
+          <div class="legenda-item">
+            <span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado
           </div>
-          <RoteiroComponente :produto="produto" @atualizar="getProduto" />
-        </div> -->
+          <div class="legenda-item">
+            <span class="produto-tipo-indicador lembrete"></span>Não cadastrado
+          </div>
+        </div>
+        <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto" />
+        <div class="alinha-centro" v-else>
+          <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
+        </div>
+      </div>
+      <div class="bloco margem">
+        <div class="alinha-centro">
+          <h2>Roteiro</h2>
+        </div>
+        <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" @atualizar="getProduto" />
+      </div>
     </div>
     <br>
     <!-- <button @click="salvarProduto">Salvar</button> -->
@@ -59,18 +59,18 @@
 </template>
 <script>
 import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
-// import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.vue"
+import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.vue"
 // import ListaComponent from "@/components/ListaMateriais/ListaComponente.vue"
 import serviceProdutos from "@/services/serviceProdutos";
-// import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
+import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
 import { sso } from "roboflex-thalamus-sso-lib";
 
 export default {
   name: "CadastroProduto",
   components: {
     AlteraçõesPendentes,
-    // EstruturaComponent,
-    // RoteiroComponente,
+    EstruturaComponent,
+    RoteiroComponente,
     // ListaComponent
   },
   props: ["id"],

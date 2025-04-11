@@ -28,31 +28,6 @@
                 <option v-for="item in und" :key="item.id" :value="item.nome"> {{ item.nome }}</option>
               </select>
             </div>
-            <div>
-              <label>NCM : {{ produto_original.ncm }}</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm"
-                @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
-              <div v-if="listaAbertaNcm && filteredNcm.length" style="
-              background-color: var(--cor-bg);
-              z-index: 99999;
-              max-height: 20rem;
-              overflow: auto;
-              position: absolute;
-              width: 20.5rem;
-              border: 1px solid var(--cor-separador);
-            ">
-                <ul style="list-style: none">
-                  <li v-for="item in filteredNcm" :key="item.id" @click="selecionarNcm(item)"
-                    style="margin: .5rem; cursor: pointer;" @change="atualizarPayLoad('ncm', produto_original.ncm)">{{
-                      item.codigo }} {{ item.descricao }} </li>
-                </ul>
-              </div>
-            </div>
-            <div>
-              <label>Código EAN (GTIN)</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.ean"
-                @change="atualizarPayLoad('ean', produto_original.ean)" />
-            </div>
             <div> <label>Família</label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.familia_id"
                 @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
@@ -83,14 +58,6 @@
               </select>
             </div>
             <div>
-              <label>Device <i title="Editar Devices" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('device')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.device_id"
-                @change="atualizarPayLoad('device_id', produto_original.device_id)">
-                <option v-for="item in device" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
               <label>Fixação <i title="Editar Fixações" class="bi bi-gear-fill adicionarItem"
                   @click="abrirModalEditarCombo('fixacao')"></i></label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.fixacao_id"
@@ -107,12 +74,6 @@
               </select>
             </div>
             <div>
-              <label>Preço Unitário</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.valor_unitario"
-                @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
-              <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
-            </div>
-            <div>
               <label>Status</label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.status"
                 @change="atualizarPayLoad('status', produto_original.status)">
@@ -124,8 +85,20 @@
           <br>
           <div class="grid">
             <label>Especificações </label>
-            <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes"
-              @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)"> </textarea>
+            <!-- <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes"
+              @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)"> </textarea> -->
+            <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.especificacoes)"
+              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.especificacoes"
+              content-type="html" style="height: 80px;" />
+          </div>
+          <br>
+          <div class="grid">
+            <label>Observações </label>
+            <!-- <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.observacoes"
+              @change="atualizarPayLoad('observacoes', produto_original.observacoes)"> </textarea> -->
+            <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.observacoes)"
+              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes" content-type="html"
+              style="height: 80px;" />
           </div>
           <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
               @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
@@ -236,6 +209,37 @@
             <input :disabled="!isFinanceiro" type="text" v-model="produto_original.market_place"
               @input="atualizarPayLoad('market_place', produto_original.market_place)">
           </div>
+          <div>
+            <label>Preço Unitário</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.valor_unitario"
+              @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
+            <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
+          </div>
+          <div>
+            <label>Código EAN (GTIN)</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.ean"
+              @change="atualizarPayLoad('ean', produto_original.ean)" />
+          </div>
+          <div>
+            <label>NCM : {{ produto_original.ncm }}</label>
+            <input :disabled="!isFinanceiro" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm"
+              @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
+            <div v-if="listaAbertaNcm && filteredNcm.length" style="
+              background-color: var(--cor-bg);
+              z-index: 99999;
+              max-height: 20rem;
+              overflow: auto;
+              position: absolute;
+              width: 20.5rem;
+              border: 1px solid var(--cor-separador);
+            ">
+              <ul style="list-style: none">
+                <li v-for="item in filteredNcm" :key="item.id" @click="selecionarNcm(item)"
+                  style="margin: .5rem; cursor: pointer;" @change="atualizarPayLoad('ncm', produto_original.ncm)">{{
+                    item.codigo }} {{ item.descricao }} </li>
+              </ul>
+            </div>
+          </div>
         </fieldset>
       </div>
       <div style="text-align: center;">
@@ -246,15 +250,15 @@
         <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
         <!-- <button @click="salvarProduto()">Salvar</button> -->
         <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
-          style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso"
-          @click="cadastrarOMIE">Cadastrar Produto</button>
+          style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso" @click="cadastrarOMIE"> {{
+            isCadastro ? 'Cadastrar Produto' : 'Atualizar Produto' }}</button>
         <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
       </div>
     </div>
   </section>
   <!-- MODAL -->
   <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
-    @fecharModal="showModalEditarCombo = false" />
+    @fecharModal="showModalEditarCombo = false, atualizarSelect()" />
 </template>
 <script>
 import serviceProdutos from '@/services/serviceProdutos';
@@ -262,7 +266,11 @@ import serviceAprovacao from '@/services/aprovacao-service'
 import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
-import { getPermissao } from '@/services/permissao-service'
+import { getPermissao } from '@/services/permissao-service';
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+
+
 const toaster = createToaster({
   position: "top-right",
   duration: 6000,
@@ -271,6 +279,7 @@ export default {
   name: "AlteracoesProduto",
   components: {
     ModalEditarCombo,
+    QuillEditor
   },
   props: {
     produto_cod: {
@@ -293,7 +302,7 @@ export default {
       alteracoes: {},
       familias: [],
       tipos: [],
-      device: [],
+
       fixacao: [],
       linha: [],
       modelo: [],
@@ -311,7 +320,8 @@ export default {
       blocoVisivel: 'informacoes',
       showModalEditarCombo: false,
       itemEditado: null,
-      isLoading: true
+      isLoading: true,
+      especificacoes: ''
     };
   },
   computed: {
@@ -325,7 +335,9 @@ export default {
   },
   async created() {
     this.funcionalidades = await getPermissao();
-    this.blocoVisivel = this.funcionalidades.includes(113) ? 'fiscais' : 'informacoes';
+    // this.blocoVisivel = this.funcionalidades.includes(113) ? 'fiscais' : 'informacoes';
+    this.blocoVisivel = 'informacoes';
+
     this.payLoad.usuario_id = sso.getUsuarioLogado().id;
     this.isLoading = true;
     try {
@@ -336,7 +348,6 @@ export default {
         this.carregarFamilias(),
         this.carregarLinhas(),
         this.carregarModelos(),
-        this.carregarDevice(),
         this.carregarFixacao(),
         this.carregarTamanho(),
         this.carregarNcmPorId(),
@@ -349,6 +360,17 @@ export default {
     }
   },
   methods: {
+    atualizarSelect() {
+      this.carregarNcm(),
+        this.carregarTiposProduto(),
+        this.carregarFamilias(),
+        this.carregarLinhas(),
+        this.carregarModelos(),
+        this.carregarFixacao(),
+        this.carregarTamanho(),
+        this.carregarNcmPorId(),
+        this.carregarUnidades()
+    },
     async cadastrarOMIE() {
       if (!this.camposVazios) {
         var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
@@ -364,13 +386,6 @@ export default {
             tipo: 'unidade',
             url: 'unidade-medida',
             combo: this.und
-          };
-          break;
-        case 'device':
-          this.itemEditado = {
-            tipo: 'Device',
-            url: itemEditado,
-            combo: this.device
           };
           break;
         case 'fixacao':
