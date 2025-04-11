@@ -50,7 +50,7 @@
         <div class="alinha-centro">
           <h2>Roteiro</h2>
         </div>
-        <RoteiroComponente v-if="produto" :produto="produto" @atualizar="getProduto" />
+        <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" @atualizar="getProduto" />
       </div>
     </div>
     <br>
