@@ -5,7 +5,7 @@
         " />
     <ul v-if="mostrarLista" class="lista">
       <li v-for="item in opcoesFiltradas" :key="item.id" @click="adicionarItem(item)">
-        <span v-if="item.cod">{{ item.cod }} - </span> {{ item.nome ?? item.descricao ?? item.desc }}
+        <span v-if="item.cod || item.codigo">{{ item.cod ?? item.codigo }} - </span> {{ item.nome ?? item.descricao ?? item.desc }}
       </li>
     </ul>
   </div>
@@ -15,8 +15,6 @@ export default {
   name: "AutoCompleteRoteiro",
   props: {
     BaseOpcoes: { Required: true },
-    id: { Required: false },
-    codServico: { Required: false }
   },
   data() {
     return {
@@ -28,15 +26,7 @@ export default {
   methods: {
     adicionarItem(item) {
       this.itemSelecionado = { descricao: "" };
-      if (this.id && this.codServico) {
-        this.$emit("adicionarItem", item, this.id, this.codServico);
-      }
-      if (this.id && !this.codServico) {
-        this.$emit("adicionarItem", item, this.id);
-      }
-      else {
-        this.$emit("adicionarItem", item);
-      }
+      this.$emit("adicionarItem", item);
     },
     fecharLista() {
       setTimeout(() => {
@@ -75,25 +65,25 @@ input {
   height: 2rem;
   padding: 0px .5rem !important;
   margin-left: .5rem;
-  width: 10rem !important;
+  width: 12rem !important;
 }
 
 .lista {
   background-color: var(--cor-bg);
   z-index: 99999;
-  width: 16rem;
+  width: 12rem;
   position: absolute;
   list-style-type: none;
   padding: 0;
   margin: 0;
-  margin-left: .4rem;
+  margin-top: 3px;
   color: var(--cor-fonte) !important;
   max-height: 30rem;
   overflow-y: auto;
   overflow-x: hidden;
 
   li {
-    margin-left: .5rem;
+    margin-left: .2rem;
     padding: 5px;
     cursor: pointer;
     box-shadow: 0 0 0 1px inset var(--cor-cinza2);
