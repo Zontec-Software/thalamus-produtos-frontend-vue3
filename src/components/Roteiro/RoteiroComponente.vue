@@ -13,14 +13,14 @@
                         <th style="width: 1.5rem; padding: 0;" :rowspan="element.servicos.length + 2"
                             class="tituloSetor">
                             <span style="writing-mode: sideways-lr; padding-inline: 3rem;">{{ element.setor.nome
-                                }}</span>
+                            }}</span>
                         </th>
                         <th>Código</th>
                         <th>Descrição</th>
                         <th>Materiais</th>
                         <th>Ferramentas</th>
-                        <th>Observações</th>
                         <th>Parâmetro de Inspeção</th>
+                        <th>Observações</th>
                         <th style="width: 3rem;"></th>
                     </tr>
                     <tr v-for="(i, index2) in element.servicos" :key="index2">
@@ -65,14 +65,23 @@
                             <AutoCompleteRoteiro :BaseOpcoes="ferramentas"
                                 @adicionarItem="(event) => atualizarServico(i.id, 'ferramenta_id', event.id)" />
                         </td>
-                        <!-- @click="abrirModalObservacao(i)" -->
+                        <td>
+                            <ul>
+                                <li v-for="item in i.parametros" :key="item.id" style="display: flex;">
+                                    <div>
+                                        <span>{{ `${item.parametro.codigo} - ${item.parametro.nome}` }}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                            <AutoCompleteRoteiro :BaseOpcoes="parametros"
+                                @adicionarItem="(event) => atualizarServico(i.id, 'parametro_id', event.id)" />
+
+                        </td>
                         <td :title="i.observacao" style="cursor: pointer">
                             <textarea :rows="i.materiais.length + 2"
                                 @blur="atualizarServico(i.id, 'observacao', i.observacao)"
                                 v-model="i.observacao"></textarea>
                         </td>
-                        <td @click="abrirModalParametros(i)" :title="i.parametrosInspecao" style="cursor: pointer;">{{
-                            i.parametrosInspecao }}</td>
                         <td style="text-align: center;">
                             <i class="bi-trash" @click="abrirModalConfirmacao(i.id, 'serviço')"
                                 style="font-size: 16px; cursor: pointer; color: red;"></i>
@@ -171,6 +180,7 @@ import draggable from "vuedraggable";
 import serviceFerramentas from "@/services/serviceFerramentas";
 import serviceProdutos from '@/services/serviceProdutos'
 import serviceRoteiro from '@/services/serviceRoteiro2.0';
+import serviceParametros from '@/services/serviceParametrosTeste'
 import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import { getSetoresHieraquico } from "@/services/serviceSetores.js";
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
@@ -202,7 +212,7 @@ export default {
             modalAdicionarServiço: false,
             produtos: [],
             ferramentas: [],
-
+            parametros: [],
             modalConfirmacao: false,
             idParaRemoção: null,
             tipoExclusao: null,
@@ -215,7 +225,8 @@ export default {
     },
     async mounted() {
         this.getProdutos();
-        this.obterFerramentas()
+        this.obterFerramentas();
+        this.obterParametros();
         this.getRoteiro()
         this.setores = await getSetoresHieraquico();
     },
@@ -245,10 +256,15 @@ export default {
             const response = await serviceFerramentas.getAllFerramentas();
             this.ferramentas = response.data
         },
+
+        async obterParametros() {
+            const response = await serviceParametros.buscarPametros();
+            this.parametros = response
+        },
+
         async getProdutos() {
             this.produtos = await serviceProdutos.getProdutos()
         },
-
 
         montarCodServico() {
             this.novoServico.cod = `${this.novoServico.ação.id ?? ''}${this.novoServico.item.id ?? ''}${this.novoServico.local.id ?? ''}`

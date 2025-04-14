@@ -41,7 +41,7 @@
             <span class="produto-tipo-indicador lembrete"></span>Não cadastrado
           </div>
         </div>
-        <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto" />
+        <!-- <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto" /> -->
         <div class="alinha-centro" v-else>
           <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
         </div>
@@ -59,7 +59,7 @@
 </template>
 <script>
 import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
-import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.vue"
+// import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.vue"
 // import ListaComponent from "@/components/ListaMateriais/ListaComponente.vue"
 import serviceProdutos from "@/services/serviceProdutos";
 import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
@@ -69,7 +69,7 @@ export default {
   name: "CadastroProduto",
   components: {
     AlteraçõesPendentes,
-    EstruturaComponent,
+    // EstruturaComponent,
     RoteiroComponente,
     // ListaComponent
   },
@@ -105,13 +105,13 @@ export default {
         var produtoEditado = produtos.find((prod) => prod.id == this.id);
 
         if (produtoEditado) {
-          var filhos = await serviceProdutos.getEstrutura(produtoEditado.produto_cod);
+          // var filhos = await serviceProdutos.getEstrutura(produtoEditado.produto_cod);
 
-          if (filhos.length > 0) {
-            produtoEditado.filhos = filhos;
-          } else {
-            produtoEditado.filhos = []
-          }
+          // if (filhos.length > 0) {
+          //   produtoEditado.filhos = filhos;
+          // } else {
+          //   produtoEditado.filhos = []
+          // }
 
           this.produto = produtoEditado;
           // this.mostrarEstrutura = !!produtoEditado.filhos;
