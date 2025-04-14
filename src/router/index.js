@@ -9,6 +9,7 @@ import Servico from "@/views/Produtos/ServicoView.vue"
 import GerenciarServico from "@/views/Produtos/GerenciarServico.vue"
 import Ferramenta from "@/views/Produtos/FerramentaView.vue"
 import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue"
+import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
 
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
@@ -141,6 +142,12 @@ const routes = [
     name: 'ExcluirFerramenta',
     component: GerenciarFerramenta,
     props: true,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/parametrosTeste',
+    name: 'parametros',
+    component: ParametroTeste,
     beforeEnter: guardPermissaoRoute
   },
 
