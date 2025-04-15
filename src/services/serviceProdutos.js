@@ -58,6 +58,43 @@ const funções = {
             throw error;
         }
     },
+
+    async adicionarItemEstrutura(payload) {
+        // payloadEsperado: {
+        // "produtoP_cod" : 11111, // código do produto pai
+        // "produtoF_cod" : 22222, // código do produto filho
+        // "qt" : 12,
+        // "unidade" : "UN"
+        // }
+        try {
+            const response = await api.post(`/estrutura/adicionar`, payload);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async removerItemEstrutura(id) {
+        try {
+            const response = await api.delete(`estrutura/remover/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async atualizarItemEstrutura(id, payload) {
+        try {
+            const response = await api.patch(`estrutura/atualizar/${id}`, payload);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
     async getTipoeFamilias() {
         try {
             const payload = {

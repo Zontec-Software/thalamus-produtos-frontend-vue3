@@ -8,13 +8,9 @@
     </div>
   </div>
   <div class="margem container">
-    <div style="display: flex; flex-flow: column">
+    <div style="display: flex; flex-flow: column" v-if="produto">
       <div class="bloco margem">
-        <AlteraçõesPendentes v-if="produto" :produto_cod="produto.produto_cod"
-          :isCadastro="tiposProduto.includes(this.id)" />
-        <div v-else class="loading">
-          <div></div>
-        </div>
+        <AlteraçõesPendentes :produto_cod="produto.produto_cod" :isCadastro="tiposProduto.includes(this.id)" />
       </div>
       <!-- <div class="bloco margem">
           <header class="alinha-centro">
@@ -26,7 +22,7 @@
         <header class="alinha-centro">
           <h2>Estrutura</h2>
         </header>
-        <br />
+        <br>
         <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
           <div class="legenda-item">
             <span class="produto-tipo-indicador materia-prima"></span>Matéria Prima
@@ -37,11 +33,9 @@
           <div class="legenda-item">
             <span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado
           </div>
-          <div class="legenda-item">
-            <span class="produto-tipo-indicador lembrete"></span>Não cadastrado
-          </div>
         </div>
-        <!-- <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto" /> -->
+        <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto"
+          @atualizar="getEstrutura" :editavel="false" :unidades="unidades" />
         <div class="alinha-centro" v-else>
           <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
         </div>
@@ -50,8 +44,11 @@
         <div class="alinha-centro">
           <h2>Roteiro</h2>
         </div>
-        <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" @atualizar="getProduto" />
+        <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" />
       </div>
+    </div>
+    <div class="loading" v-else>
+      <div></div>
     </div>
     <br>
     <!-- <button @click="salvarProduto">Salvar</button> -->
@@ -59,8 +56,9 @@
 </template>
 <script>
 import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
-// import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.vue"
+import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.vue"
 // import ListaComponent from "@/components/ListaMateriais/ListaComponente.vue"
+import { getUnidades } from "@/services/serviceUnidades";
 import serviceProdutos from "@/services/serviceProdutos";
 import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
 import { sso } from "roboflex-thalamus-sso-lib";
@@ -69,7 +67,7 @@ export default {
   name: "CadastroProduto",
   components: {
     AlteraçõesPendentes,
-    // EstruturaComponent,
+    EstruturaComponent,
     RoteiroComponente,
     // ListaComponent
   },
@@ -89,32 +87,29 @@ export default {
         tipo: "",
         destaque: true,
       },
+      estruturaProduto: [],
       usuarioId: '',
-      usuarioLogado: ''
+      usuarioLogado: '',
+
+      unidades: []
 
     };
   },
+  async created() {
+    this.getProduto();
+    this.usuarioLogado = sso.getUsuarioLogado();
+    this.usuarioId = this.usuarioLogado.id;
+    this.unidades = await getUnidades()
+  },
   methods: {
-    adicionarItemNaEstrutura(item) {
-      this.produto.filhos.push(item)
-    },
     async getProduto() {
       this.produto = null;
       var produtos = await serviceProdutos.getProdutos();
       if (this.id) {
         var produtoEditado = produtos.find((prod) => prod.id == this.id);
-
         if (produtoEditado) {
-          // var filhos = await serviceProdutos.getEstrutura(produtoEditado.produto_cod);
-
-          // if (filhos.length > 0) {
-          //   produtoEditado.filhos = filhos;
-          // } else {
-          //   produtoEditado.filhos = []
-          // }
-
           this.produto = produtoEditado;
-          // this.mostrarEstrutura = !!produtoEditado.filhos;
+          this.getEstrutura(produtoEditado.produto_cod)
           this.mostrarEstrutura = true;
         } else {
           this.produto = { filhos: [] };
@@ -125,6 +120,15 @@ export default {
         this.mostrarEstrutura = false;
       }
     },
+    async getEstrutura(id) {
+      var estrutura = await serviceProdutos.getEstrutura(id);
+
+      if (estrutura.length > 0) {
+        this.produto.filhos = estrutura;
+      } else {
+        this.produto.filhos = []
+      }
+    },
     abrirModal() {
       this.mostrarModal = true;
     },
@@ -132,27 +136,7 @@ export default {
       this.mostrarModal = false;
     },
 
-    salvarLembrete() {
-      if (this.novoItem.descricao) {
-        this.adicionarItem(this.novoItem);
-
-        setTimeout(() => {
-          this.novoItem.destaque = false;
-        }, 5000);
-
-        this.fecharModal();
-      }
-    },
-    adicionarItem(item) {
-      this.itensTratados.composicao.push(item);
-    },
-  },
-  created() {
-    this.usuarioLogado = sso.getUsuarioLogado();
-    this.usuarioId = this.usuarioLogado.id;
-    this.getProduto()
-  },
-
+  }
 };
 </script>
 <style scoped>

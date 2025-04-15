@@ -6,19 +6,28 @@
   }">
     <i :class="caretIcon"></i>
     <span :class="classeProduto" class="tipo-produto"></span>
-    <span class="item-description" @click.stop="mostrarDetalhes(item)" :title="item.desc ?? item.produto_desc">
-      UDO030242* - {{ item.desc ?? item.produto_desc }} <span v-if="item.qt && item.unidade"> - <b>{{ item.qt }} {{
-        item.unidade }}</b></span> <i class="bi bi-trash" @click.stop="confirmarRemocao(item)"
-        style="font-size: 15px; cursor: pointer; color: red; "></i></span>
+    <span class="item-description" :title="item.desc ?? item.produto_desc">
+      {{ item.produto_codigo ?? item.cod }} - {{ item.desc ?? item.produto_desc }}
+      <span v-if="item.qt && item.unidade" @click.stop> - <input type="text" :readonly="!editavel" @blur="atualizaItem(item.id, 'qt', itemCopia.qt)"
+          style="width: 6rem; padding: 2px 5px; height: 2rem;" v-model="itemCopia.qt">
+        <select v-model="itemCopia.unidade" style="width: 7rem; padding: 2px 5px; height: 2rem; margin-left: .2rem"
+          v-if="editavel" @change="atualizaItem(item.id, 'unidade', itemCopia.unidade)">
+          <option v-for="i, index in unidades" :key="index" :value="i.cod">{{ i.nome }}</option>
+        </select>
+        <span v-else>{{ item.unidade }}</span>
+      </span>
+      <i class="bi bi-trash" v-if="editavel" @click.stop="confirmarRemocao(item)"
+        style="font-size: 15px; cursor: pointer; color: red; margin-left: .5rem"></i></span>
   </div>
   <div v-if="isOpen" class="child-items">
-    <EstruturaComponent v-for="(childItem, index) in itensTratados.filhos" :key="index"
-      @mostrarDetalhes="mostrarDetalhes" :item="childItem" @removerItem="removerItem" />
+    <EstruturaComponent v-for="(childItem, index) in itemCopia.filhos" :key="index" :item="childItem"
+      @removerItem="removerItem" :editavel="podeEditar" :unidades="unidades" />
     <div v-if="iniciarAberto || item.destaque" class="add-item">
       <i class="bi bi-plus-square"></i>
       <AutoCompleteComponent @adicionarItem="adicionarItem" @abrirModalNovoItem="abrirModal" />
     </div>
   </div>
+
   <!-- MODAL -->
   <div class="modal-mask" v-if="modalConfirmacao" @click="fecharModalConfirmacao()">
     <div class="jm margem" @click.stop>
@@ -36,22 +45,25 @@
 </template>
 <script>
 import AutoCompleteComponent from '@/components/AutoComplete/AutoCompleteComponent.vue';
+import serviceProdutos from "@/services/serviceProdutos";
 export default {
   name: "EstruturaComponent",
   components: {
     AutoCompleteComponent,
   },
   props: {
-    item: { required: true },
+    item: { Required: true },
     iniciarAberto: { type: Boolean, default: false },
+    editavel: { Required: true },
+    unidades: { type: Array },
   },
   data() {
     return {
-      itensTratados: this.item,
+      podeEditar: true,
+      itemCopia: this.item,
       isOpen: this.iniciarAberto,
       modalConfirmacao: false,
       itemParaRemocao: null,
-
     };
   },
   computed: {
@@ -100,22 +112,33 @@ export default {
         }
       }
       this.fecharModalConfirmacao();
-    }
-    ,
-    removerItemPai(id) {
-      this.$emit('removerItem', id)
     },
     removerItem(id) {
-      this.itensTratados.filhos = this.itensTratados.filhos.filter(item => item.id !== id);
+      this.itemCopia.filhos = this.itemCopia.filhos.filter(item => item.id !== id);
+      serviceProdutos.removerItemEstrutura(id)
     },
-    mostrarDetalhes(item) {
-      this.$emit("mostrarDetalhes", item);
+    async adicionarItem(i) {
+      if (this.item.filhos.map(i => i.produtoF_cod).includes(i.produto_cod)) {
+        return;
+      }
+      var payload = {
+        produtoP_cod: this.item.produto_cod, // código do produto pai
+        produtoF_cod: i.produto_cod, // código do produto filho
+        qt: 1,
+        unidade: "UN"
+      }
+      await serviceProdutos.adicionarItemEstrutura(payload);
+      this.$emit("atualizar", this.item.produto_cod);
     },
-    adicionarItem(item) {
-      this.itensTratados.filhos.push(item);
+    async atualizaItem(id, itemEditado, valor) {
+      var payload = {
+        [itemEditado]: valor,
+      }
+      await serviceProdutos.atualizarItemEstrutura(id, payload)
     },
     toggle() {
       if (this.hasChildren) {
+        this.podeEditar = !this.podeEditar;
         this.isOpen = !this.isOpen;
       }
     },

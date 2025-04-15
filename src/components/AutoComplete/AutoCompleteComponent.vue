@@ -9,7 +9,7 @@
             <!-- <li v-if="!substituir" @click="novoLembrete">Novo Lembrete <i class="fa-solid fa-lightbulb"
                     style="color: red;"></i></li> -->
             <li v-for="item in opcoesFiltradas" :key="item.id" @click="adicionarItem(item)">
-                {{ item.desc }}
+                {{ item.cod }} - {{ item.desc }}
             </li>
         </ul>
     </div>
@@ -62,7 +62,8 @@ export default {
     computed: {
         opcoesFiltradas() {
             return this.opcoes.filter(item =>
-                item.desc?.toLowerCase().includes(this.itemSelecionado.desc?.toLowerCase())
+                item.desc?.toLowerCase().includes(this.itemSelecionado.desc?.toLowerCase()) ||
+                item.cod?.toLowerCase().includes(this.itemSelecionado.desc?.toLowerCase())
             );
         },
     },
@@ -99,6 +100,7 @@ input {
     max-height: 20rem;
     overflow: hidden;
     z-index: 9999;
+
     li {
         margin-left: .5rem;
         padding: 5px;
