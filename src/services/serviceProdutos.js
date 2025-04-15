@@ -215,7 +215,9 @@ const funções = {
     async getUnidade() {
         try {
             const response = await api.get(`unidade-medida/listar`)
-            return response.data;
+            return response.data.sort((a, b) => {
+                return a.cod.localeCompare(b.cod, 'pt', { sensitivity: 'base' });
+            });
         } catch (error) {
             console.error("Erro ao listar unidades")
             throw error;

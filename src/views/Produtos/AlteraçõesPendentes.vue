@@ -25,7 +25,7 @@
               <label>Unidade <i title="Editar unidade" @click="abrirModalEditarCombo('und')"></i></label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.und"
                 @change="atualizarPayLoad('und', produto_original.und)">
-                <option v-for="item in und" :key="item.id" :value="item.nome"> {{ item.nome }}</option>
+                <option v-for="item in und" :key="item.id" :value="item.cod"> {{ item.nome }}</option>
               </select>
             </div>
             <div> <label>Família</label>
@@ -85,17 +85,13 @@
           <br>
           <div class="grid">
             <label>Especificações </label>
-            <!-- <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes"
-              @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)"> </textarea> -->
-            <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.especificacoes)"
+            <QuillEditor theme="snow" @focusout="atualizarPayLoad('especificacoes', produto_original.especificacoes)"
               :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.especificacoes"
               content-type="html" style="height: 80px;" />
           </div>
           <br>
           <div class="grid">
             <label>Observações </label>
-            <!-- <textarea :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.observacoes"
-              @change="atualizarPayLoad('observacoes', produto_original.observacoes)"> </textarea> -->
             <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.observacoes)"
               :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes" content-type="html"
               style="height: 80px;" />
@@ -248,10 +244,10 @@
       </div>
       <div class="submit m-b direita">
         <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
-        <!-- <button @click="salvarProduto()">Salvar</button> -->
-        <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
+        <button @click="salvarProduto()">Salvar</button>
+        <!-- <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
           style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso" @click="cadastrarOMIE"> {{
-            isCadastro ? 'Cadastrar Produto' : 'Atualizar Produto' }}</button>
+            isCadastro ? 'Cadastrar Produto' : 'Atualizar Produto' }}</button> -->
         <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
       </div>
     </div>
@@ -372,11 +368,9 @@ export default {
         this.carregarUnidades()
     },
     async cadastrarOMIE() {
-      if (!this.camposVazios) {
-        var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
-        if (response) {
-          toaster.success("Produto cadastrado com sucesso!");
-        }
+      var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
+      if (response) {
+        toaster.success("Produto cadastrado com sucesso!");
       }
     },
     abrirModalEditarCombo(itemEditado) {
