@@ -22,7 +22,8 @@
           <i class="fa-solid fa-caret-up" id="setaCimaFamiliaProduto" style="display: none"></i>
           <i class="fa-solid fa-caret-down" id="setaBaixoFamiliaProduto" style="display: none"></i>
         </th>
-        <th>Ações</th>
+        <!-- <th>Ações</th> -->
+        <th style="text-align: center;">Atualizado</th>
       </tr>
       <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
         @click="abrirDetalhes(item.id)">
@@ -30,16 +31,13 @@
         <td> {{ item.desc }} </td>
         <td> {{ item.tipo?.nome ?? "-" }} </td>
         <td> {{ item.familia_produto?.familia_nome ?? "-" }} </td>
-        <td @click.stop>
-          <!-- <div style="display: flex; width: 3rem; justify-content: space-between;"> -->
+        <!-- <td @click.stop>
           <div>
             <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
                 class="fa-regular fa-copy"></i></span>
-            <!-- :style="{ 'opacity': index == 2 ? '0.2' : '1', 'cursor': index == 2 ? 'not-allowed' : 'pointer' }" -->
-            <!-- <span @click="abrirDetalhes(item.id)" title="Editar Produto" class="ação"><i
-                class="fa-regular fa-pen-to-square"></i></span> -->
           </div>
-        </td>
+        </td> -->
+        <td style="text-align: center;">??</td>
       </tr>
     </tbody>
   </table>
