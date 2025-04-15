@@ -13,7 +13,7 @@
                         <th style="width: 1.5rem; padding: 0;" :rowspan="element.servicos.length + 2"
                             class="tituloSetor">
                             <span style="writing-mode: sideways-lr; padding-inline: 3rem;">{{ element.setor.nome
-                            }}</span>
+                                }}</span>
                         </th>
                         <th>Código</th>
                         <th>Descrição</th>
@@ -75,7 +75,6 @@
                             </ul>
                             <AutoCompleteRoteiro :BaseOpcoes="parametros"
                                 @adicionarItem="(event) => atualizarServico(i.id, 'parametro_id', event.id)" />
-
                         </td>
                         <td :title="i.observacao" style="cursor: pointer">
                             <textarea :rows="i.materiais.length + 2"
@@ -181,6 +180,7 @@ import serviceFerramentas from "@/services/serviceFerramentas";
 import serviceProdutos from '@/services/serviceProdutos'
 import serviceRoteiro from '@/services/serviceRoteiro2.0';
 import serviceParametros from '@/services/serviceParametrosTeste'
+import { getUnidades } from '@/services/serviceUnidades'
 import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import { getSetoresHieraquico } from "@/services/serviceSetores.js";
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
@@ -199,6 +199,7 @@ export default {
         return {
             roteiro: [],
             setores: [],
+            unidades: [],
             baseCodigoServico: baseCodigoServico,
             idSetorNovoServico: null,
             novoServico: {
@@ -227,7 +228,8 @@ export default {
         this.getProdutos();
         this.obterFerramentas();
         this.obterParametros();
-        this.getRoteiro()
+        this.getRoteiro();
+        this.unidades = await getUnidades();
         this.setores = await getSetoresHieraquico();
     },
     methods: {
