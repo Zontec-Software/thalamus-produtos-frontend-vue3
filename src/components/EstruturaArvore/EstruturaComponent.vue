@@ -7,19 +7,21 @@
     <i :class="caretIcon"></i>
     <span :class="classeProduto" class="tipo-produto"></span>
     <span class="item-description" :title="item.desc ?? item.produto_desc">
-      UDO030242 - {{ item.desc ?? item.produto_desc }}
-      <span v-if="item.qt && item.unidade" @click.stop> - <input type="number" :readonly="!editavel"
+      {{ item.produto_codigo ?? item.cod }} - {{ item.desc ?? item.produto_desc }}
+      <span v-if="item.qt && item.unidade" @click.stop> - <input type="text" :readonly="!editavel" @blur="atualizaItem(item.id, 'qt', itemCopia.qt)"
           style="width: 6rem; padding: 2px 5px; height: 2rem;" v-model="itemCopia.qt">
-        <select v-model="itemCopia.unidade" style="width: 7rem; padding: 2px 5px; height: 2rem; margin-left: .2rem; opacity: 1;" :disabled="!editavel">
+        <select v-model="itemCopia.unidade" style="width: 7rem; padding: 2px 5px; height: 2rem; margin-left: .2rem"
+          v-if="editavel" @change="atualizaItem(item.id, 'unidade', itemCopia.unidade)">
           <option v-for="i, index in unidades" :key="index" :value="i.cod">{{ i.nome }}</option>
         </select>
+        <span v-else>{{ item.unidade }}</span>
       </span>
-      <i class="bi bi-trash" v-if="editavel" @click="confirmarRemocao(item)"
+      <i class="bi bi-trash" v-if="editavel" @click.stop="confirmarRemocao(item)"
         style="font-size: 15px; cursor: pointer; color: red; margin-left: .5rem"></i></span>
   </div>
   <div v-if="isOpen" class="child-items">
     <EstruturaComponent v-for="(childItem, index) in itemCopia.filhos" :key="index" :item="childItem"
-      @removerItem="removerItem" :editavel="podeEditar" :unidades="unidades" /> 
+      @removerItem="removerItem" :editavel="podeEditar" :unidades="unidades" />
     <div v-if="iniciarAberto || item.destaque" class="add-item">
       <i class="bi bi-plus-square"></i>
       <AutoCompleteComponent @adicionarItem="adicionarItem" @abrirModalNovoItem="abrirModal" />
@@ -127,6 +129,12 @@ export default {
       }
       await serviceProdutos.adicionarItemEstrutura(payload);
       this.$emit("atualizar", this.item.produto_cod);
+    },
+    async atualizaItem(id, itemEditado, valor) {
+      var payload = {
+        [itemEditado]: valor,
+      }
+      await serviceProdutos.atualizarItemEstrutura(id, payload)
     },
     toggle() {
       if (this.hasChildren) {

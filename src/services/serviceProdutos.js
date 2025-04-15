@@ -85,6 +85,16 @@ const funções = {
         }
     },
 
+    async atualizarItemEstrutura(id, payload) {
+        try {
+            const response = await api.patch(`estrutura/atualizar/${id}`, payload);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
     async getTipoeFamilias() {
         try {
             const payload = {
