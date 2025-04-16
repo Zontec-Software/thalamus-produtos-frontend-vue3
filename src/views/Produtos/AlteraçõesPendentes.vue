@@ -92,7 +92,7 @@
           <br>
           <div class="grid">
             <label>Observações </label>
-            <QuillEditor theme="snow" @blur="atualizarPayLoad('especificacoes', produto_original.observacoes)"
+            <QuillEditor theme="snow" @blur="atualizarPayLoad('observacoes', produto_original.observacoes)"
               :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes" content-type="html"
               style="height: 80px;" />
           </div>
@@ -244,7 +244,7 @@
       </div>
       <div class="submit m-b direita">
         <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
-        <button @click="salvarProduto()">Salvar</button>
+        <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
         <!-- <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
           style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso" @click="cadastrarOMIE"> {{
             isCadastro ? 'Cadastrar Produto' : 'Atualizar Produto' }}</button> -->
