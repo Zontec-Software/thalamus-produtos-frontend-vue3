@@ -23,7 +23,7 @@
           <i class="fa-solid fa-caret-down" id="setaBaixoFamiliaProduto" style="display: none"></i>
         </th>
         <!-- <th>Ações</th> -->
-        <th style="text-align: center;">Status</th>
+        <th style="text-align: center;">Revisão</th>
       </tr>
       <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
         @click="abrirDetalhes(item.id)">
@@ -40,9 +40,9 @@
         <td style="text-align: center;" @click.stop>
           <select @change="atualizarStatus(item.produto_cod, item.status_produto)" v-model="item.status_produto"
             style="text-align: center; width: fit-content;">
-            <option :value="null" hidden>Não Revisado</option>
-            <option>Revisado</option>
-            <option>Revisão Fiscal</option>
+            <option :value="null" hidden>Não realizada</option>
+            <option>Realizada</option>
+            <option>Fiscal realizada</option>
           </select>
         </td>
       </tr>
