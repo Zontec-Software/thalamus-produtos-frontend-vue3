@@ -18,7 +18,7 @@
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-      <div class="bloco margem">
+      <div class="bloco margem" v-if="!tiposProduto.includes(this.id)">
         <header class="alinha-centro">
           <h2>Estrutura</h2>
         </header>
@@ -40,7 +40,7 @@
           <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
         </div>
       </div>
-      <div class="bloco margem">
+      <div class="bloco margem" v-if="!tiposProduto.includes(this.id)">
         <div class="alinha-centro">
           <h2>Roteiro</h2>
         </div>

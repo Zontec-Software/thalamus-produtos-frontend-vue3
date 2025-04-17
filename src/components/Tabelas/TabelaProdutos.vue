@@ -91,7 +91,7 @@ export default {
         usuario_id: sso.getUsuarioLogado().id,
         status_produto: status,
       };
-      serviceProdutos.salvarLocal(id, payload)
+      serviceProdutos.finalizarCadastro(id, payload)
     },
     filtrarProdutos() {
       this.listaProdutosFiltrada = this.produtos.filter((item) => {
