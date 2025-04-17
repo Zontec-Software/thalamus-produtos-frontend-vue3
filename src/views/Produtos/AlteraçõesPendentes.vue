@@ -539,7 +539,7 @@ export default {
         }
 
         else {
-          await serviceProdutos.salvarLocal(this.produto_cod, this.payLoad);
+          await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
           toaster.success("Produto salvo com sucesso!");
 
         }
