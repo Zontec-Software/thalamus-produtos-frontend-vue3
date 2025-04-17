@@ -23,7 +23,7 @@
           <i class="fa-solid fa-caret-down" id="setaBaixoFamiliaProduto" style="display: none"></i>
         </th>
         <!-- <th>Ações</th> -->
-        <th style="text-align: center;">Atualizado</th>
+        <th style="text-align: center;">Status</th>
       </tr>
       <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
         @click="abrirDetalhes(item.id)">
@@ -37,7 +37,14 @@
                 class="fa-regular fa-copy"></i></span>
           </div>
         </td> -->
-        <td style="text-align: center;">??</td>
+        <td style="text-align: center;" @click.stop>
+          <select @change="atualizarStatus(item.produto_cod, item.status_produto)" v-model="item.status_produto"
+            style="text-align: center; width: fit-content;">
+            <option :value="null" hidden>Não Revisado</option>
+            <option>Revisado</option>
+            <option>Revisão Fiscal</option>
+          </select>
+        </td>
       </tr>
     </tbody>
   </table>
@@ -47,6 +54,7 @@
 </template>
 <script>
 import serviceProdutos from "@/services/serviceProdutos";
+import { sso } from "roboflex-thalamus-sso-lib";
 
 export default {
   name: "TabelaProdutos",
@@ -76,11 +84,26 @@ export default {
       this.filtrarProdutos();
     },
   },
+
   methods: {
+    atualizarStatus(id, status) {
+      var payload = {
+        usuario_id: sso.getUsuarioLogado().id,
+        status_produto: status,
+      };
+      serviceProdutos.salvarLocal(id, payload)
+    },
     filtrarProdutos() {
       this.listaProdutosFiltrada = this.produtos.filter((item) => {
         const matchQuery = this.searchQuery
-          ? item.desc.toLowerCase().includes(this.searchQuery.toLowerCase())
+          ? Object.values(item).some((valor) => {
+            if (valor && typeof valor === 'object') {
+              return Object.values(valor).some((subValor) =>
+                String(subValor).toLowerCase().includes(this.searchQuery.toLowerCase())
+              );
+            }
+            return String(valor).toLowerCase().includes(this.searchQuery.toLowerCase());
+          })
           : true;
 
         const matchFiltro = this.filtro
