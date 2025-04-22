@@ -205,6 +205,37 @@ const funções = {
         }
     },
 
+    async removerFerramenta(id) {
+        try {
+            const response = await api.delete(`setor-servico/ferramenta/remover/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async removerParametro(id) {
+        try {
+            const response = await api.delete(`setor-servico/parametro/remover/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    
+    async removerMaterial(id) {
+        try {
+            const response = await api.delete(`setor-servico/material/remover/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
     async atualizarMaterial(id, payload) {
         // payloadEsperado: 
         //{
