@@ -31,9 +31,9 @@
                                 <li v-for="item in i.materiais" :key="item.id" style="display: flex;"
                                     :title="`${item.produto.cod} - ${item.produto.desc}`">
                                     <div class="texto">
-                                        {{ item.produto.cod }} - <span>{{ `${item.produto.desc}` }}</span>
+                                        {{ item.produto.cod }} - <span>{{ item.produto.desc }}</span>
                                     </div>
-                                    <div>
+                                    <div class="alinha-v">
                                         <input type="number" class="qtdItens" v-model="item.qtd"
                                             @blur="atualizarMaterial(item.id, 'qtd', item.qtd)" />
                                         <select v-model="item.unidade" style="text-align: center;"
@@ -46,6 +46,7 @@
                                             <option>g</option>
                                         </select>
                                     </div>
+                                    <i class="bi-x-circle" title="Remover Material" style="margin-left: 5px;" @click="removerMaterial(item.id)"></i>
                                 </li>
                             </ul>
                             <div style="justify-content: center; display: flex;">
@@ -56,10 +57,12 @@
                         </td>
                         <td>
                             <ul>
-                                <li v-for="item in i.ferramentas" :key="item.id" style="display: flex;">
+                                <li v-for="item in i.ferramentas" :key="item.id"
+                                    style="display: flex; justify-content: space-between;">
                                     <div>
                                         <span>{{ `${item.ferramenta.codigo} - ${item.ferramenta.nome}` }}</span>
                                     </div>
+                                    <i class="bi-x-circle" title="Remover Ferramenta" @click="removerFerramenta(item.id)"></i>
                                 </li>
                             </ul>
                             <AutoCompleteRoteiro :BaseOpcoes="ferramentas"
@@ -67,10 +70,12 @@
                         </td>
                         <td>
                             <ul>
-                                <li v-for="item in i.parametros" :key="item.id" style="display: flex;">
+                                <li v-for="item in i.parametros" :key="item.id"
+                                    style="display: flex; justify-content: space-between">
                                     <div>
                                         <span>{{ `${item.parametro.codigo} - ${item.parametro.nome}` }}</span>
                                     </div>
+                                    <i class="bi-x-circle" title="Remover Parâmetro" @click="removerParametro(item.id)"></i>
                                 </li>
                             </ul>
                             <AutoCompleteRoteiro :BaseOpcoes="parametros"
@@ -342,11 +347,37 @@ export default {
                     this.fecharModalConfirmacao()
                 }
             }
-        }
+        },
+
+        async removerFerramenta(id) {
+            var response = await serviceRoteiro.removerFerramenta(id)
+            if (response) {
+                this.getRoteiro()
+            }
+        },
+
+        async removerParametro(id) {
+            var response = await serviceRoteiro.removerParametro(id)
+            if (response) {
+                this.getRoteiro()
+            }
+        },
+
+        async removerMaterial(id) {
+            var response = await serviceRoteiro.removerMaterial(id)
+            if (response) {
+                this.getRoteiro()
+            }
+        },
     }
 }
 </script>
 <style scoped>
+.bi-x-circle {
+    color: var(--cor-erro);
+    cursor: pointer;
+}
+
 .modal-mask {
     position: fixed;
     top: 0;

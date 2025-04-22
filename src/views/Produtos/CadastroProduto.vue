@@ -140,6 +140,9 @@ export default {
 };
 </script>
 <style scoped>
+.container {
+  max-width: 1472px;
+}
 .botao-adicionar {
   float: right;
   margin-top: -40px;
