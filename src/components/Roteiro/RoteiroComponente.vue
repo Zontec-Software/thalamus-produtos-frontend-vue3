@@ -22,6 +22,7 @@
                         <th>Parâmetro de Inspeção</th>
                         <th>Observações</th>
                         <th style="width: 3rem;"></th>
+                        <th style="width: 3rem;"></th>
                     </tr>
                     <tr v-for="(i, index2) in element.servicos" :key="index2">
                         <td>{{ i.codigo_servico }}</td>
@@ -46,7 +47,8 @@
                                             <option>g</option>
                                         </select>
                                     </div>
-                                    <i class="bi-x-circle" title="Remover Material" style="margin-left: 5px;" @click="removerMaterial(item.id)"></i>
+                                    <i class="bi-x-circle" title="Remover Material" style="margin-left: 5px;"
+                                        @click="removerMaterial(item.id)"></i>
                                 </li>
                             </ul>
                             <div style="justify-content: center; display: flex;">
@@ -62,7 +64,8 @@
                                     <div>
                                         <span>{{ `${item.ferramenta.codigo} - ${item.ferramenta.nome}` }}</span>
                                     </div>
-                                    <i class="bi-x-circle" title="Remover Ferramenta" @click="removerFerramenta(item.id)"></i>
+                                    <i class="bi-x-circle" title="Remover Ferramenta"
+                                        @click="removerFerramenta(item.id)"></i>
                                 </li>
                             </ul>
                             <AutoCompleteRoteiro :BaseOpcoes="ferramentas"
@@ -75,7 +78,8 @@
                                     <div>
                                         <span>{{ `${item.parametro.codigo} - ${item.parametro.nome}` }}</span>
                                     </div>
-                                    <i class="bi-x-circle" title="Remover Parâmetro" @click="removerParametro(item.id)"></i>
+                                    <i class="bi-x-circle" title="Remover Parâmetro"
+                                        @click="removerParametro(item.id)"></i>
                                 </li>
                             </ul>
                             <AutoCompleteRoteiro :BaseOpcoes="parametros"
@@ -86,13 +90,15 @@
                                 @blur="atualizarServico(i.id, 'observacao', i.observacao)"
                                 v-model="i.observacao"></textarea>
                         </td>
-                        <td style="text-align: center;">
-                            <i class="bi-trash" @click="abrirModalConfirmacao(i.id, 'serviço')"
-                                style="font-size: 16px; cursor: pointer; color: red;"></i>
+                        <td>
+                            <a class="icone-lixeira" @click="abrirModalConfirmacao(i.id, 'serviço')"></a>
+                        </td>
+                        <td>
+                            <a @click="modalAnexos = true" class="icone-inc"></a>
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="7">
+                        <td colspan="8">
                             <div class="tags" style="justify-content: center;">
                                 <a @click="idSetorNovoServico = element.id, modalAdicionarServiço = true">Adicionar
                                     Serviço</a>
@@ -178,6 +184,29 @@
     </div>
     <!-- END MODAL-->
 
+    <!-- MODAL -->
+    <div class="modal-mask" v-if="modalAnexos" @click="modalAnexos = false">
+        <div class="jm margem" @click.stop>
+            <div class="alinha-centro">
+                <h3>Anexos Serviço 010020</h3>
+            </div>
+            <div class="tags">
+                <a>
+                    Anexo 1
+                    <i style="color: var(--cor-erro); margin-left: .5rem; font-size: 16px;"
+                        class="bi-trash" title="Excluir anexo"></i>
+                </a>
+                <a>
+                    Anexo 2
+                    <i style="color: var(--cor-erro); margin-left: .5rem; font-size: 16px;"
+                        class="bi-trash" title="Excluir anexo"></i>
+                </a>
+                <a title="Adicionar Anexo">+</a>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL  -->
+
 </template>
 <script>
 import draggable from "vuedraggable";
@@ -220,6 +249,7 @@ export default {
             ferramentas: [],
             parametros: [],
             modalConfirmacao: false,
+            modalAnexos: false,
             idParaRemoção: null,
             tipoExclusao: null,
 
@@ -378,16 +408,11 @@ export default {
     cursor: pointer;
 }
 
-.modal-mask {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.tags {
+    a {
+        cursor: pointer;
+
+    }
 }
 
 .bi-trash:hover {
