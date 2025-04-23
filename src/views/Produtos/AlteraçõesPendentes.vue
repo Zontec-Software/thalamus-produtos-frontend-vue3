@@ -12,12 +12,12 @@
           <div class="grid-4">
             <div>
               <label>Código do Produto</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cod"
+              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cod" required
                 @input="atualizarPayLoad('cod', produto_original.cod)">
             </div>
             <div>
               <label>Descrição</label>
-              <textarea :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.desc"
+              <textarea :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.desc" required
                 @input="atualizarPayLoad('desc', produto_original.desc)"></textarea>
               <!-- <span v-if="alteracoes.desc"> Alterado por {{ alteracoes.desc.usuario }} </span> -->
             </div>
@@ -167,13 +167,13 @@
         <fieldset class="margem grid-4">
           <div>
             <label>Origem da Mercadoria</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.origem_mercadoria"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.origem_mercadoria" required
               @input="atualizarPayLoad('origem_mercadoria', produto_original.origem_mercadoria)" />
             <!-- <span v-if="alteracoes.peso"> Alterado por {{ alteracoes.peso.usuario }} </span> -->
           </div>
           <div>
             <label>Preço Tabelado (Pauta)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.preco_tabelado"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.preco_tabelado" required
               @input="atualizarPayLoad('preco_tabelado', produto_original.preco_tabelado)">
           </div>
           <!-- <div>
@@ -182,43 +182,43 @@
           </div> -->
           <div>
             <label>CEST (Código Especificador da Substituição Tributária)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cest"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cest" required
               @input="atualizarPayLoad('cest', produto_original.cest)">
           </div>
           <div>
             <label>Indicador de Produção em Escala Relevante</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.indicador_escala"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.indicador_escala" required
               @input="atualizarPayLoad('indicador_escala', produto_original.indicador_escala)">
           </div>
           <div>
             <label>CNPJ Fabricante</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cnpj_fabricante"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cnpj_fabricante" required
               @input="atualizarPayLoad('cnpj_fabricante', produto_original.cnpj_fabricante)">
           </div>
           <div>
             <label>Cupom Fiscal</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cupom_fiscal"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cupom_fiscal" required
               @input="atualizarPayLoad('cupom_fiscal', produto_original.cupom_fiscal)">
           </div>
           <div>
             <label>Market Place</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.market_place"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.market_place" required
               @input="atualizarPayLoad('market_place', produto_original.market_place)">
           </div>
           <div>
             <label>Preço Unitário</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.valor_unitario"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.valor_unitario" required
               @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
             <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
           </div>
           <div>
             <label>Código EAN (GTIN)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.ean"
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.ean" required
               @change="atualizarPayLoad('ean', produto_original.ean)" />
           </div>
           <div>
             <label>NCM : {{ produto_original.ncm }}</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm"
+            <input :disabled="!isFinanceiro" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm" required
               @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
             <div v-if="listaAbertaNcm && filteredNcm.length" style="
               background-color: var(--cor-bg);
