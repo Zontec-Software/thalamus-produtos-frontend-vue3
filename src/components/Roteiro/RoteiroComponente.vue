@@ -1,5 +1,4 @@
 <template>
-    {{ produtos }}
     <div style="margin-top: 1rem;" v-if="roteiro && roteiro != []">
         <draggable v-model="roteiro.setores" group="roteiro" item-key="id" handle=".drag-handle" animation="200"
             @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
