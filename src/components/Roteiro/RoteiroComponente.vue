@@ -1,4 +1,5 @@
 <template>
+    {{ produtos }}
     <div style="margin-top: 1rem;" v-if="roteiro && roteiro != []">
         <draggable v-model="roteiro.setores" group="roteiro" item-key="id" handle=".drag-handle" animation="200"
             @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
@@ -211,7 +212,6 @@
 <script>
 import draggable from "vuedraggable";
 import serviceFerramentas from "@/services/serviceFerramentas";
-import serviceProdutos from '@/services/serviceProdutos'
 import serviceRoteiro from '@/services/serviceRoteiro2.0';
 import serviceParametros from '@/services/serviceParametrosTeste'
 import { getUnidades } from '@/services/serviceUnidades'
@@ -228,6 +228,9 @@ export default {
         produto_cod: {
             type: Number,
         },
+        produtos: {
+            Required: true
+        }
     },
     data() {
         return {
@@ -245,7 +248,6 @@ export default {
             },
             novoSetor_id: null,
             modalAdicionarServiço: false,
-            produtos: [],
             ferramentas: [],
             parametros: [],
             modalConfirmacao: false,
@@ -260,7 +262,6 @@ export default {
         }
     },
     async mounted() {
-        this.getProdutos();
         this.obterFerramentas();
         this.obterParametros();
         this.getRoteiro();
@@ -297,10 +298,6 @@ export default {
         async obterParametros() {
             const response = await serviceParametros.buscarPametros();
             this.parametros = response
-        },
-
-        async getProdutos() {
-            this.produtos = await serviceProdutos.getProdutos()
         },
 
         montarCodServico() {

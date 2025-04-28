@@ -44,7 +44,7 @@
         <div class="alinha-centro">
           <h2>Roteiro</h2>
         </div>
-        <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" />
+        <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" />
       </div>
     </div>
     <div class="loading" v-else>
@@ -102,6 +102,31 @@ export default {
     this.unidades = await getUnidades()
   },
   methods: {
+    listarProdutos(payload) {
+      const produtos = [];
+      produtos.push({
+        id: payload.id,
+        cod: payload.cod,
+        produto_cod: payload.produto_cod,
+        descricao: payload.desc,
+        tipo: payload.tipo?.nome || null,
+        familia: payload.familia_produto?.familia_nome || null
+      });
+      if (payload.filhos && Array.isArray(payload.filhos)) {
+        payload.filhos.forEach(filho => {
+          produtos.push({
+            id: filho.id,
+            cod: filho.produto_codigo,
+            descricao: filho.produto_desc,
+            produto_cod: filho.produto_cod,
+            tipo: filho.produto_tipo,
+            familia: filho.produto_familia
+          });
+        });
+      }
+
+      return produtos;
+    },
     async getProduto() {
       this.produto = null;
       var produtos = await serviceProdutos.getProdutos();
@@ -143,6 +168,7 @@ export default {
 .container {
   max-width: 1472px;
 }
+
 .botao-adicionar {
   float: right;
   margin-top: -40px;
