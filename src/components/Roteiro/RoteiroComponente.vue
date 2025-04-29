@@ -12,7 +12,7 @@
                     <tr style="max-height: 3rem !important;">
                         <th style="width: 1.5rem; padding: 0;" :rowspan="element.servicos.length + 2"
                             class="tituloSetor">
-                            <span style="writing-mode: sideways-lr; padding-inline: 3rem;">{{ element.setor.nome
+                            <span style="writing-mode: sideways-lr; padding-inline: 3rem;">{{ element.setor?.nome
                                 }}</span>
                         </th>
                         <th>Código</th>
@@ -62,7 +62,7 @@
                                 <li v-for="item in i.ferramentas" :key="item.id"
                                     style="display: flex; justify-content: space-between;">
                                     <div>
-                                        <span>{{ `${item.ferramenta.codigo} - ${item.ferramenta.nome}` }}</span>
+                                        <!-- <span>{{ `${item.ferramenta?.codigo} - ${item.ferramenta?.nome}` }}</span> -->
                                     </div>
                                     <i class="bi-x-circle" title="Remover Ferramenta"
                                         @click="removerFerramenta(item.id)"></i>
@@ -76,7 +76,7 @@
                                 <li v-for="item in i.parametros" :key="item.id"
                                     style="display: flex; justify-content: space-between">
                                     <div>
-                                        <span>{{ `${item.parametro.codigo} - ${item.parametro.nome}` }}</span>
+                                        <!-- <span>{{ `${item.parametro?.codigo} - ${item.parametro?.nome}` }}</span> -->
                                     </div>
                                     <i class="bi-x-circle" title="Remover Parâmetro"
                                         @click="removerParametro(item.id)"></i>
