@@ -28,7 +28,7 @@ function flattenHierarchy(data) {
 
     data.forEach(item => {
         if (item.nivel_hierarquico <= 10) {
-            setores.push({ id: item.id, nome: item.nome, nivel_hierarquico: item.nivel_hierarquico, responsavel_id: item.responsavel_id });
+            setores.push({ id: item.id, nome: item.nome, nivel_hierarquico: item.nivel_hierarquico, responsavel_id: item.responsavel_id, montagem: item.montagem });
         }
 
         if (item.subsetor.length > 0) {

@@ -62,7 +62,7 @@
                                 <li v-for="item in i.ferramentas" :key="item.id"
                                     style="display: flex; justify-content: space-between;">
                                     <div>
-                                        <!-- <span>{{ `${item.ferramenta?.codigo} - ${item.ferramenta?.nome}` }}</span> -->
+                                        <span>{{ `${item.ferramenta?.codigo} - ${item.ferramenta?.nome}` }}</span>
                                     </div>
                                     <i class="bi-x-circle" title="Remover Ferramenta"
                                         @click="removerFerramenta(item.id)"></i>
@@ -76,7 +76,7 @@
                                 <li v-for="item in i.parametros" :key="item.id"
                                     style="display: flex; justify-content: space-between">
                                     <div>
-                                        <!-- <span>{{ `${item.parametro?.codigo} - ${item.parametro?.nome}` }}</span> -->
+                                        <span>{{ `${item.parametro?.codigo} - ${item.parametro?.nome}` }}</span>
                                     </div>
                                     <i class="bi-x-circle" title="Remover Parâmetro"
                                         @click="removerParametro(item.id)"></i>
@@ -111,12 +111,15 @@
         <div class="m-b submit">
             <select style="text-align: left; width: fit-content;" v-model="novoSetor_id" @change="adicionarSetor()">
                 <option :value="null" hidden>Adicionar Setor</option>
-                <option v-for="item in setores" :key="item.id" :value="item.id" :style="{
+                <option v-for="item in setores" :key="item.id" :value="item.id" :hidden="!item.montagem">
+                    {{ item.nome }}
+                </option>
+                <!-- <option v-for="item in setores" :key="item.id" :value="item.id" :style="{
                     paddingLeft: `${item.nivel_hierarquico * 10}px`
                 }">
                     <span v-for="n in item.nivel_hierarquico" :key="n">&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     <span v-if="item.nivel_hierarquico >= 1"> - </span>{{ item.nome }}
-                </option>
+                </option> -->
             </select>
         </div>
     </div>
