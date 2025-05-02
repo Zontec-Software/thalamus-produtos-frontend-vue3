@@ -173,8 +173,8 @@
           </div>
           <div>
             <label>Preço Tabelado (Pauta)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.preco_tabelado" required
-              @input="atualizarPayLoad('preco_tabelado', produto_original.preco_tabelado)">
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.id_preco_tabelado" required
+              @input="atualizarPayLoad('id_preco_tabelado', produto_original.id_preco_tabelado)">
           </div>
           <!-- <div>
             <label>Número da FCI (Ficha de Conteúdo de Importação)</label>
@@ -182,8 +182,8 @@
           </div> -->
           <div>
             <label>CEST (Código Especificador da Substituição Tributária)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cest" required
-              @input="atualizarPayLoad('cest', produto_original.cest)">
+            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.id_cest" required
+              @input="atualizarPayLoad('id_cest', produto_original.id_cest)">
           </div>
           <div>
             <label>Indicador de Produção em Escala Relevante</label>
@@ -325,7 +325,7 @@ export default {
       return this.funcionalidades.includes(113);
     },
     camposVazios() {
-      return ['origem_mercadoria', 'preco_tabelado', 'cest', 'indicador_escala', 'cnpj_fabricante', 'cupom_fiscal', 'market_place']
+      return ['origem_mercadoria', 'id_preco_tabelado', 'id_cest', 'indicador_escala', 'cnpj_fabricante', 'cupom_fiscal', 'market_place']
         .some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '')
     }
   },
