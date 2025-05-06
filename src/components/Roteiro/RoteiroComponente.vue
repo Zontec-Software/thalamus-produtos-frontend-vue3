@@ -114,12 +114,6 @@
                 <option v-for="item in setores" :key="item.id" :value="item.id" :hidden="!item.montagem">
                     {{ item.nome }}
                 </option>
-                <!-- <option v-for="item in setores" :key="item.id" :value="item.id" :style="{
-                    paddingLeft: `${item.nivel_hierarquico * 10}px`
-                }">
-                    <span v-for="n in item.nivel_hierarquico" :key="n">&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span v-if="item.nivel_hierarquico >= 1"> - </span>{{ item.nome }}
-                </option> -->
             </select>
         </div>
     </div>
@@ -218,7 +212,6 @@ import serviceRoteiro from '@/services/serviceRoteiro2.0';
 import serviceParametros from '@/services/serviceParametrosTeste'
 import { getUnidades } from '@/services/serviceUnidades'
 import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
-import { getSetoresHieraquico } from "@/services/serviceSetores.js";
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
 
 export default {
@@ -268,7 +261,7 @@ export default {
         this.obterParametros();
         this.getRoteiro();
         this.unidades = await getUnidades();
-        this.setores = await getSetoresHieraquico();
+        this.setores = await serviceRoteiro.getSetoresRoteiro();
     },
     methods: {
         async getRoteiro() {
