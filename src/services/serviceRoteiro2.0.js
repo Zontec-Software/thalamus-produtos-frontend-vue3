@@ -73,6 +73,18 @@ export const baseCodigoServico = {
 }
 
 const funções = {
+    async getSetoresRoteiro() {
+        try {
+            const response = await api.get('/setor/montagem');
+            return response.data.map(setor => ({
+                ...setor,
+                nome: setor.nome.replace(/^\d+\.\s*/, '')
+            })).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
     async criarRoteiro(produto_cod, codigo) {
         try {
             const response = await api.post('/roteiro/gravar',
@@ -225,7 +237,7 @@ const funções = {
         }
     },
 
-    
+
     async removerMaterial(id) {
         try {
             const response = await api.delete(`setor-servico/material/remover/${id}`);
