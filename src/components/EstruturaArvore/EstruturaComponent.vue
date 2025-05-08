@@ -6,18 +6,21 @@
   }">
     <i :class="caretIcon"></i>
     <span :class="classeProduto" class="tipo-produto"></span>
-    <span class="item-description" :title="item.desc ?? item.produto_desc">
-      {{ item.produto_codigo ?? item.cod }} - {{ item.desc ?? item.produto_desc }}
-      <span v-if="item.qt && item.unidade" @click.stop> - <input type="text" :readonly="!editavel" @blur="atualizaItem(item.id, 'qt', itemCopia.qt)"
-          style="width: 6rem; padding: 2px 5px; height: 2rem;" v-model="itemCopia.qt">
-        <select v-model="itemCopia.unidade" style="width: 7rem; padding: 2px 5px; height: 2rem; margin-left: .2rem"
-          v-if="editavel" @change="atualizaItem(item.id, 'unidade', itemCopia.unidade)">
-          <option v-for="i, index in unidades" :key="index" :value="i.cod">{{ i.nome }}</option>
-        </select>
-        <span v-else>{{ item.unidade }}</span>
+    <div class="item-description alinha-v" :title="item.desc ?? item.produto_desc">
+      <span>
+        {{ item.produto_codigo ?? item.cod }} - {{ item.desc ?? item.produto_desc }}
       </span>
+      <span>
+        -
+      </span>
+      <div class="qtdUnidade" v-if="item.qt && item.unidade" @click.stop>
+        <input type="text" :readonly="!editavel" @blur="atualizaItem(item.id, 'qt', itemCopia.qt)"
+          v-model="itemCopia.qt">
+        <span>{{ item.unidade }}</span>
+      </div>
       <i class="bi bi-trash" v-if="editavel" @click.stop="confirmarRemocao(item)"
-        style="font-size: 15px; cursor: pointer; color: red; margin-left: .5rem"></i></span>
+        style="font-size: 15px; cursor: pointer; color: red; margin-left: .5rem"></i>
+    </div>
   </div>
   <div v-if="isOpen" class="child-items">
     <EstruturaComponent v-for="(childItem, index) in itemCopia.filhos" :key="index" :item="childItem"
@@ -118,17 +121,18 @@ export default {
       serviceProdutos.removerItemEstrutura(id)
     },
     async adicionarItem(i) {
-      if (this.item.filhos.map(i => i.produtoF_cod).includes(i.produto_cod)) {
-        return;
-      }
-      var payload = {
-        produtoP_cod: this.item.produto_cod, // código do produto pai
-        produtoF_cod: i.produto_cod, // código do produto filho
-        qt: 1,
-        unidade: "UN"
-      }
-      await serviceProdutos.adicionarItemEstrutura(payload);
-      this.$emit("atualizar", this.item.produto_cod);
+      console.log(i, this.item)
+      // if (this.item.filhos.map(i => i.produtoF_cod).includes(i.produto_cod)) {
+      //   return;
+      // }
+      // var payload = {
+      //   produtoP_cod: this.item.produto_cod, // código do produto pai
+      //   produtoF_cod: i.produto_cod, // código do produto filho
+      //   qt: 1,
+      //   unidade: "UN"
+      // }
+      // await serviceProdutos.adicionarItemEstrutura(payload);
+      // this.$emit("atualizar", this.item.produto_cod);
     },
     async atualizaItem(id, itemEditado, valor) {
       var payload = {
@@ -146,6 +150,21 @@ export default {
 };
 </script>
 <style scoped>
+.qtdUnidade {
+  background-color: var(--cor-cinza);
+  border-radius: 6px;
+  padding: 0 calc(var(--margem)/2);
+  width: 9rem;
+
+  input {
+    width: 6rem;
+    height: 2rem;
+    background: none;
+    border-color: transparent;
+  }
+
+}
+
 .bi-trash:hover {
   transition: all 100ms linear;
   transform: scale(1.1);
@@ -173,6 +192,7 @@ export default {
   text-overflow: ellipsis;
   margin: 0 0.5rem;
   cursor: pointer;
+  gap: .5rem;
 }
 
 .child-items {
