@@ -74,6 +74,18 @@
               </select>
             </div>
             <div>
+              <label>Tablet <i title="Editar Tablet" class="bi bi-gear-fill adicionarItem"></i> </label>
+              <select :disabled="aguardandoAprovaçãoFiscal">
+                <option> </option>
+              </select>
+            </div>
+            <div>
+              <label>Versão <i title="Editar Versão" class="bi bi-gear-fill adicionarItem"></i> </label>
+              <select :disabled="aguardandoAprovaçãoFiscal">
+                <option> </option>
+              </select>
+            </div>
+            <div>
               <label>Status</label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.status"
                 @change="atualizarPayLoad('status', produto_original.status)">
