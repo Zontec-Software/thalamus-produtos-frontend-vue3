@@ -147,12 +147,7 @@ export default {
     },
     async getEstrutura(id) {
       var estrutura = await serviceProdutos.getEstrutura(id);
-
-      if (estrutura.length > 0) {
-        this.produto.filhos = estrutura;
-      } else {
-        this.produto.filhos = []
-      }
+      this.produto.filhos = estrutura;
     },
     abrirModal() {
       this.mostrarModal = true;
