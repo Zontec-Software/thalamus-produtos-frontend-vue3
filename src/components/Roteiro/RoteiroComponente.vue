@@ -9,16 +9,16 @@
                 <option v-for="setor in setores" :key="setor.id" :value="setor">{{ setor.nome }}</option>
             </select>
         </div>
-        <div v-for="(bloco, index) in setoresSelecionados" :key="index" class="card bloco margem">
+        <div v-for="(bloco, index) in setoresSelecionados" :key="index" class="bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h4>{{ bloco.nome }}</h4>
+                <h3>{{ bloco.nome }}</h3>
                 <button @click="abrirModalServico(bloco)">Adicionar Serviço</button>
             </div>
             <div v-for="(servico, indexServico) in bloco.servicos" :key="indexServico" class="servico-bloco">
-                <h4>{{ servico.descricao }}</h4>
+                <h3>{{ servico.descricao }}</h3>
                 <br>
-                <div>
-                    <div class="cabecalho-lista">
+                <div class="bloco2 margem">
+                    <div>
                         <div style="display:flex; align-items: center; gap: 0.5rem;">
                             <button class="btn-adicionar" @click="abrirModalMaterial(servico)">+</button>
                             <label>Materiais Necessários:</label>
@@ -34,7 +34,8 @@
                         </li>
                     </ul>
                 </div>
-                <div>
+                <br>
+                <div class="bloco2 margem">
                     <div class="cabecalho-lista">
                         <div style="display:flex; align-items: center; gap: 0.5rem;">
                             <button class="btn-adicionar" @click="abrirModalFerramenta(servico)">+</button>
@@ -49,8 +50,10 @@
                                 @click="removerFerramenta(servico, ferramenta.id)"></i>
                         </li>
                     </ul>
+                    <br>
                 </div>
-                <div>
+                <br>
+                <div class="bloco2 margem">
                     <div class="cabecalho-lista">
                         <label>Parâmetros de Inspeção:</label>
                     </div>
@@ -59,16 +62,23 @@
                             <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }}</span>
                             <i class="bi-x-circle" title="Remover Parametro"
                                 style="margin-left: 5px; color: var(--cor-erro);"
-                                @click="removerParametro(servico, parametro.id)"></i>
+                                @click="removerParametro(servico, parametro.id)">
+                            </i>
                         </li>
                     </ul>
+                    <AutoCompleteRoteiro :BaseOpcoes="parametros"
+                        @adicionarItem="(event) => adicionarParametro(servico, event)" />
                 </div>
-                <div>
-                    <label>Observações:</label>
+                <div class="bloco3 margem">
+                    <div class="cabecalho-lista">
+                        <label>Observações:</label>
+                    </div>
                     <textarea v-model="servico.observacoes"></textarea>
                 </div>
-                <div>
-                    <label>Anexos:</label>
+                <div class="bloco2 margem">
+                    <div class="cabecalho-lista">
+                        <label>Anexos:</label>
+                    </div>
                     <a @click="modalAnexos = true" class="icone-inc"></a>
                 </div>
             </div>
@@ -158,8 +168,7 @@
                     <button @click="adicionarFerramenta">Adicionar</button>
                 </div>
             </div>
-        </div>
-        <!-- END MODAL FERRAMENTA -->
+        </div> <!-- END MODAL FERRAMENTA -->
         <!-- MODAL ANEXO  -->
         <div class="modal-mask" v-if="modalAnexos" @click="modalAnexos = false">
             <div class="jm margem" @click.stop>
@@ -184,10 +193,14 @@
 import serviceFerramentas from '@/services/serviceFerramentas';
 import serviceRoteiro from '@/services/serviceRoteiro2.0';
 import serviceParametros from '@/services/serviceParametrosTeste'
-
+import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
 
 export default {
+
+    components: {
+        AutoCompleteRoteiro
+    },
     props: {
         produtos: {
             type: Array,
@@ -198,7 +211,7 @@ export default {
         return {
             setores: [],
             ferramentas: [],
-            setoresSelecionados: [],
+            setoresSelecionados: [{ "id": 37, "responsavel_id": null, "nome": "Eletrônica", "setor_pai": 10, "nivel_hierarquico": 4, "peso": null, "deleted_at": null, "created_at": "2024-04-23T22:48:57.000000Z", "updated_at": "2025-04-30T18:48:43.000000Z", "montagem": 1, "pessoa_responsavel": null, "servicos": [{ "id": 1747262412859, "codigo_servico": "011717", "descricao": "Colar conectores na etiqueta", "materiais": [{ "id": 1747262417747, "produto": { "id": 3619, "cod": "INJ030040", "produto_cod": 2338736611, "descricao": "ACOPLADOR CONECTOR 4 VIAS", "tipo": "Produto em Processo", "familia": "Injetados Internos" }, "qtd": 1, "unidade": "un" }, { "id": 1747262432899, "produto": { "id": 8158, "cod": "PMP010010", "descricao": "PIGMENTO PRETO PARA ABS", "produto_cod": 2161749990, "tipo": "Matéria Prima", "familia": "Peça Matéria Prima" }, "qtd": 1, "unidade": "un" }, { "id": 1747262437075, "produto": { "id": 8159, "cod": "REC010002", "descricao": "ABS TRITURADO", "produto_cod": 2338358852, "tipo": "Matéria Prima", "familia": "Resíduos" }, "qtd": 1, "unidade": "un" }], "ferramentas": [{ "id": 1747262420755, "ferramenta": { "id": 4, "codigo": "000001", "nome": "Furadeira Teste", "descricao": "Teste" } }, { "id": 1747262424051, "ferramenta": { "id": 5, "codigo": "000002", "nome": "Martelo", "descricao": "Martelo" } }, { "id": 1747262427259, "ferramenta": { "id": 6, "codigo": "000003", "nome": "Cola", "descricao": "Cola" } }], "parametros": [{ "id": 1747262438971, "parametro": { "id": 4, "codigo": "01", "nome": "Parametro", "descricao": "teste" } }, { "id": 1747262440299, "parametro": { "id": 6, "codigo": "02", "nome": "Parametro 2", "descricao": null } }], "observacoes": "" }] }],
             setorSelecionado: null,
             modalMaterial: false,
             modalFerramenta: false,
@@ -212,7 +225,7 @@ export default {
             baseCodigoServico,
             idSetorNovoServico: null,
             novoServico: {
-                cod: '000000',
+                cod: '041613',
                 desc: null,
                 ação: { id: '00' },
                 item: { id: '00' },
@@ -317,23 +330,19 @@ export default {
             const response = await serviceParametros.buscarPametros();
             this.parametros = response
         },
+        adicionarParametro(servico, parametroSelecionado) {
+            if (parametroSelecionado && servico) {
+                servico.parametros.push({
+                    id: Date.now(),
+                    parametro: parametroSelecionado
+                });
+            }
+        }
+
     }
 }
 </script>
 <style scoped>
-.container {
-    width: 100%;
-    padding: var(--margem);
-}
-
-/* .card {
-    background-color: var(--cor-bg);
-    border: 1px solid var(--cor-separador);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-} */
-
 .servico-bloco {
     margin-top: 1rem;
     border-top: 1px solid var(--cor-separador);
@@ -342,7 +351,7 @@ export default {
 
 .setor-listbox,
 .servico-listbox {
-    width: 100%;
+
     margin: 0.5rem 0;
     padding: 0.5rem;
     border-radius: 6px;
@@ -374,7 +383,7 @@ export default {
     color: var(--cor-bg);
     cursor: pointer;
     padding: 4px 8px;
-    font-size: 16px;
+
     border-radius: 4px;
     transition: background-color 0.2s;
     margin-right: 10px;
@@ -388,7 +397,6 @@ export default {
 .btn-fechar {
     border: none;
     cursor: pointer;
-    font-size: 12px;
 
 }
 
