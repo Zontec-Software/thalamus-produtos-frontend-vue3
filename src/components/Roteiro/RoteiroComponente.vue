@@ -1,506 +1,432 @@
 <template>
-    <div style="margin-top: 1rem;" v-if="roteiro && roteiro != []">
-        <draggable v-model="roteiro.setores" group="roteiro" item-key="id" handle=".drag-handle" animation="200"
-            @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
-            <template #item="{ element }">
-                <table class="tabela setor"
-                    style="position: relative; border-radius: 6px; border: 1px solid var(--cor-separador);">
-                    <i style="position: absolute; font-size: 25px; cursor: grab;"
-                        class="bi bi-grip-vertical drag-handle"></i>
-                    <i class="bi-trash alinha-v" @click="abrirModalConfirmacao(element.id, 'setor')"
-                        style="position: absolute; top: 5px; right: 5px; font-size: 18px; cursor: pointer; color: red;"></i>
-                    <tr style="max-height: 3rem !important;">
-                        <th style="width: 1.5rem; padding: 0;" :rowspan="element.servicos.length + 2"
-                            class="tituloSetor">
-                            <span style="writing-mode: sideways-lr; padding-inline: 3rem;">{{ element.setor?.nome
-                                }}</span>
-                        </th>
-                        <th>Código</th>
-                        <th>Descrição</th>
-                        <th>Materiais</th>
-                        <th>Ferramentas</th>
-                        <th>Parâmetro de Inspeção</th>
-                        <th>Observações</th>
-                        <th style="width: 3rem;"></th>
-                        <th style="width: 3rem;"></th>
-                    </tr>
-                    <tr v-for="(i, index2) in element.servicos" :key="index2">
-                        <td>{{ i.codigo_servico }}</td>
-                        <td>{{ i.descricao }}</td>
-                        <td>
-                            <ul>
-                                <li v-for="item in i.materiais" :key="item.id" style="display: flex;"
-                                    :title="`${item.produto.cod} - ${item.produto.desc}`">
-                                    <div class="texto">
-                                        {{ item.produto.cod }} - <span>{{ item.produto.desc }}</span>
-                                    </div>
-                                    <div class="alinha-v">
-                                        <input type="number" class="qtdItens" v-model="item.qtd"
-                                            @blur="atualizarMaterial(item.id, 'qtd', item.qtd)" />
-                                        <select v-model="item.unidade" style="text-align: center;"
-                                            @change="atualizarMaterial(item.id, 'unidade', item.unidade)">
-                                            <option>un</option>
-                                            <option>cx</option>
-                                            <option>cm</option>
-                                            <option>m</option>
-                                            <option>kg</option>
-                                            <option>g</option>
-                                        </select>
-                                    </div>
-                                    <i class="bi-x-circle" title="Remover Material" style="margin-left: 5px;"
-                                        @click="removerMaterial(item.id)"></i>
-                                </li>
-                            </ul>
-                            <div style="justify-content: center; display: flex;">
-                                <AutoCompleteRoteiro :BaseOpcoes="produtos" @adicionarItem="(event) => this.atualizarServico(i.id, 'materiais', {
-                                    produto_cod: event.produto_cod, qtd: 1, unidade: 'un'
-                                })" />
-                            </div>
-                        </td>
-                        <td>
-                            <ul>
-                                <li v-for="item in i.ferramentas" :key="item.id"
-                                    style="display: flex; justify-content: space-between;">
-                                    <div>
-                                        <span>{{ `${item.ferramenta?.codigo} - ${item.ferramenta?.nome}` }}</span>
-                                    </div>
-                                    <i class="bi-x-circle" title="Remover Ferramenta"
-                                        @click="removerFerramenta(item.id)"></i>
-                                </li>
-                            </ul>
-                            <AutoCompleteRoteiro :BaseOpcoes="ferramentas"
-                                @adicionarItem="(event) => atualizarServico(i.id, 'ferramenta_id', event.id)" />
-                        </td>
-                        <td>
-                            <ul>
-                                <li v-for="item in i.parametros" :key="item.id"
-                                    style="display: flex; justify-content: space-between">
-                                    <div>
-                                        <span>{{ `${item.parametro?.codigo} - ${item.parametro?.nome}` }}</span>
-                                    </div>
-                                    <i class="bi-x-circle" title="Remover Parâmetro"
-                                        @click="removerParametro(item.id)"></i>
-                                </li>
-                            </ul>
-                            <AutoCompleteRoteiro :BaseOpcoes="parametros"
-                                @adicionarItem="(event) => atualizarServico(i.id, 'parametro_id', event.id)" />
-                        </td>
-                        <td :title="i.observacao" style="cursor: pointer">
-                            <textarea :rows="i.materiais.length + 2"
-                                @blur="atualizarServico(i.id, 'observacao', i.observacao)"
-                                v-model="i.observacao"></textarea>
-                        </td>
-                        <td>
-                            <a class="icone-lixeira" @click="abrirModalConfirmacao(i.id, 'serviço')"></a>
-                        </td>
-                        <td>
-                            <a @click="modalAnexos = true" class="icone-inc"></a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="8">
-                            <div class="tags" style="justify-content: center;">
-                                <a @click="idSetorNovoServico = element.id, modalAdicionarServiço = true">Adicionar
-                                    Serviço</a>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </template>
-        </draggable>
-        <div class="m-b submit">
-            <select style="text-align: left; width: fit-content;" v-model="novoSetor_id" @change="adicionarSetor()">
-                <option :value="null" hidden>Adicionar Setor</option>
-                <option v-for="item in setores" :key="item.id" :value="item.id" :hidden="!item.montagem">
-                    {{ item.nome }}
-                </option>
+    <div class="container margem">
+        <div class=" bloco margem">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Setores</h3>
+            </div>
+            <select v-model="setorSelecionado" class="setor-listbox" @change="criarBlocoSetor">
+                <option value="" disabled>Selecione um setor</option>
+                <option v-for="setor in setores" :key="setor.id" :value="setor">{{ setor.nome }}</option>
             </select>
         </div>
-    </div>
-    <div v-else>
-        <div class="alinha-centro">
-            <button @click="criarRoteiro">Criar Roteiro</button>
-        </div>
-    </div>
-
-    <!-- MODAL -->
-    <div class="modal-mask" v-if="modalConfirmacao" @click="fecharModalConfirmacao()">
-        <div class="jm margem" @click.stop>
-            <div class="alinha-centro">
-                <h3>Confirmar Remoção</h3>
-                <p>Tem certeza que deseja remover este {{ tipoExclusao }}?</p>
+        <div v-for="(bloco, index) in setoresSelecionados" :key="index" class="bloco margem">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>{{ bloco.nome }}</h3>
+                <button @click="abrirModalServico(bloco)">Adicionar Serviço</button>
             </div>
-            <div class="submit direita">
-                <button @click="removerItem(idParaRemoção)">Remover</button>
-                <button @click="fecharModalConfirmacao" class="acao-secundaria">Cancelar</button>
-            </div>
-        </div>
-    </div>
-    <!--END MODAL -->
-
-    <!-- MODAL -->
-    <div class="modal-mask" v-if="modalAdicionarServiço" @click="modalAdicionarServiço = false">
-        <div class="jm margem" @click.stop>
-            <div class="alinha-centro">
-                <h3>Adicionar Serviço</h3>
-            </div>
-            <fieldset class="grid-2">
-                <div>
-                    <label>Código do serviço</label>
-                    <input type="number" readonly v-model="novoServico.cod">
+            <div v-for="(servico, indexServico) in bloco.servicos" :key="indexServico" class="servico-bloco">
+                <h3>{{ servico.descricao }}</h3>
+                <br>
+                <div class="bloco2 margem">
+                    <div>
+                        <div style="display:flex; align-items: center; gap: 0.5rem;">
+                            <button class="btn-adicionar" @click="abrirModalMaterial(servico)">+</button>
+                            <label>Materiais Necessários:</label>
+                        </div>
+                    </div>
+                    <ul class="lista-materiais">
+                        <li v-for="material in servico.materiais" :key="material.id">
+                            <span>{{ material.produto.cod }} - {{ material.produto.desc }} (Qtd: {{ material.qtd
+                            }})</span>
+                            <i class="bi-x-circle" title="Remover Material"
+                                style="margin-left: 5px; color: var(--cor-erro);"
+                                @click="removerMaterial(servico, material.id)"></i>
+                        </li>
+                    </ul>
                 </div>
-                <div>
-                    <label>Verbo</label>
-                    <select v-model="novoServico.ação" @change="montarCodServico">
-                        <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ `${item.id}
-                            -
-                            ${item.nome}` }} </option>
-                    </select>
+                <br>
+                <div class="bloco2 margem">
+                    <div class="cabecalho-lista">
+                        <div style="display:flex; align-items: center; gap: 0.5rem;">
+                            <button class="btn-adicionar" @click="abrirModalFerramenta(servico)">+</button>
+                            <label>Ferramentas Utilizadas:</label>
+                        </div>
+                    </div>
+                    <ul class="lista-materiais">
+                        <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
+                            <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome }}</span>
+                            <i class="bi-x-circle" title="Remover Ferramenta"
+                                style="margin-left: 5px; color: var(--cor-erro);"
+                                @click="removerFerramenta(servico, ferramenta.id)"></i>
+                        </li>
+                    </ul>
+                    <br>
                 </div>
-                <div>
-                    <label>Objeto</label>
-                    <select v-model="novoServico.item" @change="montarCodServico">
-                        <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ `${item.id}
-                            -
-                            ${item.nome}` }} </option>
-                    </select>
+                <br>
+                <div class="bloco2 margem">
+                    <div class="cabecalho-lista">
+                        <label>Parâmetros de Inspeção:</label>
+                    </div>
+                    <ul class="lista-materiais">
+                        <li v-for="parametro in servico.parametros" :key="parametro.id">
+                            <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }}</span>
+                            <i class="bi-x-circle" title="Remover Parametro"
+                                style="margin-left: 5px; color: var(--cor-erro);"
+                                @click="removerParametro(servico, parametro.id)">
+                            </i>
+                        </li>
+                    </ul>
+                    <AutoCompleteRoteiro :BaseOpcoes="parametros"
+                        @adicionarItem="(event) => adicionarParametro(servico, event)" />
                 </div>
-                <div>
-                    <label>Local</label>
-                    <select v-model="novoServico.local" @change="montarCodServico">
-                        <option v-for="item, index in baseCodigoServico.Locais" :key="index" :value="item">{{
-                            `${item.id} -
-                            ${item.nome}` }} </option>
-                    </select>
+                <div class="bloco3 margem">
+                    <div class="cabecalho-lista">
+                        <label>Observações:</label>
+                    </div>
+                    <textarea v-model="servico.observacoes"></textarea>
                 </div>
-            </fieldset>
-            <div class="submit direita">
-                <button @click="adicionarServico">Adicionar</button>
-            </div>
-        </div>
-    </div>
-    <!-- END MODAL-->
-
-    <!-- MODAL -->
-    <div class="modal-mask" v-if="modalAnexos" @click="modalAnexos = false">
-        <div class="jm margem" @click.stop>
-            <div class="alinha-centro">
-                <h3>Anexos Serviço 010020</h3>
-            </div>
-            <div class="tags">
-                <a>
-                    Anexo 1
-                    <i style="color: var(--cor-erro); margin-left: .5rem; font-size: 16px;"
-                        class="bi-trash" title="Excluir anexo"></i>
-                </a>
-                <a>
-                    Anexo 2
-                    <i style="color: var(--cor-erro); margin-left: .5rem; font-size: 16px;"
-                        class="bi-trash" title="Excluir anexo"></i>
-                </a>
-                <a title="Adicionar Anexo">+</a>
+                <div class="bloco2 margem">
+                    <div class="cabecalho-lista">
+                        <label>Anexos:</label>
+                    </div>
+                    <a @click="modalAnexos = true" class="icone-inc"></a>
+                </div>
             </div>
         </div>
+        <!-- MODAL SERVIÇO -->
+        <div class="modal-mask" v-if="modalAdicionarServiço" @click="modalAdicionarServiço = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Serviço</h3>
+                </div>
+                <fieldset class="grid-2">
+                    <div>
+                        <label>Código do serviço</label>
+                        <input type="number" readonly v-model="novoServico.cod">
+                    </div>
+                    <div>
+                        <label>Verbo</label>
+                        <select v-model="novoServico.ação" @change="montarCodServico">
+                            <option v-for="(item, index) in baseCodigoServico.ações" :key="index" :value="item"> {{
+                                `${item.id} - ${item.nome}` }} </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Objeto</label>
+                        <select v-model="novoServico.item" @change="montarCodServico">
+                            <option v-for="(item, index) in baseCodigoServico.Itens" :key="index" :value="item"> {{
+                                `${item.id} - ${item.nome}` }} </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Local</label>
+                        <select v-model="novoServico.local" @change="montarCodServico">
+                            <option v-for="(item, index) in baseCodigoServico.Locais" :key="index" :value="item"> {{
+                                `${item.id} - ${item.nome}` }} </option>
+                        </select>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarServico">Adicionar</button>
+                </div>
+            </div>
+        </div>
+        <!--END MODAL SERVIÇO -->
+        <!--MODAL MATERIAL -->
+        <div v-if="modalMaterial" class="modal-mask" @click="modalMaterial = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Material</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Material</label>
+                        <select v-model="novoMaterial" class="servico-listbox">
+                            <option value="" disabled>Selecione um material</option>
+                            <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
+                                }} - {{ material.desc }} </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Quantidade</label>
+                        <input type="number" v-model="qtdMaterial" min="1" class="input-text" />
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarMaterial">Adicionar</button>
+                </div>
+            </div>
+        </div>
+        <!--END MODAL MATERIAL -->
+        <!-- MODAL FERRAMENTA -->
+        <div v-if="modalFerramenta" class="modal-mask" @click="modalFerramenta = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Ferramenta</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Ferramentas</label>
+                        <select v-model="novaFerramenta">
+                            <option value="" disabled>Selecione uma ferramenta</option>
+                            <option v-for="ferramenta in ferramentas" :key="ferramenta.id" :value="ferramenta"> {{
+                                ferramenta.codigo }} - {{ ferramenta.nome }} </option>
+                        </select>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarFerramenta">Adicionar</button>
+                </div>
+            </div>
+        </div> <!-- END MODAL FERRAMENTA -->
+        <!-- MODAL ANEXO  -->
+        <div class="modal-mask" v-if="modalAnexos" @click="modalAnexos = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Anexos Serviço</h3>
+                </div>
+                <div class="tags">
+                    <a> Anexo 1 <i style="color: var(--cor-erro); margin-left: .5rem; font-size: 16px;" class="bi-trash"
+                            title="Excluir anexo"></i>
+                    </a>
+                    <a> Anexo 2 <i style="color: var(--cor-erro); margin-left: .5rem; font-size: 16px;" class="bi-trash"
+                            title="Excluir anexo"></i>
+                    </a>
+                    <a title="Adicionar Anexo">+</a>
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL ANEXO -->
     </div>
-    <!-- END MODAL  -->
-
 </template>
 <script>
-import draggable from "vuedraggable";
-import serviceFerramentas from "@/services/serviceFerramentas";
+import serviceFerramentas from '@/services/serviceFerramentas';
 import serviceRoteiro from '@/services/serviceRoteiro2.0';
 import serviceParametros from '@/services/serviceParametrosTeste'
-import { getUnidades } from '@/services/serviceUnidades'
 import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
 
 export default {
+
     components: {
-        AutoCompleteRoteiro,
-        draggable
+        AutoCompleteRoteiro
     },
     props: {
-        produto_cod: {
-            type: Number,
-        },
         produtos: {
-            Required: true
+            type: Array,
+            required: true
         }
     },
     data() {
         return {
-            roteiro: [],
             setores: [],
-            unidades: [],
-            baseCodigoServico: baseCodigoServico,
+            ferramentas: [],
+            setoresSelecionados: [{ "id": 37, "responsavel_id": null, "nome": "Eletrônica", "setor_pai": 10, "nivel_hierarquico": 4, "peso": null, "deleted_at": null, "created_at": "2024-04-23T22:48:57.000000Z", "updated_at": "2025-04-30T18:48:43.000000Z", "montagem": 1, "pessoa_responsavel": null, "servicos": [{ "id": 1747262412859, "codigo_servico": "011717", "descricao": "Colar conectores na etiqueta", "materiais": [{ "id": 1747262417747, "produto": { "id": 3619, "cod": "INJ030040", "produto_cod": 2338736611, "descricao": "ACOPLADOR CONECTOR 4 VIAS", "tipo": "Produto em Processo", "familia": "Injetados Internos" }, "qtd": 1, "unidade": "un" }, { "id": 1747262432899, "produto": { "id": 8158, "cod": "PMP010010", "descricao": "PIGMENTO PRETO PARA ABS", "produto_cod": 2161749990, "tipo": "Matéria Prima", "familia": "Peça Matéria Prima" }, "qtd": 1, "unidade": "un" }, { "id": 1747262437075, "produto": { "id": 8159, "cod": "REC010002", "descricao": "ABS TRITURADO", "produto_cod": 2338358852, "tipo": "Matéria Prima", "familia": "Resíduos" }, "qtd": 1, "unidade": "un" }], "ferramentas": [{ "id": 1747262420755, "ferramenta": { "id": 4, "codigo": "000001", "nome": "Furadeira Teste", "descricao": "Teste" } }, { "id": 1747262424051, "ferramenta": { "id": 5, "codigo": "000002", "nome": "Martelo", "descricao": "Martelo" } }, { "id": 1747262427259, "ferramenta": { "id": 6, "codigo": "000003", "nome": "Cola", "descricao": "Cola" } }], "parametros": [{ "id": 1747262438971, "parametro": { "id": 4, "codigo": "01", "nome": "Parametro", "descricao": "teste" } }, { "id": 1747262440299, "parametro": { "id": 6, "codigo": "02", "nome": "Parametro 2", "descricao": null } }], "observacoes": "" }] }],
+            setorSelecionado: null,
+            modalMaterial: false,
+            modalFerramenta: false,
+            modalAdicionarServiço: false,
+            modalAnexos: false,
+            blocoAtual: null,
+            servicoAtual: null,
+            novoMaterial: null,
+            qtdMaterial: 1,
+            novaFerramenta: null,
+            baseCodigoServico,
             idSetorNovoServico: null,
             novoServico: {
-                cod: '000000',
+                cod: '041613',
                 desc: null,
                 ação: { id: '00' },
                 item: { id: '00' },
                 local: { id: '00' }
             },
-            novoSetor_id: null,
-            modalAdicionarServiço: false,
-            ferramentas: [],
-            parametros: [],
-            modalConfirmacao: false,
-            modalAnexos: false,
-            idParaRemoção: null,
-            tipoExclusao: null,
-
-            modalEdicaoTexto: false,
-            textoEditando: '',
-            campoEditando: '',
-            servicoSelecionado: null,
+            parametros: []
         }
     },
     async mounted() {
-        this.obterFerramentas();
-        this.obterParametros();
-        this.getRoteiro();
-        this.unidades = await getUnidades();
         this.setores = await serviceRoteiro.getSetoresRoteiro();
+        this.ferramentas = (await serviceFerramentas.getAllFerramentas()).data;
+        this.obterParametros();
     },
     methods: {
-        async getRoteiro() {
-            this.roteiro = await serviceRoteiro.buscarRoteiro(this.produto_cod);
-        },
+        criarBlocoSetor() {
+            if (this.setorSelecionado) {
+                this.setoresSelecionados.some(b => b.id === this.setorSelecionado.id);
 
-        async criarRoteiro() {
-            var response = await serviceRoteiro.criarRoteiro(this.produto_cod, this.produto_cod);
-            if (response) {
-                this.getRoteiro()
+                this.setoresSelecionados.push({
+                    ...this.setorSelecionado,
+                    servicos: []
+                });
+
+                this.setorSelecionado = null;
             }
         },
-
-        abrirModalConfirmacao(id, tipo) {
-            this.tipoExclusao = tipo;
-            this.idParaRemoção = id;
-            this.modalConfirmacao = true;
+        abrirModalServico(bloco) {
+            this.idSetorNovoServico = bloco.id;
+            this.modalAdicionarServiço = true;
+            this.novoServico = {
+                cod: '000000',
+                desc: null,
+                ação: { id: '00' },
+                item: { id: '00' },
+                local: { id: '00' }
+            };
         },
-        fecharModalConfirmacao() {
-            this.modalConfirmacao = false;
-            this.idParaRemoção = null;
+        montarCodServico() {
+            this.novoServico.cod = `${this.novoServico.ação?.id ?? ''}${this.novoServico.item?.id ?? ''}${this.novoServico.local?.id ?? ''}`;
+            this.novoServico.desc = `${this.novoServico.ação?.nome ?? ''} ${this.novoServico.item?.nome ?? ''} ${this.novoServico.local?.nome ?? ''}`.trim();
         },
-
-        async obterFerramentas() {
-            const response = await serviceFerramentas.getAllFerramentas();
-            this.ferramentas = response.data
+        adicionarServico() {
+            const bloco = this.setoresSelecionados.find(s => s.id === this.idSetorNovoServico);
+            if (bloco) {
+                bloco.servicos.push({
+                    id: Date.now(),
+                    codigo_servico: this.novoServico.cod,
+                    descricao: this.novoServico.desc,
+                    materiais: [],
+                    ferramentas: [],
+                    parametros: [],
+                    observacoes: ''
+                });
+            }
+            this.modalAdicionarServiço = false;
         },
-
+        abrirModalMaterial(servico) {
+            this.servicoAtual = servico;
+            this.modalMaterial = true;
+            this.qtdMaterial = 1;
+            this.novoMaterial = null;
+        },
+        abrirModalFerramenta(servico) {
+            this.servicoAtual = servico;
+            this.modalFerramenta = true;
+            this.novaFerramenta = null;
+        },
+        fecharModal() {
+            this.modalMaterial = false;
+            this.modalFerramenta = false;
+        },
+        adicionarMaterial() {
+            if (this.novoMaterial && this.servicoAtual) {
+                this.servicoAtual.materiais.push({
+                    id: Date.now(),
+                    produto: this.novoMaterial,
+                    qtd: this.qtdMaterial,
+                    unidade: 'un'
+                });
+                this.fecharModal();
+            }
+        },
+        adicionarFerramenta() {
+            if (this.novaFerramenta && this.servicoAtual) {
+                this.servicoAtual.ferramentas.push({
+                    id: Date.now(),
+                    ferramenta: this.novaFerramenta
+                });
+                this.fecharModal();
+            }
+        },
+        removerMaterial(servico, materialId) {
+            servico.materiais = servico.materiais.filter(m => m.id !== materialId);
+        },
+        removerFerramenta(servico, ferramentaId) {
+            servico.ferramentas = servico.ferramentas.filter(f => f.id !== ferramentaId);
+        },
+        removerParametro(servico, parametroId) {
+            servico.parametros = servico.parametros.filter(p => p.id !== parametroId);
+        },
         async obterParametros() {
             const response = await serviceParametros.buscarPametros();
             this.parametros = response
         },
+        adicionarParametro(servico, parametroSelecionado) {
+            if (parametroSelecionado && servico) {
+                servico.parametros.push({
+                    id: Date.now(),
+                    parametro: parametroSelecionado
+                });
+            }
+        }
 
-        montarCodServico() {
-            this.novoServico.cod = `${this.novoServico.ação.id ?? ''}${this.novoServico.item.id ?? ''}${this.novoServico.local.id ?? ''}`
-            this.novoServico.desc = `${this.novoServico.ação.nome ?? ''} ${this.novoServico.item.nome ?? ''} ${this.novoServico.local.nome ?? ''}`
-        },
-
-        alterarOrdem(idSetor, index) {
-            serviceRoteiro.reordenarSetores(idSetor, (index + 1))
-        },
-
-        async atualizarMaterial(id, itemEditado, valor) {
-            var payload = {
-                [itemEditado]: valor
-            }
-            var response = await serviceRoteiro.atualizarMaterial(id, payload)
-            if (response) {
-                this.getRoteiro()
-            }
-        },
-
-        async atualizarServico(id, itemEditado, valor) {
-            var payload = {
-                [itemEditado]: valor
-            }
-            var response = await serviceRoteiro.atualizarServico(id, payload)
-            if (response) {
-                this.getRoteiro()
-            }
-        },
-
-        async adicionarSetor() {
-            var response = await serviceRoteiro.adicionarSetor(this.roteiro.id, this.novoSetor_id)
-            if (response) {
-                this.getRoteiro()
-                this.novoSetor_id = null
-            }
-        },
-
-        async adicionarServico() {
-            this.modalAdicionarServiço = false
-            var payload = {
-                rot_setor_id: this.idSetorNovoServico,
-                codigo_servico: this.novoServico.cod,
-                descricao: this.novoServico.desc,
-            }
-            var response = await serviceRoteiro.adicionarServico(payload);
-            if (response) {
-                this.getRoteiro
-                this.novoServico = {
-                    cod: '000000',
-                    desc: null,
-                    ação: { id: '00' },
-                    item: { id: '00' },
-                    local: { id: '00' }
-                };
-                this.modalAdicionarServiço = false;
-                this.getRoteiro()
-            }
-        },
-
-        async removerItem() {
-            var response = null
-            if (this.tipoExclusao === 'serviço') {
-                response = await serviceRoteiro.removerServico(this.idParaRemoção)
-                if (response) {
-                    this.getRoteiro()
-                    this.fecharModalConfirmacao()
-                }
-            } else if (this.tipoExclusao === 'setor') {
-                response = await serviceRoteiro.removerSetor(this.idParaRemoção)
-                if (response) {
-                    this.getRoteiro()
-                    this.fecharModalConfirmacao()
-                }
-            }
-        },
-
-        async removerFerramenta(id) {
-            var response = await serviceRoteiro.removerFerramenta(id)
-            if (response) {
-                this.getRoteiro()
-            }
-        },
-
-        async removerParametro(id) {
-            var response = await serviceRoteiro.removerParametro(id)
-            if (response) {
-                this.getRoteiro()
-            }
-        },
-
-        async removerMaterial(id) {
-            var response = await serviceRoteiro.removerMaterial(id)
-            if (response) {
-                this.getRoteiro()
-            }
-        },
     }
 }
 </script>
 <style scoped>
-.bi-x-circle {
-    color: var(--cor-erro);
-    cursor: pointer;
-}
-
-.tags {
-    a {
-        cursor: pointer;
-
-    }
-}
-
-.bi-trash:hover {
-    transform: scale(1.2);
-    transition: 0.2s;
-}
-
-.listaMateriais {
-    th {
-        font-weight: 100 !important;
-        padding-block: .5rem;
-    }
-}
-
-.setor {
+.servico-bloco {
     margin-top: 1rem;
+    border-top: 1px solid var(--cor-separador);
+    padding-top: 1rem;
+}
 
-    th,
-    td {
-        text-align: center !important;
+.setor-listbox,
+.servico-listbox {
 
-        a:hover {
-            cursor: pointer;
-            transition: all 100ms linear;
-            transform: scale(1.1);
-        }
-    }
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--cor-separador);
+    background-color: var(--cor-bg);
+    color: var(--cor-texto);
+}
 
-    ul {
-        text-align: left;
-        list-style: none;
-        padding: 0px;
-        margin: 0px;
-        margin-bottom: .8rem;
+.lista-materiais {
+    list-style: none;
+    padding: 0;
+}
 
-        a {
-            border: 1px solid var(--cor-separador);
-            border-radius: 6px;
-            padding: 2px .5em;
-        }
+.lista-materiais li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--cor-separador);
+}
 
-        a:hover {
-            transition: all 200ms linear;
-            background-color: var(--cor-primaria-fraca);
-        }
+.lista-materiais li:last-child {
+    border-bottom: none;
+}
 
-        li {
-            white-space: nowrap;
-            border-bottom: 1px solid var(--cor-separador);
-            margin-block: .5rem;
-            align-items: center;
-            padding-bottom: .2rem;
+.btn-adicionar {
+    background: var(--cor-primaria);
+    border: none;
+    color: var(--cor-bg);
+    cursor: pointer;
+    padding: 4px 8px;
 
-            .qtdItens {
-                padding: 0;
-                max-width: 3.5rem;
-                height: 2rem;
-                width: min-content;
-                border: 1px solid var(--cor-separador);
-                text-align: right;
-                background-color: transparent;
-                border-radius: 6px 0 0 6px;
-            }
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    margin-right: 10px;
+}
 
-            select {
-                padding: 0;
-                width: 2rem;
-                height: 2rem;
-                border-radius: 0 6px 6px 0;
-                border: 1px solid var(--cor-separador);
-                background-color: transparent;
-                appearance: none;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                background: none;
-            }
 
-            .texto {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-            }
 
-            span {
-                overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                margin-inline: .2rem;
-                max-width: 10rem;
-            }
-        }
-    }
 
-    .tituloSetor {
-        background-color: var(--cor-separador);
-        border-radius: 6px 0 0 6px;
-    }
+.btn-excluir,
+.btn-confirmar,
+.btn-fechar {
+    border: none;
+    cursor: pointer;
+
+}
+
+.btn-excluir {
+    color: var(--cor-erro);
+}
+
+.btn-confirmar {
+    background-color: var(--cor-sucesso);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+}
+
+
+.lista-materiais {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+.lista-materiais li {
+    padding: 8px;
+    border-bottom: 1px solid var(--cor-separador);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lista-materiais li:last-child {
+    border-bottom: none;
 }
 </style>
