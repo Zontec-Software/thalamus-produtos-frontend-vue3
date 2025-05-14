@@ -1,6 +1,6 @@
 <template>
     <div class="container margem">
-        <div class="card bloco margem">
+        <div class=" bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Setores</h3>
             </div>
@@ -11,47 +11,65 @@
         </div>
         <div v-for="(bloco, index) in setoresSelecionados" :key="index" class="card bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>{{ bloco.nome }}</h2>
-                <button class="btn-adicionar" @click="abrirModalServico(bloco)">Adicionar Serviço</button>
+                <h4>{{ bloco.nome }}</h4>
+                <button @click="abrirModalServico(bloco)">Adicionar Serviço</button>
             </div>
             <div v-for="(servico, indexServico) in bloco.servicos" :key="indexServico" class="servico-bloco">
-                <h3>{{ servico.descricao }}</h3>
-                <div class="cabecalho-lista">
-                    <button class="btn-adicionar" @click="abrirModalMaterial(servico)">+</button>
-                    <h4>Materiais Necessários:</h4>
+                <h4>{{ servico.descricao }}</h4>
+                <br>
+                <div>
+                    <div class="cabecalho-lista">
+                        <div style="display:flex; align-items: center; gap: 0.5rem;">
+                            <button class="btn-adicionar" @click="abrirModalMaterial(servico)">+</button>
+                            <label>Materiais Necessários:</label>
+                        </div>
+                    </div>
+                    <ul class="lista-materiais">
+                        <li v-for="material in servico.materiais" :key="material.id">
+                            <span>{{ material.produto.cod }} - {{ material.produto.desc }} (Qtd: {{ material.qtd
+                            }})</span>
+                            <i class="bi-x-circle" title="Remover Material"
+                                style="margin-left: 5px; color: var(--cor-erro);"
+                                @click="removerMaterial(servico, material.id)"></i>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="lista-materiais">
-                    <li v-for="material in servico.materiais" :key="material.id">
-                        <span>{{ material.produto.cod }} - {{ material.produto.desc }} (Qtd: {{ material.qtd }})</span>
-                        <button class="btn-excluir" @click="removerMaterial(servico, material.id)">×</button>
-                    </li>
-                </ul>
-                <div class="cabecalho-lista">
-                    <button class="btn-adicionar" @click="abrirModalFerramenta(servico)">+</button>
-                    <h4>Ferramentas Utilizadas:</h4>
+                <div>
+                    <div class="cabecalho-lista">
+                        <div style="display:flex; align-items: center; gap: 0.5rem;">
+                            <button class="btn-adicionar" @click="abrirModalFerramenta(servico)">+</button>
+                            <label>Ferramentas Utilizadas:</label>
+                        </div>
+                    </div>
+                    <ul class="lista-materiais">
+                        <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
+                            <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome }}</span>
+                            <i class="bi-x-circle" title="Remover Ferramenta"
+                                style="margin-left: 5px; color: var(--cor-erro);"
+                                @click="removerFerramenta(servico, ferramenta.id)"></i>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="lista-materiais">
-                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                        <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome }}</span>
-                        <button class="btn-excluir" @click="removerFerramenta(servico, ferramenta.id)">×</button>
-                    </li>
-                </ul>
-                <div class="cabecalho-lista">
-                    <h4>Parâmetros de Inspeção:</h4>
+                <div>
+                    <div class="cabecalho-lista">
+                        <label>Parâmetros de Inspeção:</label>
+                    </div>
+                    <ul class="lista-materiais">
+                        <li v-for="parametro in servico.parametros" :key="parametro.id">
+                            <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }}</span>
+                            <i class="bi-x-circle" title="Remover Parametro"
+                                style="margin-left: 5px; color: var(--cor-erro);"
+                                @click="removerParametro(servico, parametro.id)"></i>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="lista-materiais">
-                    <li v-for="parametro in servico.parametros" :key="parametro.id">
-                        <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }}</span>
-                        <button class="btn-excluir" @click="removerParametro(servico, parametro.id)">×</button>
-                    </li>
-                </ul>
-                <div class="campo-formulario">
+                <div>
                     <label>Observações:</label>
-                    <textarea v-model="servico.observacoes" class="input-textarea"></textarea>
+                    <textarea v-model="servico.observacoes"></textarea>
                 </div>
-                <div class="campo-formulario">
+                <div>
                     <label>Anexos:</label>
-                    <input type="file" multiple class="input-text" />
+                    <a @click="modalAnexos = true" class="icone-inc"></a>
                 </div>
             </div>
         </div>
@@ -95,51 +113,78 @@
         </div>
         <!--END MODAL SERVIÇO -->
         <!--MODAL MATERIAL -->
-        <div v-if="modalMaterial" class="modal" @click.self="fecharModal">
-            <div class="modal-content">
-                <div class="modal-header">
+        <div v-if="modalMaterial" class="modal-mask" @click="modalMaterial = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
                     <h3>Adicionar Material</h3>
-                    <button class="btn-fechar" @click="fecharModal">×</button>
                 </div>
-                <div class="modal-body">
-                    <select v-model="novoMaterial" class="servico-listbox">
-                        <option value="" disabled>Selecione um material</option>
-                        <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod }} -
-                            {{ material.desc }} </option>
-                    </select>
-                    <input type="number" v-model="qtdMaterial" min="1" class="input-text" />
-                </div>
-                <div class="modal-footer">
-                    <button class="btn-confirmar" @click="adicionarMaterial">Adicionar</button>
+                <fieldset class="grid">
+                    <div>
+                        <label>Material</label>
+                        <select v-model="novoMaterial" class="servico-listbox">
+                            <option value="" disabled>Selecione um material</option>
+                            <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
+                                }} - {{ material.desc }} </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Quantidade</label>
+                        <input type="number" v-model="qtdMaterial" min="1" class="input-text" />
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarMaterial">Adicionar</button>
                 </div>
             </div>
         </div>
         <!--END MODAL MATERIAL -->
         <!-- MODAL FERRAMENTA -->
-        <div v-if="modalFerramenta" class="modal" @click.self="fecharModal">
-            <div class="modal-content">
-                <div class="modal-header">
+        <div v-if="modalFerramenta" class="modal-mask" @click="modalFerramenta = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
                     <h3>Adicionar Ferramenta</h3>
-                    <button class="btn-fechar" @click="fecharModal">×</button>
                 </div>
-                <div class="modal-body">
-                    <select v-model="novaFerramenta" class="servico-listbox">
-                        <option value="" disabled>Selecione uma ferramenta</option>
-                        <option v-for="ferramenta in ferramentas" :key="ferramenta.id" :value="ferramenta"> {{
-                            ferramenta.codigo }} - {{ ferramenta.nome }} </option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn-confirmar" @click="adicionarFerramenta">Adicionar</button>
+                <fieldset class="grid">
+                    <div>
+                        <label>Ferramentas</label>
+                        <select v-model="novaFerramenta">
+                            <option value="" disabled>Selecione uma ferramenta</option>
+                            <option v-for="ferramenta in ferramentas" :key="ferramenta.id" :value="ferramenta"> {{
+                                ferramenta.codigo }} - {{ ferramenta.nome }} </option>
+                        </select>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarFerramenta">Adicionar</button>
                 </div>
             </div>
         </div>
         <!-- END MODAL FERRAMENTA -->
+        <!-- MODAL ANEXO  -->
+        <div class="modal-mask" v-if="modalAnexos" @click="modalAnexos = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Anexos Serviço</h3>
+                </div>
+                <div class="tags">
+                    <a> Anexo 1 <i style="color: var(--cor-erro); margin-left: .5rem; font-size: 16px;" class="bi-trash"
+                            title="Excluir anexo"></i>
+                    </a>
+                    <a> Anexo 2 <i style="color: var(--cor-erro); margin-left: .5rem; font-size: 16px;" class="bi-trash"
+                            title="Excluir anexo"></i>
+                    </a>
+                    <a title="Adicionar Anexo">+</a>
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL ANEXO -->
     </div>
 </template>
 <script>
 import serviceFerramentas from '@/services/serviceFerramentas';
 import serviceRoteiro from '@/services/serviceRoteiro2.0';
+import serviceParametros from '@/services/serviceParametrosTeste'
+
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
 
 export default {
@@ -158,6 +203,7 @@ export default {
             modalMaterial: false,
             modalFerramenta: false,
             modalAdicionarServiço: false,
+            modalAnexos: false,
             blocoAtual: null,
             servicoAtual: null,
             novoMaterial: null,
@@ -171,23 +217,25 @@ export default {
                 ação: { id: '00' },
                 item: { id: '00' },
                 local: { id: '00' }
-            }
+            },
+            parametros: []
         }
     },
     async mounted() {
         this.setores = await serviceRoteiro.getSetoresRoteiro();
         this.ferramentas = (await serviceFerramentas.getAllFerramentas()).data;
+        this.obterParametros();
     },
     methods: {
         criarBlocoSetor() {
             if (this.setorSelecionado) {
-                const existe = this.setoresSelecionados.some(b => b.id === this.setorSelecionado.id);
-                if (!existe) {
-                    this.setoresSelecionados.push({
-                        ...this.setorSelecionado,
-                        servicos: []
-                    });
-                }
+                this.setoresSelecionados.some(b => b.id === this.setorSelecionado.id);
+
+                this.setoresSelecionados.push({
+                    ...this.setorSelecionado,
+                    servicos: []
+                });
+
                 this.setorSelecionado = null;
             }
         },
@@ -264,7 +312,11 @@ export default {
         },
         removerParametro(servico, parametroId) {
             servico.parametros = servico.parametros.filter(p => p.id !== parametroId);
-        }
+        },
+        async obterParametros() {
+            const response = await serviceParametros.buscarPametros();
+            this.parametros = response
+        },
     }
 }
 </script>
@@ -274,13 +326,13 @@ export default {
     padding: var(--margem);
 }
 
-.card {
+/* .card {
     background-color: var(--cor-bg);
     border: 1px solid var(--cor-separador);
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
-}
+} */
 
 .servico-bloco {
     margin-top: 1rem;
@@ -289,9 +341,7 @@ export default {
 }
 
 .setor-listbox,
-.servico-listbox,
-.input-text,
-.input-textarea {
+.servico-listbox {
     width: 100%;
     margin: 0.5rem 0;
     padding: 0.5rem;
@@ -318,13 +368,28 @@ export default {
     border-bottom: none;
 }
 
-.btn-adicionar,
+.btn-adicionar {
+    background: var(--cor-primaria);
+    border: none;
+    color: var(--cor-bg);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    margin-right: 10px;
+}
+
+
+
+
 .btn-excluir,
 .btn-confirmar,
 .btn-fechar {
     border: none;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 12px;
+
 }
 
 .btn-excluir {
@@ -338,21 +403,22 @@ export default {
     border-radius: 6px;
 }
 
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
+
+.lista-materiais {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
 }
 
-.modal-content {
-    background: var(--cor-bg);
-    padding: 2rem;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
+.lista-materiais li {
+    padding: 8px;
+    border-bottom: 1px solid var(--cor-separador);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lista-materiais li:last-child {
+    border-bottom: none;
 }
 </style>
