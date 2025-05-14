@@ -74,13 +74,13 @@
               </select>
             </div>
             <div>
-              <label>Tablet <i title="Editar Tablet" class="bi bi-gear-fill adicionarItem"></i> </label>
+              <label>Linha Device <i title="Editar Linha Device" class="bi bi-gear-fill adicionarItem"></i> </label>
               <select :disabled="aguardandoAprovaçãoFiscal">
                 <option> </option>
               </select>
             </div>
             <div>
-              <label>Versão Modelo <i title="Editar Versão" class="bi bi-gear-fill adicionarItem"></i> </label>
+              <label>Modelo Device<i title="Editar Modelo Device" class="bi bi-gear-fill adicionarItem"></i> </label>
               <select :disabled="aguardandoAprovaçãoFiscal">
                 <option> </option>
               </select>
@@ -94,7 +94,20 @@
               </select>
             </div>
             <div>
-              <label>Especificação <i title="Editar Especificação" class="bi bi-gear-fill adicionarItem"></i></label>
+              <label>Cor <i title="Editar Cor" class="bi bi-gear-fill adicionarItem"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal">
+                <option></option>
+              </select>
+            </div>
+            <div>
+              <label>Versão Modelo <i title="Editar Versão Modelo" class="bi bi-gear-fill adicionarItem"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal">
+                <option></option>
+              </select>
+            </div>
+            <div>
+              <label>Especificação Técnica<i title="Editar Especificação"
+                  class="bi bi-gear-fill adicionarItem"></i></label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes">
                 <option></option>
               </select>
