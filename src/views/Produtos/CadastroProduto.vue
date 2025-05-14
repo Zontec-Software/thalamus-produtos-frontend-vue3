@@ -1,10 +1,20 @@
 <template>
   <div class="titulo">
-    <div class="margem container">
-      <div class="m-icone esquerda">
-        <a @click="this.$router.back()" class="icone-voltar m-d" title="Voltar"></a>
+    <div class="margem container" style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <h2 style="margin: 0;"> {{ tiposProduto.includes(this.id) ? `Cadastro de ${this.id}` : "Editar Produto" }} </h2>
+        <i class="fa-solid fa-circle" :style="{
+          color: produto?.status == 1 ? 'var(--cor-sucesso)' : 'var(--cor-erro)',
+          fontSize: '12px'
+        }">
+        </i>
       </div>
-      <h2> {{ tiposProduto.includes(this.id) ? `Cadastro de ${this.id}` : "Editar Produto" }} </h2>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span>Ativo</span>
+        <i class="fa-solid fa-circle" style="color: var(--cor-sucesso); font-size: 10px;"></i>
+        <span>Inativo</span>
+        <i class="fa-solid fa-circle" style="color: var(--cor-erro); font-size: 10px;"></i>
+      </div>
     </div>
   </div>
   <div class="margem container">

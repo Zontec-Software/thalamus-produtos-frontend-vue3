@@ -7,30 +7,26 @@
     <i :class="caretIcon"></i>
     <span :class="classeProduto" class="tipo-produto"></span>
     <div class="item-description alinha-v" :title="item.desc ?? item.produto_desc">
-      <span>
-        {{ item.produto_codigo ?? item.cod }} - {{ item.desc ?? item.produto_desc }}
-      </span>
-      <span>
-        -
-      </span>
+      <span> {{ item.produto_codigo ?? item.cod }} - {{ item.desc ?? item.produto_desc }} </span>
+      <span> - </span>
       <div class="qtdUnidade" v-if="item.qt && item.unidade" @click.stop>
-        <input type="text" :readonly="!editavel" @blur="atualizaItem(item.id, 'qt', itemCopia.qt)"
-          v-model="itemCopia.qt">
+        <!-- <input type="text" :readonly="!editavel" @blur="atualizaItem(item.id, 'qt', itemCopia.qt)"
+          v-model="itemCopia.qt"> -->
+        <span> {{ item.qt }}</span>
         <span>{{ item.unidade }}</span>
       </div>
-      <i class="bi bi-trash" v-if="editavel" @click.stop="confirmarRemocao(item)"
-        style="font-size: 15px; cursor: pointer; color: red; margin-left: .5rem"></i>
+      <!-- <i class="bi bi-trash" v-if="editavel" @click.stop="confirmarRemocao(item)"
+        style="font-size: 15px; cursor: pointer; color: red; margin-left: .5rem"></i> -->
     </div>
   </div>
   <div v-if="isOpen" class="child-items">
     <EstruturaComponent v-for="(childItem, index) in itemCopia.filhos" :key="index" :item="childItem"
       @removerItem="removerItem" :editavel="podeEditar" :unidades="unidades" />
-    <div v-if="iniciarAberto || item.destaque" class="add-item">
+    <!-- <div v-if="iniciarAberto || item.destaque" class="add-item">
       <i class="bi bi-plus-square"></i>
       <AutoCompleteComponent @adicionarItem="adicionarItem" @abrirModalNovoItem="abrirModal" />
-    </div>
+    </div> -->
   </div>
-
   <!-- MODAL -->
   <div class="modal-mask" v-if="modalConfirmacao" @click="fecharModalConfirmacao()">
     <div class="jm margem" @click.stop>
@@ -47,12 +43,12 @@
   <!--END MODAL -->
 </template>
 <script>
-import AutoCompleteComponent from '@/components/AutoComplete/AutoCompleteComponent.vue';
+//import AutoCompleteComponent from '@/components/AutoComplete/AutoCompleteComponent.vue';
 import serviceProdutos from "@/services/serviceProdutos";
 export default {
   name: "EstruturaComponent",
   components: {
-    AutoCompleteComponent,
+    //AutoCompleteComponent,
   },
   props: {
     item: { Required: true },
