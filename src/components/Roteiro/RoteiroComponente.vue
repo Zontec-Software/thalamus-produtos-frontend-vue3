@@ -9,6 +9,7 @@
                 <option v-for="setor in setores" :key="setor.id" :value="setor">{{ setor.nome }}</option>
             </select>
         </div>
+        <br>
         <draggable v-model="setoresSelecionados" group="setores" item-key="id" handle=".drag-handle" animation="200">
             <template #item="{ element: bloco }">
                 <div class="bloco margem">
@@ -19,8 +20,7 @@
                         </div>
                         <div>
                             <button class="btn-adicionar" @click="abrirModalServico(bloco)">Adicionar Serviço</button>
-                            <i class="bi-x-circle" @click="confirmarExcluir(bloco, 'setor')"></i>
-                            <!-- <button class="btn-excluir" @click="confirmarExcluir(bloco, 'setor')">Excluir Setor</button> -->
+                            <i class="bi-trash" @click="confirmarExcluir(bloco, 'setor')"></i>
                         </div>
                     </div>
                     <draggable v-model="bloco.servicos" group="servicos" item-key="id" handle=".drag-handle"
@@ -34,46 +34,48 @@
                                         <h4>{{ servico.descricao }}</h4>
                                     </div>
                                     <div>
-                                        <button class="btn-adicionar" @click="toggleExpandir(servico)"> {{
-                                            servico.expandido ? 'Recolher' : 'Expandir' }} </button>
-                                        <button class="btn-excluir"
+                                        <span @click="toggleExpandir(servico)">
+                                            <i :class="servico.expandido ? 'bi-eye' : 'bi-eye-slash'"></i>
+                                        </span>
+                                        <button class="btn-adicionar"
                                             @click="confirmarExcluir(servico, 'servico')">Excluir Serviço</button>
                                     </div>
                                 </div>
+                                <br>
                                 <div v-show="servico.expandido">
-                                    <!-- Materiais -->
                                     <div class="bloco2 margem">
                                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                                             <button class="btn-adicionar"
                                                 @click="abrirModalMaterial(servico)">+</button>
-                                            <label>Materiais Necessários:</label>
+                                            <label><b>Materiais Necessários:</b></label>
                                         </div>
+                                        <br>
                                         <ul class="lista-materiais">
                                             <li v-for="material in servico.materiais" :key="material.id">
                                                 <span>{{ material.produto.cod }} - {{ material.produto.desc }} (Qtd: {{
                                                     material.qtd }})</span>
-                                                <i class="bi-x-circle"
-                                                    @click="removerMaterial(servico, material.id)"></i>
+                                                <i class="bi-trash" @click="removerMaterial(servico, material.id)"></i>
                                             </li>
                                         </ul>
                                     </div>
-                                    <!-- Ferramentas -->
+                                    <br>
                                     <div class="bloco2 margem">
                                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                                             <button class="btn-adicionar"
                                                 @click="abrirModalFerramenta(servico)">+</button>
-                                            <label>Ferramentas Utilizadas:</label>
+                                            <label><b>Ferramentas Utilizadas:</b></label>
                                         </div>
+                                        <br>
                                         <ul class="lista-materiais">
                                             <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
                                                 <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
                                                     }}</span>
-                                                <i class="bi-x-circle"
+                                                <i class="bi-trash"
                                                     @click="removerFerramenta(servico, ferramenta.id)"></i>
                                             </li>
                                         </ul>
                                     </div>
-                                    <!-- Parâmetros -->
+                                    <br>
                                     <div class="bloco2 margem">
                                         <div class="cabecalho-lista">
                                             <label>Parâmetros de Inspeção:</label>
@@ -82,26 +84,24 @@
                                             <li v-for="parametro in servico.parametros" :key="parametro.id">
                                                 <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome
                                                     }}</span>
-                                                <i class="bi-x-circle"
+                                                <i class="bi-trash"
                                                     @click="removerParametro(servico, parametro.id)"></i>
                                             </li>
                                         </ul>
                                         <AutoCompleteRoteiro :BaseOpcoes="parametros"
                                             @adicionarItem="(event) => adicionarParametro(servico, event)" />
                                     </div>
-                                    <!-- Observações -->
                                     <div class="bloco3 margem">
                                         <div class="cabecalho-lista">
                                             <label>Observações:</label>
                                         </div>
                                         <textarea v-model="servico.observacoes"></textarea>
                                     </div>
-                                    <!-- Anexos -->
                                     <div class="bloco2 margem">
                                         <div class="cabecalho-lista">
                                             <label>Anexos:</label>
                                         </div>
-                                        <a @click="abrirModalAnexos">Adicionar Anexos</a>
+                                        <a @click="modalAnexos = true" class="icone-inc"></a>
                                     </div>
                                 </div>
                             </div>
@@ -110,10 +110,6 @@
                 </div>
             </template>
         </draggable>
-        <div class="submit direita margem">
-            <button @click="salvarAlteracoes">Salvar Tudo</button>
-            <button class="acao-secundaria" @click="cancelarAlteracoes">Cancelar</button>
-        </div>
         <!-- MODAL SERVIÇO -->
         <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -251,7 +247,7 @@ export default {
         return {
             setores: [],
             ferramentas: [],
-            setoresSelecionados: [],
+            setoresSelecionados: [{ "id": 37, "responsavel_id": null, "nome": "Eletrônica", "setor_pai": 10, "nivel_hierarquico": 4, "peso": null, "deleted_at": null, "created_at": "2024-04-23T22:48:57.000000Z", "updated_at": "2025-04-30T18:48:43.000000Z", "montagem": 1, "pessoa_responsavel": null, "servicos": [{ "id": 1747262412859, "codigo_servico": "011717", "descricao": "Colar conectores na etiqueta", "materiais": [{ "id": 1747262417747, "produto": { "id": 3619, "cod": "INJ030040", "produto_cod": 2338736611, "descricao": "ACOPLADOR CONECTOR 4 VIAS", "tipo": "Produto em Processo", "familia": "Injetados Internos" }, "qtd": 1, "unidade": "un" }, { "id": 1747262432899, "produto": { "id": 8158, "cod": "PMP010010", "descricao": "PIGMENTO PRETO PARA ABS", "produto_cod": 2161749990, "tipo": "Matéria Prima", "familia": "Peça Matéria Prima" }, "qtd": 1, "unidade": "un" }, { "id": 1747262437075, "produto": { "id": 8159, "cod": "REC010002", "descricao": "ABS TRITURADO", "produto_cod": 2338358852, "tipo": "Matéria Prima", "familia": "Resíduos" }, "qtd": 1, "unidade": "un" }], "ferramentas": [{ "id": 1747262420755, "ferramenta": { "id": 4, "codigo": "000001", "nome": "Furadeira Teste", "descricao": "Teste" } }, { "id": 1747262424051, "ferramenta": { "id": 5, "codigo": "000002", "nome": "Martelo", "descricao": "Martelo" } }, { "id": 1747262427259, "ferramenta": { "id": 6, "codigo": "000003", "nome": "Cola", "descricao": "Cola" } }], "parametros": [{ "id": 1747262438971, "parametro": { "id": 4, "codigo": "01", "nome": "Parametro", "descricao": "teste" } }, { "id": 1747262440299, "parametro": { "id": 6, "codigo": "02", "nome": "Parametro 2", "descricao": null } }], "observacoes": "" }] }],
             setoresSelecionadosBackup: [],
             setorSelecionado: null,
             modalAdicionarServico: false,
@@ -285,10 +281,10 @@ export default {
     methods: {
         criarBlocoSetor() {
             if (this.setorSelecionado) {
-                const existe = this.setoresSelecionados.some(s => s.id === this.setorSelecionado.id);
-                if (!existe) {
-                    this.setoresSelecionados.push({ ...this.setorSelecionado, servicos: [] });
-                }
+                this.setoresSelecionados.some(s => s.id === this.setorSelecionado.id);
+
+                this.setoresSelecionados.push({ ...this.setorSelecionado, servicos: [] });
+
                 this.setorSelecionado = null;
             }
         },
@@ -379,7 +375,7 @@ export default {
         removerItemConfirmado() {
             if (this.tipoExclusao === 'setor') {
                 this.setoresSelecionados = this.setoresSelecionados.filter(s => s.id !== this.itemParaExcluir.id);
-            } else if (this.tipoExclusao === 'servico') {
+            } else if (this.tipoExclusao === 'serviço') {
                 for (const setor of this.setoresSelecionados) {
                     setor.servicos = setor.servicos.filter(s => s.id !== this.itemParaExcluir.id);
                 }
@@ -387,14 +383,7 @@ export default {
             this.modalConfirmacao = false;
             this.itemParaExcluir = null;
         },
-        salvarAlteracoes() {
-            serviceRoteiro.salvarRoteiro(this.setoresSelecionados);
-            this.setoresSelecionadosBackup = JSON.parse(JSON.stringify(this.setoresSelecionados));
-            alert('Alterações salvas com sucesso!');
-        },
-        cancelarAlteracoes() {
-            this.setoresSelecionados = JSON.parse(JSON.stringify(this.setoresSelecionadosBackup));
-        },
+
         fecharModais() {
             this.modalAdicionarServico = false;
             this.modalMaterial = false;
@@ -410,6 +399,17 @@ export default {
     margin-top: 1rem;
     border-top: 1px solid var(--cor-separador);
     padding-top: 1rem;
+}
+
+.setor-listbox,
+.servico-listbox {
+
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--cor-separador);
+    background-color: var(--cor-bg);
+    color: var(--cor-texto);
 }
 
 .lista-materiais {
@@ -434,14 +434,10 @@ export default {
     color: var(--cor-bg);
     cursor: pointer;
     padding: 4px 8px;
-
     border-radius: 4px;
     transition: background-color 0.2s;
     margin-right: 10px;
 }
-
-
-
 
 .btn-excluir,
 .btn-confirmar,
@@ -449,14 +445,5 @@ export default {
     border: none;
     cursor: pointer;
 
-}
-
-
-.jm {
-    background: var(--cor-bg);
-    padding: 2rem;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
 }
 </style>
