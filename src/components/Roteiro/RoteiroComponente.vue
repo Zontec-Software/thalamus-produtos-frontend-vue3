@@ -37,8 +37,8 @@
                                         <span @click="toggleExpandir(servico)">
                                             <i :class="servico.expandido ? 'bi-eye' : 'bi-eye-slash'"></i>
                                         </span>
-                                        <button class="btn-adicionar"
-                                            @click="confirmarExcluir(servico, 'servico')">Excluir Serviço</button>
+                                        <i style="margin-left: 0.5rem;" class="bi-trash"
+                                            @click="confirmarExcluir(servico, 'servico')"></i>
                                     </div>
                                 </div>
                                 <br>
@@ -50,11 +50,12 @@
                                             <label><b>Materiais Necessários:</b></label>
                                         </div>
                                         <br>
-                                        <ul class="lista-materiais">
+                                        <ul class="lista-materiais ">
                                             <li v-for="material in servico.materiais" :key="material.id">
                                                 <span>{{ material.produto.cod }} - {{ material.produto.desc }} (Qtd: {{
                                                     material.qtd }})</span>
-                                                <i class="bi-trash" @click="removerMaterial(servico, material.id)"></i>
+                                                <i class="bi-x-circle"
+                                                    @click="removerMaterial(servico, material.id)"></i>
                                             </li>
                                         </ul>
                                     </div>
@@ -66,11 +67,11 @@
                                             <label><b>Ferramentas Utilizadas:</b></label>
                                         </div>
                                         <br>
-                                        <ul class="lista-materiais">
+                                        <ul class="lista-materiais ">
                                             <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
                                                 <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
-                                                    }}</span>
-                                                <i class="bi-trash"
+                                                }}</span>
+                                                <i class="bi-x-circle"
                                                     @click="removerFerramenta(servico, ferramenta.id)"></i>
                                             </li>
                                         </ul>
@@ -78,13 +79,13 @@
                                     <br>
                                     <div class="bloco2 margem">
                                         <div class="cabecalho-lista">
-                                            <label>Parâmetros de Inspeção:</label>
+                                            <label><b>Parâmetros de Inspeção:</b></label>
                                         </div>
-                                        <ul class="lista-materiais">
+                                        <ul class="lista-materiais ">
                                             <li v-for="parametro in servico.parametros" :key="parametro.id">
                                                 <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome
-                                                    }}</span>
-                                                <i class="bi-trash"
+                                                }}</span>
+                                                <i class="bi-x-circle"
                                                     @click="removerParametro(servico, parametro.id)"></i>
                                             </li>
                                         </ul>
@@ -93,13 +94,13 @@
                                     </div>
                                     <div class="bloco3 margem">
                                         <div class="cabecalho-lista">
-                                            <label>Observações:</label>
+                                            <label><b>Observações:</b></label>
                                         </div>
                                         <textarea v-model="servico.observacoes"></textarea>
                                     </div>
                                     <div class="bloco2 margem">
                                         <div class="cabecalho-lista">
-                                            <label>Anexos:</label>
+                                            <label><b>Anexos:</b></label>
                                         </div>
                                         <a @click="modalAnexos = true" class="icone-inc"></a>
                                     </div>
@@ -125,14 +126,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -161,7 +162,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.desc }} </option>
+                            }} - {{ material.desc }} </option>
                         </select>
                     </div>
                     <div>
@@ -216,8 +217,8 @@
                     <h3>Anexos do Serviço</h3>
                 </div>
                 <div class="tags">
-                    <a>Anexo 1 <i class="bi-trash"></i></a>
-                    <a>Anexo 2 <i class="bi-trash"></i></a>
+                    <a>Anexo 1 <i class="bi-x-circle"></i></a>
+                    <a>Anexo 2 <i class="bi-x-circle"></i></a>
                     <a title="Adicionar Anexo">+</a>
                 </div>
             </div>
@@ -390,11 +391,33 @@ export default {
             this.modalFerramenta = false;
             this.modalConfirmacao = false;
             this.modalAnexos = false;
-        }
+        },
+
+
     }
 }
 </script>
 <style scoped>
+.bi-eye,
+.bi-eye-slash {
+    width: 2rem;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.bi-x-circle {
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--cor-erro);
+}
+
+
+.bi-trash {
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--cor-erro);
+}
+
 .servico-bloco {
     margin-top: 1rem;
     border-top: 1px solid var(--cor-separador);
