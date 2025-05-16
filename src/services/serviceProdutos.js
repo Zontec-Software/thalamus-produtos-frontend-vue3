@@ -223,6 +223,26 @@ const funções = {
             throw error;
         }
     },
+    async getCor() {
+        try {
+            const response = await api.get(`/produto/cor/listar`)
+            return response.data;
+
+        } catch (error) {
+            console.error("Erro ao listar cores")
+            throw error;
+        }
+    },
+    async getVersaoModelo() {
+        try {
+            const response = await api.get(`/produto/versao-modelo/listar`)
+            return response.data;
+
+        } catch (error) {
+            console.error("Erro ao listar versão modelo")
+            throw error;
+        }
+    },
 
     //ALTERAR NO OMIE, SEM APROVAÇÃO
     async finalizarCadastro(id, payload) {
