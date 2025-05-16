@@ -74,16 +74,15 @@
               </select>
             </div>
             <div>
-              <label>Linha Device <i title="Editar Linha Device" class="bi bi-gear-fill adicionarItem"></i> </label>
-              <select :disabled="aguardandoAprovaçãoFiscal">
-                <option> </option>
-              </select>
+              <label>Linha Device </label>
+              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.linha_device"
+                @input="atualizarPayLoad('linha_device', produto_original.linha_device)">
             </div>
             <div>
-              <label>Modelo Device <i title="Editar Modelo Device" class="bi bi-gear-fill adicionarItem"></i> </label>
-              <select :disabled="aguardandoAprovaçãoFiscal">
-                <option> </option>
-              </select>
+
+              <label>Modelo Device </label>
+              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.modelo_device"
+                @input="atualizarPayLoad('modelo_device', produto_original.modelo_device)">
             </div>
             <div>
               <label>Status</label>
@@ -94,15 +93,19 @@
               </select>
             </div>
             <div>
-              <label>Cor <i title="Editar Cor" class="bi bi-gear-fill adicionarItem"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal">
-                <option></option>
+              <label>Cor <i title="Editar Cor" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('cor')"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.cor_id"
+                @change="atualizarPayLoad('cor_id', produto_original.cor_id)">
+                <option v-for="item in cor" :key="item.id" :value="item.id"> {{ item.nome }}</option>
               </select>
             </div>
             <div>
-              <label>Versão Modelo <i title="Editar Versão Modelo" class="bi bi-gear-fill adicionarItem"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal">
-                <option></option>
+              <label>Versão Modelo <i title="Editar Versão Modelo" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('versaoModelo')"></i> </label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.versao_modelo_id"
+                @change="atualizarPayLoad('versao_modelo_id', produto_original.versao_modelo_id)">
+                <option v-for="item in versaoModelo" :key="item.id" :value="item.id"> {{ item.nome }} </option>
               </select>
             </div>
             <div>
@@ -328,13 +331,14 @@ export default {
       alteracoes: {},
       familias: [],
       tipos: [],
-
       fixacao: [],
       linha: [],
       modelo: [],
       tamanho: [],
       ncm: [],
       und: [],
+      cor: [],
+      versaoModelo: [],
       searchQueryNcm: "",
       filteredNcm: [],
       listaAbertaNcm: false,
@@ -378,6 +382,8 @@ export default {
         this.carregarTamanho(),
         this.carregarNcmPorId(),
         this.carregarUnidades(),
+        this.carregarCores(),
+        this.carregarVersaoModelo()
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -395,7 +401,9 @@ export default {
         this.carregarFixacao(),
         this.carregarTamanho(),
         this.carregarNcmPorId(),
-        this.carregarUnidades()
+        this.carregarUnidades(),
+        this.carregarCores(),
+        this.carregarVersaoModelo()
     },
     async cadastrarOMIE() {
       var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
@@ -440,6 +448,20 @@ export default {
             combo: this.tamanho
           };
           break;
+        case 'cor':
+          this.itemEditado = {
+            tipo: 'Cor',
+            url: 'produto/cor',
+            combo: this.cor
+          };
+          break;
+        case 'versaoModelo':
+          this.itemEditado = {
+            tipo: 'Versão Modelo',
+            url: 'produto/versao-modelo',
+            combo: this.versaoModelo
+          };
+          break;
 
         default:
           null
@@ -480,6 +502,22 @@ export default {
       this.searchQueryNcm = `${ncm.codigo} - ${ncm.descricao}`;
       this.produto_original.ncm = ncm.codigo;
       this.listaAbertaNcm = false;
+    },
+    async carregarVersaoModelo() {
+      try {
+        const response = await serviceProdutos.getVersaoModelo();
+        this.versaoModelo = response;
+      } catch (error) {
+        console.error("Erro ao carregar versão modelo de produtos:", error);
+      }
+    },
+    async carregarCores() {
+      try {
+        const response = await serviceProdutos.getCor();
+        this.cor = response;
+      } catch (error) {
+        console.error("Erro ao carregar cores de produtos:", error);
+      }
     },
 
     async carregarUnidades() {
