@@ -10,13 +10,14 @@
             </select>
         </div>
         <br>
-        <draggable v-model="setoresSelecionados" group="setores" item-key="id" handle=".drag-handle" animation="200">
+        {{ roteiro }}
+        <draggable v-model="roteiro.setores" group="setores" item-key="id" handle=".drag-handle" animation="200">
             <template #item="{ element: bloco }">
                 <div class="bloco margem">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div style="display: flex; align-items: center;">
                             <i class="bi bi-grip-vertical drag-handle" style="cursor: grab; margin-right: 10px;"></i>
-                            <h3>{{ bloco.nome }}</h3>
+                            <h3>{{ bloco.setor?.nome }}</h3>
                         </div>
                         <div>
                             <button class="btn-adicionar" @click="abrirModalServico(bloco)">Adicionar Serviço</button>
@@ -35,7 +36,7 @@
                                     </div>
                                     <div>
                                         <span @click="toggleExpandir(servico)">
-                                            <i :class="servico.expandido ? 'bi-eye' : 'bi-eye-slash'"></i>
+                                            <i :class="servico.expandido ? 'bi-eye-slash' : 'bi-eye'"></i>
                                         </span>
                                         <i style="margin-left: 0.5rem;" class="bi-trash"
                                             @click="confirmarExcluir(servico, 'servico')"></i>
@@ -111,6 +112,7 @@
                 </div>
             </template>
         </draggable>
+
         <!-- MODAL SERVIÇO -->
         <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -150,6 +152,7 @@
             </div>
         </div>
         <!-- END MODAL SERVIÇO -->
+
         <!--MODAL MATERIAL -->
         <div v-if="modalMaterial" class="modal-mask" @click="modalMaterial = false">
             <div class="jm margem" @click.stop>
@@ -176,6 +179,7 @@
             </div>
         </div>
         <!--END MODAL MATERIAL -->
+
         <!-- MODAL FERRAMENTA -->
         <div v-if="modalFerramenta" class="modal-mask" @click="modalFerramenta = false">
             <div class="jm margem" @click.stop>
@@ -196,7 +200,10 @@
                     <button @click="adicionarFerramenta">Adicionar</button>
                 </div>
             </div>
-        </div> <!-- END MODAL FERRAMENTA -->
+        </div>
+        <!-- END MODAL FERRAMENTA -->
+
+
         <!-- Modal Confirmar Exclusão -->
         <div v-if="modalConfirmacao" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -210,6 +217,7 @@
                 </div>
             </div>
         </div>
+
         <!-- Modal Anexos -->
         <div v-if="modalAnexos" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -242,14 +250,16 @@ export default {
         produtos: {
             type: Array,
             required: true
+        },
+        produto_cod: {
+            required: true,
         }
     },
     data() {
         return {
             setores: [],
             ferramentas: [],
-            setoresSelecionados: [{ "id": 37, "responsavel_id": null, "nome": "Eletrônica", "setor_pai": 10, "nivel_hierarquico": 4, "peso": null, "deleted_at": null, "created_at": "2024-04-23T22:48:57.000000Z", "updated_at": "2025-04-30T18:48:43.000000Z", "montagem": 1, "pessoa_responsavel": null, "servicos": [{ "id": 1747262412859, "codigo_servico": "011717", "descricao": "Colar conectores na etiqueta", "materiais": [{ "id": 1747262417747, "produto": { "id": 3619, "cod": "INJ030040", "produto_cod": 2338736611, "descricao": "ACOPLADOR CONECTOR 4 VIAS", "tipo": "Produto em Processo", "familia": "Injetados Internos" }, "qtd": 1, "unidade": "un" }, { "id": 1747262432899, "produto": { "id": 8158, "cod": "PMP010010", "descricao": "PIGMENTO PRETO PARA ABS", "produto_cod": 2161749990, "tipo": "Matéria Prima", "familia": "Peça Matéria Prima" }, "qtd": 1, "unidade": "un" }, { "id": 1747262437075, "produto": { "id": 8159, "cod": "REC010002", "descricao": "ABS TRITURADO", "produto_cod": 2338358852, "tipo": "Matéria Prima", "familia": "Resíduos" }, "qtd": 1, "unidade": "un" }], "ferramentas": [{ "id": 1747262420755, "ferramenta": { "id": 4, "codigo": "000001", "nome": "Furadeira Teste", "descricao": "Teste" } }, { "id": 1747262424051, "ferramenta": { "id": 5, "codigo": "000002", "nome": "Martelo", "descricao": "Martelo" } }, { "id": 1747262427259, "ferramenta": { "id": 6, "codigo": "000003", "nome": "Cola", "descricao": "Cola" } }], "parametros": [{ "id": 1747262438971, "parametro": { "id": 4, "codigo": "01", "nome": "Parametro", "descricao": "teste" } }, { "id": 1747262440299, "parametro": { "id": 6, "codigo": "02", "nome": "Parametro 2", "descricao": null } }], "observacoes": "" }] }],
-            setoresSelecionadosBackup: [],
+            roteiro: [],
             setorSelecionado: null,
             modalAdicionarServico: false,
             modalMaterial: false,
@@ -278,15 +288,17 @@ export default {
         this.setores = await serviceRoteiro.getSetoresRoteiro();
         this.ferramentas = (await serviceFerramentas.getAllFerramentas()).data;
         this.parametros = await serviceParametros.buscarPametros();
+        this.getRoteiro();
     },
     methods: {
-        criarBlocoSetor() {
+        async getRoteiro() {
+            this.roteiro = await serviceRoteiro.buscarRoteiro(this.produto_cod);
+        },
+
+        async criarBlocoSetor() {
             if (this.setorSelecionado) {
-                this.setoresSelecionados.some(s => s.id === this.setorSelecionado.id);
-
-                this.setoresSelecionados.push({ ...this.setorSelecionado, servicos: [] });
-
-                this.setorSelecionado = null;
+                await serviceRoteiro.adicionarSetor(this.roteiro.id, this.setorSelecionado.id);
+                this.getRoteiro()
             }
         },
         abrirModalServico(bloco) {
@@ -298,20 +310,15 @@ export default {
             this.novoServico.cod = `${this.novoServico.ação?.id ?? ''}${this.novoServico.item?.id ?? ''}${this.novoServico.local?.id ?? ''}`;
             this.novoServico.desc = `${this.novoServico.ação?.nome ?? ''} ${this.novoServico.item?.nome ?? ''} ${this.novoServico.local?.nome ?? ''}`.trim();
         },
-        adicionarServico() {
-            const bloco = this.setoresSelecionados.find(b => b.id === this.idSetorNovoServico);
-            if (bloco) {
-                bloco.servicos.push({
-                    id: Date.now(),
-                    descricao: this.novoServico.desc,
-                    codigo_servico: this.novoServico.cod,
-                    materiais: [],
-                    ferramentas: [],
-                    parametros: [],
-                    observacoes: '',
-                    expandido: true
-                });
+        async adicionarServico() {
+            var payload = {
+                rot_setor_id: this.idSetorNovoServico,
+                codigo_servico: this.novoServico.cod,
+                descricao: this.novoServico.desc,
             }
+
+            await serviceRoteiro.adicionarServico(payload);
+            this.getRoteiro()
             this.modalAdicionarServico = false;
         },
         toggleExpandir(servico) {
@@ -373,13 +380,14 @@ export default {
             this.tipoExclusao = tipo;
             this.modalConfirmacao = true;
         },
-        removerItemConfirmado() {
+        async removerItemConfirmado() {
             if (this.tipoExclusao === 'setor') {
-                this.setoresSelecionados = this.setoresSelecionados.filter(s => s.id !== this.itemParaExcluir.id);
-            } else if (this.tipoExclusao === 'serviço') {
-                for (const setor of this.setoresSelecionados) {
-                    setor.servicos = setor.servicos.filter(s => s.id !== this.itemParaExcluir.id);
-                }
+                await serviceRoteiro.removerSetor(this.itemParaExcluir.id);
+                this.getRoteiro();
+            } else if (this.tipoExclusao === 'servico') {
+                console.log(this.itemParaExcluir);
+                await serviceRoteiro.removerServico(this.itemParaExcluir.id);
+                this.getRoteiro();
             }
             this.modalConfirmacao = false;
             this.itemParaExcluir = null;
