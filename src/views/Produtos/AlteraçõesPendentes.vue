@@ -80,7 +80,7 @@
               </select>
             </div>
             <div>
-              <label>Modelo Device<i title="Editar Modelo Device" class="bi bi-gear-fill adicionarItem"></i> </label>
+              <label>Modelo Device <i title="Editar Modelo Device" class="bi bi-gear-fill adicionarItem"></i> </label>
               <select :disabled="aguardandoAprovaçãoFiscal">
                 <option> </option>
               </select>
@@ -106,7 +106,7 @@
               </select>
             </div>
             <div>
-              <label>Especificação Técnica<i title="Editar Especificação"
+              <label>Especificação Técnica <i title="Editar Especificação"
                   class="bi bi-gear-fill adicionarItem"></i></label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes">
                 <option></option>
