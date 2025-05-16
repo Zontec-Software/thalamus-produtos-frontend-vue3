@@ -2,113 +2,104 @@
     <div class="container margem">
         <div class="bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Setores</h3>
+                <h3>Adicionar bloco</h3>
             </div>
             <select v-model="setorSelecionado" class="setor-listbox" @change="criarBlocoSetor">
-                <option value="" disabled>Selecione um setor</option>
+                <option :value="null" selected hidden>Selecione um setor</option>
                 <option v-for="setor in setores" :key="setor.id" :value="setor">{{ setor.nome }}</option>
             </select>
         </div>
         <br>
-        {{ roteiro }}
-        <draggable v-model="roteiro.setores" group="setores" item-key="id" handle=".drag-handle" animation="200">
+        <draggable v-model="roteiro.setores" group="setores" item-key="id" handle=".drag-handle" animation="200"
+            @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
             <template #item="{ element: bloco }">
                 <div class="bloco margem">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center;">
-                            <i class="bi bi-grip-vertical drag-handle" style="cursor: grab; margin-right: 10px;"></i>
-                            <h3>{{ bloco.setor?.nome }}</h3>
+                        <div style="display: flex; align-items: center;" class="alinha-v">
+                            <i class="bi-grip-vertical drag-handle" style="cursor: grab; margin-right: 10px;"></i>
+                            <h3 style="margin: 0;">{{ bloco.setor?.nome }}</h3>
                         </div>
                         <div>
                             <button class="btn-adicionar" @click="abrirModalServico(bloco)">Adicionar Serviço</button>
                             <i class="bi-trash" @click="confirmarExcluir(bloco, 'setor')"></i>
                         </div>
                     </div>
-                    <draggable v-model="bloco.servicos" group="servicos" item-key="id" handle=".drag-handle"
-                        animation="200">
-                        <template #item="{ element: servico }">
-                            <div class="servico-bloco margem">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div style="display: flex; align-items: center;">
-                                        <i class="bi bi-grip-vertical drag-handle"
-                                            style="cursor: grab; margin-right: 10px;"></i>
-                                        <h4>{{ servico.descricao }}</h4>
-                                    </div>
-                                    <div>
-                                        <span @click="toggleExpandir(servico)">
-                                            <i :class="servico.expandido ? 'bi-eye-slash' : 'bi-eye'"></i>
-                                        </span>
-                                        <i style="margin-left: 0.5rem;" class="bi-trash"
-                                            @click="confirmarExcluir(servico, 'servico')"></i>
-                                    </div>
+                    <div class="servico-bloco margem bloco2" v-for="servico in bloco.servicos" :key="servico.id">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center;">
+                                <h4 @click="toggleExpandir(servico)" style="cursor: pointer;">- {{ servico.descricao }}
+                                </h4>
+                            </div>
+                            <div>
+                                <span @click="toggleExpandir(servico)">
+                                    <i :class="servico.expandido ? 'bi-eye-slash' : 'bi-eye'"></i>
+                                </span>
+                                <i style="margin-left: 0.5rem;" class="bi-trash"
+                                    @click="confirmarExcluir(servico, 'servico')"></i>
+                            </div>
+                        </div>
+                        <br>
+                        <div v-show="servico.expandido">
+                            <div class="bloco2 margem">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <button class="btn-adicionar" @click="abrirModalMaterial(servico)">+</button>
+                                    <label><b>Materiais Necessários:</b></label>
                                 </div>
                                 <br>
-                                <div v-show="servico.expandido">
-                                    <div class="bloco2 margem">
-                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                            <button class="btn-adicionar"
-                                                @click="abrirModalMaterial(servico)">+</button>
-                                            <label><b>Materiais Necessários:</b></label>
-                                        </div>
-                                        <br>
-                                        <ul class="lista-materiais ">
-                                            <li v-for="material in servico.materiais" :key="material.id">
-                                                <span>{{ material.produto.cod }} - {{ material.produto.desc }} (Qtd: {{
-                                                    material.qtd }})</span>
-                                                <i class="bi-x-circle"
-                                                    @click="removerMaterial(servico, material.id)"></i>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <br>
-                                    <div class="bloco2 margem">
-                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                            <button class="btn-adicionar"
-                                                @click="abrirModalFerramenta(servico)">+</button>
-                                            <label><b>Ferramentas Utilizadas:</b></label>
-                                        </div>
-                                        <br>
-                                        <ul class="lista-materiais ">
-                                            <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                                                <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
-                                                }}</span>
-                                                <i class="bi-x-circle"
-                                                    @click="removerFerramenta(servico, ferramenta.id)"></i>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <br>
-                                    <div class="bloco2 margem">
-                                        <div class="cabecalho-lista">
-                                            <label><b>Parâmetros de Inspeção:</b></label>
-                                        </div>
-                                        <ul class="lista-materiais ">
-                                            <li v-for="parametro in servico.parametros" :key="parametro.id">
-                                                <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome
-                                                }}</span>
-                                                <i class="bi-x-circle"
-                                                    @click="removerParametro(servico, parametro.id)"></i>
-                                            </li>
-                                        </ul>
-                                        <AutoCompleteRoteiro :BaseOpcoes="parametros"
-                                            @adicionarItem="(event) => adicionarParametro(servico, event)" />
-                                    </div>
-                                    <div class="bloco3 margem">
-                                        <div class="cabecalho-lista">
-                                            <label><b>Observações:</b></label>
-                                        </div>
-                                        <textarea v-model="servico.observacoes"></textarea>
-                                    </div>
-                                    <div class="bloco2 margem">
-                                        <div class="cabecalho-lista">
-                                            <label><b>Anexos:</b></label>
-                                        </div>
-                                        <a @click="modalAnexos = true" class="icone-inc"></a>
-                                    </div>
-                                </div>
+                                <ul class="lista-materiais ">
+                                    <li v-for="material in servico.materiais" :key="material.id">
+                                        <span>{{ material.produto.cod }} - {{ material.produto.descricao ??
+                                            material.produto.desc }}
+                                            (Qtd: {{
+                                                material.qtd }})</span>
+                                        <i class="bi-x-circle" @click="removerMaterial(servico, material.id)"></i>
+                                    </li>
+                                </ul>
                             </div>
-                        </template>
-                    </draggable>
+                            <br>
+                            <div class="bloco2 margem">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <button class="btn-adicionar" @click="abrirModalFerramenta(servico)">+</button>
+                                    <label><b>Ferramentas Utilizadas:</b></label>
+                                </div>
+                                <br>
+                                <ul class="lista-materiais ">
+                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
+                                        <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
+                                        }}</span>
+                                        <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
+                                    </li>
+                                </ul>
+                            </div>
+                            <br>
+                            <div class="bloco2 margem">
+                                <div class="cabecalho-lista">
+                                    <label><b>Parâmetros de Inspeção:</b></label>
+                                </div>
+                                <ul class="lista-materiais ">
+                                    <li v-for="parametro in servico.parametros" :key="parametro.id">
+                                        <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome
+                                        }}</span>
+                                        <i class="bi-x-circle" @click="removerParametro(servico, parametro.id)"></i>
+                                    </li>
+                                </ul>
+                                <AutoCompleteRoteiro :BaseOpcoes="parametros"
+                                    @adicionarItem="(event) => adicionarParametro(servico, event)" />
+                            </div>
+                            <div class="bloco3 margem">
+                                <div class="cabecalho-lista">
+                                    <label><b>Observações:</b></label>
+                                </div>
+                                <textarea v-model="servico.observacao" @focusout="atualizarObs(servico)"></textarea>
+                            </div>
+                            <div class="bloco2 margem">
+                                <div class="cabecalho-lista">
+                                    <label><b>Anexos:</b></label>
+                                </div>
+                                <a @click="modalAnexos = true" class="icone-inc"></a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </template>
         </draggable>
@@ -165,7 +156,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.desc }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -291,6 +282,11 @@ export default {
         this.getRoteiro();
     },
     methods: {
+
+        atualizarObs(servico) {
+            serviceRoteiro.atualizarServico(servico.id, { observacao: servico.observacao });
+        },
+
         async getRoteiro() {
             this.roteiro = await serviceRoteiro.buscarRoteiro(this.produto_cod);
         },
@@ -309,6 +305,9 @@ export default {
         montarCodServico() {
             this.novoServico.cod = `${this.novoServico.ação?.id ?? ''}${this.novoServico.item?.id ?? ''}${this.novoServico.local?.id ?? ''}`;
             this.novoServico.desc = `${this.novoServico.ação?.nome ?? ''} ${this.novoServico.item?.nome ?? ''} ${this.novoServico.local?.nome ?? ''}`.trim();
+        },
+        alterarOrdem(idSetor, index) {
+            serviceRoteiro.reordenarSetores(idSetor, (index + 1))
         },
         async adicionarServico() {
             var payload = {
@@ -343,6 +342,14 @@ export default {
                     qtd: this.qtdMaterial,
                     unidade: 'un'
                 });
+                var payload = {
+                    materiais: {
+                        produto_cod: this.novoMaterial.produto_cod,
+                        qtd: this.qtdMaterial,
+                        unidade: "un"
+                    }
+                }
+                serviceRoteiro.atualizarServico(this.servicoAtual.id, payload);
             }
             this.modalMaterial = false;
         },
@@ -352,23 +359,32 @@ export default {
                     id: Date.now(),
                     ferramenta: this.novaFerramenta
                 });
+                serviceRoteiro.atualizarServico(this.servicoAtual.id, {
+                    ferramenta_id: this.novaFerramenta.id
+                });
             }
             this.modalFerramenta = false;
         },
         removerMaterial(servico, materialId) {
             servico.materiais = servico.materiais.filter(m => m.id !== materialId);
+            serviceRoteiro.removerMaterial(materialId)
         },
         removerFerramenta(servico, ferramentaId) {
             servico.ferramentas = servico.ferramentas.filter(f => f.id !== ferramentaId);
+            serviceRoteiro.removerFerramenta(ferramentaId)
         },
         removerParametro(servico, parametroId) {
             servico.parametros = servico.parametros.filter(p => p.id !== parametroId);
+            serviceRoteiro.removerParametro(parametroId)
         },
         adicionarParametro(servico, parametroSelecionado) {
             if (parametroSelecionado) {
                 servico.parametros.push({
                     id: Date.now(),
                     parametro: parametroSelecionado
+                });
+                serviceRoteiro.atualizarServico(servico.id, {
+                    parametro_id: parametroSelecionado.id
                 });
             }
         },
@@ -428,7 +444,6 @@ export default {
 
 .servico-bloco {
     margin-top: 1rem;
-    border-top: 1px solid var(--cor-separador);
     padding-top: 1rem;
 }
 

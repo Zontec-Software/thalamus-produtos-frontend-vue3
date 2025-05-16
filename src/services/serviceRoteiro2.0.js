@@ -152,16 +152,6 @@ const funções = {
         }
     },
 
-    async ordenarSetores(id) {
-        try {
-            const response = await api.patch(`setor-roteiro/ordenar/${id}`);
-            return response.data;
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
-    },
-
     async adicionarServico(payload) {
         // payloadEsperado: {
         //     // obrigatorio
@@ -193,7 +183,7 @@ const funções = {
         //"parametro_id": 1
 
         // quando for adicionar material
-        //"material": {
+        //"materiais": {
         //    "produto_cod": 719635814,
         //        "qtd": 124,
         //            "unidade": "UN2"
