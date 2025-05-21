@@ -599,6 +599,7 @@ export default {
     },
     async salvarProduto() {
       try {
+        this.payLoad.observacoes = this.produto_original.observacoes;
 
         if (this.isCadastro) {
           await serviceProdutos.salvarNovoProduto(this.payLoad)
