@@ -47,9 +47,10 @@
                                 </div>
                                 <br>
                                 <ul class="lista-materiais ">
-                                    <li v-for="material in servico.materiais" :key="material.id">
+                                    <li v-for="material in servico.materiais" :key="material.id" class="tooltip">
                                         <span>{{ material.produto.cod }} - {{ material.produto.descricao ??
                                             material.produto.desc }} (Qtd: {{ material.qtd }})</span>
+                                        <span class="tooltip-text">{{ material.produto.desc || 'Sem descrição' }}</span>
                                         <i class="bi-x-circle" @click="removerMaterial(servico, material.id)"></i>
                                     </li>
                                 </ul>
@@ -62,13 +63,26 @@
                                 </div>
                                 <br>
                                 <ul class="lista-materiais ">
-                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                                        <span @click="toggleDescricaoFerramenta(ferramenta)" style="cursor: pointer;">{{
-                                            ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome }}</span>
-                                        <div v-if="ferramenta.showDescricao" class="descricao-parametro">
-                                            <span><b>Descrição:</b> {{ ferramenta.ferramenta.descricao || '' }}</span>
-                                        </div>
+                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id" class="tooltip">
+                                        <span> {{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome }}
+                                        </span>
+                                        <span class="tooltip-text">{{ ferramenta.ferramenta.descricao || 'Sem descrição'
+                                        }}</span>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
+                                    </li>
+                                </ul>
+                            </div>
+                            <br>
+                            <div class="bloco2 margem">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <button class="btn-adicionar" @click="abrirModalInsumo(servico)">+</button>
+                                    <label><b>Insumos Utilizados:</b></label>
+                                </div>
+                                <ul class="lista-materiais">
+                                    <li class="tootip">
+                                        <span></span>
+                                        <span></span>
+                                        <i class="bi-x-circle"></i>
                                     </li>
                                 </ul>
                             </div>
@@ -78,13 +92,10 @@
                                     <label><b>Parâmetros de Inspeção:</b></label>
                                 </div>
                                 <ul class="lista-materiais ">
-                                    <li v-for="parametro in servico.parametros" :key="parametro.id">
-                                        <span @click="toggleDescricaoParametro(parametro)" style="cursor: pointer;"> {{
-                                            parametro.parametro.codigo }} - {{ parametro.parametro.nome }}</span>
-                                        <div v-if="parametro.showDescricao" class="descricao-parametro">
-                                            <span><b>Descrição:</b> {{ parametro.parametro.descricao || 'Sem descrição'
-                                                }}</span>
-                                        </div>
+                                    <li v-for="parametro in servico.parametros" :key="parametro.id" class="tooltip">
+                                        <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }} </span>
+                                        <span class="tooltip-text">{{ parametro.parametro.descricao || 'Sem descrição'
+                                            }} </span>
                                         <i class="bi-x-circle" @click="removerParametro(servico, parametro.id)"></i>
                                     </li>
                                 </ul>
@@ -195,6 +206,28 @@
             </div>
         </div>
         <!-- END MODAL FERRAMENTA -->
+        <!-- MODAL INSUMO -->
+        <div v-if="modalInsumo" class="modal-mask" @click="modalInsumo = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Insumo</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Insumos</label>
+                        <select v-model="novoInsumo">
+                            <option value="" disabled>Selecione uma insumo</option>
+                            <option v-for="insumo in insumos" :key="insumo.id" :value="insumo"> {{ insumo.codigo }} - {{
+                                insumo.nome }} </option>
+                        </select>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarFerramenta">Adicionar</button>
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL INSUMO -->
         <!-- Modal Confirmar Exclusão -->
         <div v-if="modalConfirmacao" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -256,6 +289,7 @@ export default {
             modalFerramenta: false,
             modalConfirmacao: false,
             modalAnexos: false,
+            modalInsumo: false,
             tipoExclusao: '',
             itemParaExcluir: null,
             idSetorNovoServico: null,
@@ -281,13 +315,6 @@ export default {
         this.getRoteiro();
     },
     methods: {
-        toggleDescricaoFerramenta(ferramenta) {
-            ferramenta.showDescricao = !ferramenta.showDescricao;
-        },
-
-        toggleDescricaoParametro(parametro) {
-            parametro.showDescricao = !parametro.showDescricao;
-        },
 
 
         atualizarObs(servico) {
@@ -340,6 +367,11 @@ export default {
             this.servicoAtual = servico;
             this.modalFerramenta = true;
             this.novaFerramenta = null;
+        },
+        abrirModalInsumo(servico) {
+            this.servicoAtual = servico;
+            this.modalInsumo = true;
+            this.novoInsumo = null;
         },
         adicionarMaterial() {
             if (this.novoMaterial && this.servicoAtual) {
@@ -429,6 +461,44 @@ export default {
 }
 </script>
 <style scoped>
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
 .bi-eye,
 .bi-eye-slash {
     width: 2rem;
