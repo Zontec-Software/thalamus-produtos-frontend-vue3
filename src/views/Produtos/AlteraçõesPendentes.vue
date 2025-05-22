@@ -108,20 +108,15 @@
               </select>
             </div>
             <div>
-              <label>Especificação Técnica <i title="Editar Especificação"
-                  class="bi bi-gear-fill adicionarItem"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes">
-                <option></option>
+              <label>Especificação Técnica <i title="Editar Especificação" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('especificacao')"></i></label>
+              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes"
+                @change="atualizarPayLoad('especificacoes', produto_original.especificacoes)">
+                <option v-for="item in especificacoes" :key="item.id" :value="[item.nome]"> {{ item.nome }} </option>
               </select>
             </div>
           </div>
           <br>
-          <!-- <div class="grid">
-            <label>Especificações </label>
-            <QuillEditor theme="snow" @focusout="atualizarPayLoad('especificacoes', produto_original.especificacoes)"
-              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.especificacoes"
-              content-type="html" style="height: 80px;" />
-          </div> -->
           <div class="grid">
             <label>Observações </label>
             <QuillEditor theme="snow" @blur="atualizarPayLoad('observacoes', produto_original.observacoes)"
@@ -338,6 +333,7 @@ export default {
       und: [],
       cor: [],
       versaoModelo: [],
+      especificacoes: [],
       searchQueryNcm: "",
       filteredNcm: [],
       listaAbertaNcm: false,
@@ -349,8 +345,8 @@ export default {
       blocoVisivel: 'informacoes',
       showModalEditarCombo: false,
       itemEditado: null,
-      isLoading: true,
-      especificacoes: ''
+      isLoading: true
+
     };
   },
   computed: {
@@ -382,7 +378,8 @@ export default {
         this.carregarNcmPorId(),
         this.carregarUnidades(),
         this.carregarCores(),
-        this.carregarVersaoModelo()
+        this.carregarVersaoModelo(),
+        this.carregarEspecificacoes()
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -402,7 +399,9 @@ export default {
         this.carregarNcmPorId(),
         this.carregarUnidades(),
         this.carregarCores(),
-        this.carregarVersaoModelo()
+        this.carregarVersaoModelo(),
+        this.carregarEspecificacoes()
+
     },
     async cadastrarOMIE() {
       var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
@@ -461,11 +460,26 @@ export default {
             combo: this.versaoModelo
           };
           break;
+        case 'especificacao':
+          this.itemEditado = {
+            tipo: 'Especificação',
+            url: 'produto/especificacao',
+            combo: this.especificacoes
+          };
+          break;
 
         default:
           null
       }
       this.showModalEditarCombo = true
+    },
+    async carregarEspecificacoes() {
+      try {
+        const response = await serviceProdutos.getEspecificacao();
+        this.especificacoes = response;
+      } catch (error) {
+        console.error("Erro ao carregar lista de especificações:", error);
+      }
     },
     async carregarNcm() {
       try {
