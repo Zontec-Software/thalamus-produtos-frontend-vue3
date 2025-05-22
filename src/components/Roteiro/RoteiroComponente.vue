@@ -47,10 +47,9 @@
                                 </div>
                                 <br>
                                 <ul class="lista-materiais ">
-                                    <li v-for="material in servico.materiais" :key="material.id" class="tooltip">
+                                    <li v-for="material in servico.materiais" :key="material.id">
                                         <span>{{ material.produto.cod }} - {{ material.produto.descricao ??
                                             material.produto.desc }} (Qtd: {{ material.qtd }})</span>
-                                        <span class="tooltip-text">{{ material.produto.desc || 'Sem descrição' }}</span>
                                         <i class="bi-x-circle" @click="removerMaterial(servico, material.id)"></i>
                                     </li>
                                 </ul>
@@ -63,11 +62,13 @@
                                 </div>
                                 <br>
                                 <ul class="lista-materiais ">
-                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id" class="tooltip">
-                                        <span> {{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome }}
-                                        </span>
-                                        <span class="tooltip-text">{{ ferramenta.ferramenta.descricao || 'Sem descrição'
-                                        }}</span>
+                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
+                                        <div class="conteudo-item">
+                                            <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
+                                                }}</span>
+                                            <span class="descricao-item">Descrição: {{ ferramenta.ferramenta.descricao
+                                                || '' }}</span>
+                                        </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
                                 </ul>
@@ -79,7 +80,7 @@
                                     <label><b>Insumos Utilizados:</b></label>
                                 </div>
                                 <ul class="lista-materiais">
-                                    <li class="tootip">
+                                    <li>
                                         <span></span>
                                         <span></span>
                                         <i class="bi-x-circle"></i>
@@ -92,10 +93,13 @@
                                     <label><b>Parâmetros de Inspeção:</b></label>
                                 </div>
                                 <ul class="lista-materiais ">
-                                    <li v-for="parametro in servico.parametros" :key="parametro.id" class="tooltip">
-                                        <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }} </span>
-                                        <span class="tooltip-text">{{ parametro.parametro.descricao || 'Sem descrição'
-                                            }} </span>
+                                    <li v-for="parametro in servico.parametros" :key="parametro.id">
+                                        <div class="conteudo-item">
+                                            <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }}
+                                            </span>
+                                            <span class="descricao-item">Descrição: {{ parametro.parametro.descricao ||
+                                                '' }} </span>
+                                        </div>
                                         <i class="bi-x-circle" @click="removerParametro(servico, parametro.id)"></i>
                                     </li>
                                 </ul>
@@ -323,6 +327,11 @@ export default {
 
         async getRoteiro() {
             this.roteiro = await serviceRoteiro.buscarRoteiro(this.produto_cod);
+            this.roteiro.setores.forEach(bloco => {
+                bloco.servicos.forEach(servico => {
+                    servico.expandido = true;
+                });
+            });
         },
 
         async criarBlocoSetor() {
@@ -351,11 +360,17 @@ export default {
             }
 
             await serviceRoteiro.adicionarServico(payload);
-            this.getRoteiro()
+            this.getRoteiro();
+            this.roteiro.setores.forEach(bloco => {
+                bloco.servicos.forEach(servico => {
+                    servico.expandido = true;
+                });
+            });
             this.modalAdicionarServico = false;
         },
         toggleExpandir(servico) {
             servico.expandido = !servico.expandido;
+
         },
         abrirModalMaterial(servico) {
             this.servicoAtual = servico;
@@ -461,43 +476,29 @@ export default {
 }
 </script>
 <style scoped>
-.tooltip {
-    position: relative;
-    display: inline-block;
+.lista-materiais li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--cor-separador);
 }
 
-.tooltip-text {
-    visibility: hidden;
-    width: 250px;
-    background-color: #333;
-    color: #fff;
-    text-align: left;
-    border-radius: 6px;
-    padding: 8px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 0;
-    transition: opacity 0.3s;
+.lista-materiais li:last-child {
+    border-bottom: none;
 }
 
-.tooltip-text::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #333 transparent transparent transparent;
+.conteudo-item {
+    display: flex;
+    flex-direction: column;
 }
 
-.tooltip:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
+.descricao-item {
+    color: var(--cor-secundaria);
+    font-size: 0.8rem;
 }
+
+
 
 .bi-eye,
 .bi-eye-slash {
