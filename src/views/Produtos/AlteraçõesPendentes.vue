@@ -443,7 +443,7 @@ export default {
         case 'tamanho':
           this.itemEditado = {
             tipo: 'Tamanho',
-            url: itemEditado,
+            url: 'tamanho-produto',
             combo: this.tamanho
           };
           break;
