@@ -167,15 +167,7 @@ const funções = {
             throw error;
         }
     },
-    async getEspecificacao() {
-        try {
-            const response = await api.get(`especificacao/listar`)
-            return response.data;
-        } catch (error) {
-            console.error("Erro ao listar especificacao")
-            throw error;
-        }
-    },
+
     async getFixacao() {
         try {
             const response = await api.get(`fixacao/listar`)
@@ -240,6 +232,16 @@ const funções = {
 
         } catch (error) {
             console.error("Erro ao listar versão modelo")
+            throw error;
+        }
+    },
+       async getEspecificacao() {
+        try {
+            const response = await api.get(`/produto/especificacao/listar`)
+            return response.data;
+
+        } catch (error) {
+            console.error("Erro ao listar especificacao")
             throw error;
         }
     },

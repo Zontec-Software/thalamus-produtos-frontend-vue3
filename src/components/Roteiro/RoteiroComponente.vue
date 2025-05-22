@@ -63,12 +63,27 @@
                                 <br>
                                 <ul class="lista-materiais ">
                                     <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                                        <span @click="toggleDescricaoFerramenta(ferramenta)" style="cursor: pointer;">{{
-                                            ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome }}</span>
-                                        <div v-if="ferramenta.showDescricao" class="descricao-parametro">
-                                            <span><b>Descrição:</b> {{ ferramenta.ferramenta.descricao || '' }}</span>
+                                        <div class="conteudo-item">
+                                            <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
+                                                }}</span>
+                                            <span class="descricao-item">Descrição: {{ ferramenta.ferramenta.descricao
+                                                || '' }}</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
+                                    </li>
+                                </ul>
+                            </div>
+                            <br>
+                            <div class="bloco2 margem">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <button class="btn-adicionar" @click="abrirModalInsumo(servico)">+</button>
+                                    <label><b>Insumos Utilizados:</b></label>
+                                </div>
+                                <ul class="lista-materiais">
+                                    <li>
+                                        <span></span>
+                                        <span></span>
+                                        <i class="bi-x-circle"></i>
                                     </li>
                                 </ul>
                             </div>
@@ -79,11 +94,11 @@
                                 </div>
                                 <ul class="lista-materiais ">
                                     <li v-for="parametro in servico.parametros" :key="parametro.id">
-                                        <span @click="toggleDescricaoParametro(parametro)" style="cursor: pointer;"> {{
-                                            parametro.parametro.codigo }} - {{ parametro.parametro.nome }}</span>
-                                        <div v-if="parametro.showDescricao" class="descricao-parametro">
-                                            <span><b>Descrição:</b> {{ parametro.parametro.descricao || 'Sem descrição'
-                                                }}</span>
+                                        <div class="conteudo-item">
+                                            <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }}
+                                            </span>
+                                            <span class="descricao-item">Descrição: {{ parametro.parametro.descricao ||
+                                                '' }} </span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerParametro(servico, parametro.id)"></i>
                                     </li>
@@ -195,6 +210,28 @@
             </div>
         </div>
         <!-- END MODAL FERRAMENTA -->
+        <!-- MODAL INSUMO -->
+        <div v-if="modalInsumo" class="modal-mask" @click="modalInsumo = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Insumo</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Insumos</label>
+                        <select v-model="novoInsumo">
+                            <option value="" disabled>Selecione uma insumo</option>
+                            <option v-for="insumo in insumos" :key="insumo.id" :value="insumo"> {{ insumo.codigo }} - {{
+                                insumo.nome }} </option>
+                        </select>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarFerramenta">Adicionar</button>
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL INSUMO -->
         <!-- Modal Confirmar Exclusão -->
         <div v-if="modalConfirmacao" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -256,6 +293,7 @@ export default {
             modalFerramenta: false,
             modalConfirmacao: false,
             modalAnexos: false,
+            modalInsumo: false,
             tipoExclusao: '',
             itemParaExcluir: null,
             idSetorNovoServico: null,
@@ -281,13 +319,6 @@ export default {
         this.getRoteiro();
     },
     methods: {
-        toggleDescricaoFerramenta(ferramenta) {
-            ferramenta.showDescricao = !ferramenta.showDescricao;
-        },
-
-        toggleDescricaoParametro(parametro) {
-            parametro.showDescricao = !parametro.showDescricao;
-        },
 
 
         atualizarObs(servico) {
@@ -296,6 +327,11 @@ export default {
 
         async getRoteiro() {
             this.roteiro = await serviceRoteiro.buscarRoteiro(this.produto_cod);
+            this.roteiro.setores.forEach(bloco => {
+                bloco.servicos.forEach(servico => {
+                    servico.expandido = true;
+                });
+            });
         },
 
         async criarBlocoSetor() {
@@ -324,11 +360,17 @@ export default {
             }
 
             await serviceRoteiro.adicionarServico(payload);
-            this.getRoteiro()
+            this.getRoteiro();
+            this.roteiro.setores.forEach(bloco => {
+                bloco.servicos.forEach(servico => {
+                    servico.expandido = true;
+                });
+            });
             this.modalAdicionarServico = false;
         },
         toggleExpandir(servico) {
             servico.expandido = !servico.expandido;
+
         },
         abrirModalMaterial(servico) {
             this.servicoAtual = servico;
@@ -340,6 +382,11 @@ export default {
             this.servicoAtual = servico;
             this.modalFerramenta = true;
             this.novaFerramenta = null;
+        },
+        abrirModalInsumo(servico) {
+            this.servicoAtual = servico;
+            this.modalInsumo = true;
+            this.novoInsumo = null;
         },
         adicionarMaterial() {
             if (this.novoMaterial && this.servicoAtual) {
@@ -429,6 +476,30 @@ export default {
 }
 </script>
 <style scoped>
+.lista-materiais li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--cor-separador);
+}
+
+.lista-materiais li:last-child {
+    border-bottom: none;
+}
+
+.conteudo-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.descricao-item {
+    color: var(--cor-secundaria);
+    font-size: 0.8rem;
+}
+
+
+
 .bi-eye,
 .bi-eye-slash {
     width: 2rem;
