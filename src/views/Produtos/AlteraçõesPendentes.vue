@@ -108,21 +108,19 @@
                 <option v-for="item in versaoModelo" :key="item.id" :value="item.id"> {{ item.nome }} </option>
               </select>
             </div>
-            <div>
-              <label>Especificação Técnica <i title="Editar Especificação"
-                  class="bi bi-gear-fill adicionarItem"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacoes">
-                <option></option>
-              </select>
+            <div class="col-2">
+              <label>Especificação Técnica <i title="Editar Especificação" class="bi bi-gear-fill adicionarItem"
+                  @click="abrirModalEditarCombo('especificacao')"></i></label>
+              <div class="tags">
+                <a v-for="i, index in produto_original.especificacoes" :key="index">{{ i.nome }} <i class="bi-trash"
+                    title="Remover" @click.prevent="removerEspecificação(i)"></i></a>
+                <AutoCompleteRoteiro
+                  :BaseOpcoes="especificacoes.filter(item => !produto_original.especificacoes.includes(item))"
+                  @adicionarItem="adicionarEspecificação" />
+              </div>
             </div>
           </div>
           <br>
-          <!-- <div class="grid">
-            <label>Especificações </label>
-            <QuillEditor theme="snow" @focusout="atualizarPayLoad('especificacoes', produto_original.especificacoes)"
-              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.especificacoes"
-              content-type="html" style="height: 80px;" />
-          </div> -->
           <div class="grid">
             <label>Observações </label>
             <QuillEditor theme="snow" @blur="atualizarPayLoad('observacoes', produto_original.observacoes)"
@@ -298,7 +296,7 @@ import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
 import { getPermissao } from '@/services/permissao-service';
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
-
+import AutoCompleteRoteiro from '@/components/AutoComplete/AutoCompleteRoteiro.vue';
 
 const toaster = createToaster({
   position: "top-right",
@@ -308,7 +306,8 @@ export default {
   name: "AlteracoesProduto",
   components: {
     ModalEditarCombo,
-    QuillEditor
+    QuillEditor,
+    AutoCompleteRoteiro
   },
   props: {
     produto_cod: {
@@ -339,6 +338,7 @@ export default {
       und: [],
       cor: [],
       versaoModelo: [],
+      especificacoes: [],
       searchQueryNcm: "",
       filteredNcm: [],
       listaAbertaNcm: false,
@@ -350,8 +350,8 @@ export default {
       blocoVisivel: 'informacoes',
       showModalEditarCombo: false,
       itemEditado: null,
-      isLoading: true,
-      especificacoes: ''
+      isLoading: true
+
     };
   },
   computed: {
@@ -383,7 +383,8 @@ export default {
         this.carregarNcmPorId(),
         this.carregarUnidades(),
         this.carregarCores(),
-        this.carregarVersaoModelo()
+        this.carregarVersaoModelo(),
+        this.carregarEspecificacoes()
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -392,6 +393,15 @@ export default {
     }
   },
   methods: {
+    removerEspecificação(i) {
+      this.produto_original.especificacoes = this.produto_original.especificacoes.filter(item => item != i);
+      this.atualizarPayLoad('especificacoes', this.produto_original.especificacoes.map(i => i.id))
+    },
+    adicionarEspecificação(item) {
+      this.produto_original.especificacoes.push(item);
+      this.atualizarPayLoad('especificacoes', this.produto_original.especificacoes.map(i => i.id))
+
+    },
     atualizarSelect() {
       this.carregarNcm(),
         this.carregarTiposProduto(),
@@ -403,7 +413,9 @@ export default {
         this.carregarNcmPorId(),
         this.carregarUnidades(),
         this.carregarCores(),
-        this.carregarVersaoModelo()
+        this.carregarVersaoModelo(),
+        this.carregarEspecificacoes()
+
     },
     async cadastrarOMIE() {
       var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
@@ -462,11 +474,34 @@ export default {
             combo: this.versaoModelo
           };
           break;
+        case 'especificacao':
+          this.itemEditado = {
+            tipo: 'Especificação',
+            url: 'produto/especificacao',
+            combo: this.especificacoes
+          };
+          break;
 
         default:
           null
       }
       this.showModalEditarCombo = true
+    },
+    async carregarEspecificacoes() {
+      try {
+        const response = await serviceProdutos.getEspecificacao();
+        this.especificacoes = response;
+        if (this.produto_original.especificacoes) {
+          const especificacoesIds = JSON.parse(this.produto_original.especificacoes);
+          this.produto_original.especificacoes = especificacoesIds.map(
+            id => this.especificacoes.find(obj => obj.id === id)
+          ).filter(e => e);
+        } else {
+          this.produto_original.especificacoes = [];
+        }
+      } catch (error) {
+        console.error("Erro ao carregar lista de especificações:", error);
+      }
     },
     async carregarNcm() {
       try {
@@ -630,6 +665,7 @@ export default {
       try {
         const response = await serviceProdutos.carregarAlteracoesOriginalEditado(this.produto_cod);
         this.produto_original = response.produto_editado;
+
         // this.produto_editado = response.produto_editado;
         this.em_edicao = response.em_edicao;
 
@@ -665,6 +701,25 @@ export default {
 };
 </script>
 <style scoped>
+i {
+  color: var(--cor-erro);
+  font-size: 16px;
+  transition: all 200ms ease-in;
+}
+
+i:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+.tags a i {
+  display: none;
+}
+
+.tags a:hover i {
+  display: inline;
+}
+
 :disabled {
   cursor: not-allowed;
   opacity: 1;
