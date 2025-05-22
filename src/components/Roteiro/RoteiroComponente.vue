@@ -49,9 +49,7 @@
                                 <ul class="lista-materiais ">
                                     <li v-for="material in servico.materiais" :key="material.id">
                                         <span>{{ material.produto.cod }} - {{ material.produto.descricao ??
-                                            material.produto.desc }}
-                                            (Qtd: {{
-                                                material.qtd }})</span>
+                                            material.produto.desc }} (Qtd: {{ material.qtd }})</span>
                                         <i class="bi-x-circle" @click="removerMaterial(servico, material.id)"></i>
                                     </li>
                                 </ul>
@@ -65,8 +63,11 @@
                                 <br>
                                 <ul class="lista-materiais ">
                                     <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                                        <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
-                                        }}</span>
+                                        <span @click="toggleDescricaoFerramenta(ferramenta)" style="cursor: pointer;">{{
+                                            ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome }}</span>
+                                        <div v-if="ferramenta.showDescricao" class="descricao-parametro">
+                                            <span><b>Descrição:</b> {{ ferramenta.ferramenta.descricao || '' }}</span>
+                                        </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
                                 </ul>
@@ -78,8 +79,12 @@
                                 </div>
                                 <ul class="lista-materiais ">
                                     <li v-for="parametro in servico.parametros" :key="parametro.id">
-                                        <span>{{ parametro.parametro.codigo }} - {{ parametro.parametro.nome
-                                        }}</span>
+                                        <span @click="toggleDescricaoParametro(parametro)" style="cursor: pointer;"> {{
+                                            parametro.parametro.codigo }} - {{ parametro.parametro.nome }}</span>
+                                        <div v-if="parametro.showDescricao" class="descricao-parametro">
+                                            <span><b>Descrição:</b> {{ parametro.parametro.descricao || 'Sem descrição'
+                                                }}</span>
+                                        </div>
                                         <i class="bi-x-circle" @click="removerParametro(servico, parametro.id)"></i>
                                     </li>
                                 </ul>
@@ -103,7 +108,6 @@
                 </div>
             </template>
         </draggable>
-
         <!-- MODAL SERVIÇO -->
         <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -119,14 +123,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -143,7 +147,6 @@
             </div>
         </div>
         <!-- END MODAL SERVIÇO -->
-
         <!--MODAL MATERIAL -->
         <div v-if="modalMaterial" class="modal-mask" @click="modalMaterial = false">
             <div class="jm margem" @click.stop>
@@ -156,7 +159,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.descricao }} </option>
+                                }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -170,7 +173,6 @@
             </div>
         </div>
         <!--END MODAL MATERIAL -->
-
         <!-- MODAL FERRAMENTA -->
         <div v-if="modalFerramenta" class="modal-mask" @click="modalFerramenta = false">
             <div class="jm margem" @click.stop>
@@ -193,8 +195,6 @@
             </div>
         </div>
         <!-- END MODAL FERRAMENTA -->
-
-
         <!-- Modal Confirmar Exclusão -->
         <div v-if="modalConfirmacao" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -208,7 +208,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Modal Anexos -->
         <div v-if="modalAnexos" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -282,6 +281,14 @@ export default {
         this.getRoteiro();
     },
     methods: {
+        toggleDescricaoFerramenta(ferramenta) {
+            ferramenta.showDescricao = !ferramenta.showDescricao;
+        },
+
+        toggleDescricaoParametro(parametro) {
+            parametro.showDescricao = !parametro.showDescricao;
+        },
+
 
         atualizarObs(servico) {
             serviceRoteiro.atualizarServico(servico.id, { observacao: servico.observacao });
