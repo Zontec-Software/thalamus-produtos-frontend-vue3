@@ -238,6 +238,16 @@ const funções = {
         }
     },
 
+        async removerInsumo(id) {
+        try {
+            const response = await api.delete(`setor-servico/insumo/remover/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
     async atualizarMaterial(id, payload) {
         // payloadEsperado: 
         //{
@@ -246,6 +256,21 @@ const funções = {
         //}
         try {
             const response = await api.patch(`/setor-servico/material/atualizar/${id}`, payload);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+        async atualizarInsumo(id, payload) {
+        // payloadEsperado: 
+        //{
+        // "qtd": 124,
+        // "unidade": "UN2"
+        //}
+        try {
+            const response = await api.patch(`/setor-servico/insumo/atualizar/${id}`, payload);
             return response.data;
         } catch (error) {
             console.error(error);
