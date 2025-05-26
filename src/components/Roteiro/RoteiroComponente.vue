@@ -65,7 +65,9 @@
                                     <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
                                         <div class="conteudo-item">
                                             <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
-                                                }}</span>
+
+                                            }}</span>
+
                                             <span class="descricao-item">Descrição: {{ ferramenta.ferramenta.descricao
                                                 || '' }}</span>
                                         </div>
@@ -80,10 +82,14 @@
                                     <label><b>Insumos Utilizados:</b></label>
                                 </div>
                                 <ul class="lista-materiais">
-                                    <li>
-                                        <span></span>
-                                        <span></span>
-                                        <i class="bi-x-circle"></i>
+
+                                    <li v-for="insumo in servico.insumos" :key="insumo.id">
+                                        <div class="conteudo-item">
+                                            <span>{{ insumo.produto.cod ?? '' }} - {{ insumo.produto.descricao ??
+                                                insumo.produto.desc }} (Qtd: {{ insumo.qtd }})</span>
+                                        </div>
+                                        <i class="bi-x-circle" @click="removerInsumo(servico, insumo.id)"></i>
+   
                                     </li>
                                 </ul>
                             </div>
@@ -138,14 +144,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -174,7 +180,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.descricao }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -188,6 +194,34 @@
             </div>
         </div>
         <!--END MODAL MATERIAL -->
+        <!-- MODAL INSUMO -->
+        <div v-if="modalInsumo" class="modal-mask" @click="modalInsumo = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Insumo</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Insumos</label>
+                        <select v-model="novoInsumo" class="servico-listbox">
+                            <option value="" disabled>Selecione uma insumo</option>
+                            <option v-for="insumo in insumos" :key="insumo.id" :value="insumo"> {{ insumo.cod }} - {{
+                                insumo.desc }} </option>
+                        </select>
+                    </div>
+                    <div>
+                        <div>
+                            <label>Quantidade</label>
+                            <input type="number" v-model="qtdInsumo" min="1" class="input-text" />
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarInsumo">Adicionar</button>
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL INSUMO -->
         <!-- MODAL FERRAMENTA -->
         <div v-if="modalFerramenta" class="modal-mask" @click="modalFerramenta = false">
             <div class="jm margem" @click.stop>
@@ -265,6 +299,7 @@ import draggable from 'vuedraggable';
 import serviceFerramentas from '@/services/serviceFerramentas';
 import serviceRoteiro from '@/services/serviceRoteiro2.0';
 import serviceParametros from '@/services/serviceParametrosTeste';
+import serviceInsumos from '@/services/serviceInsumos'
 import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
 
@@ -299,6 +334,7 @@ export default {
             idSetorNovoServico: null,
             baseCodigoServico,
             parametros: [],
+            insumos: [],
             novoServico: {
                 cod: '000000',
                 desc: null,
@@ -309,13 +345,16 @@ export default {
             servicoAtual: null,
             novoMaterial: null,
             novaFerramenta: null,
-            qtdMaterial: 1
+            qtdMaterial: 1,
+            qtdInsumo: 1
+
         }
     },
     async mounted() {
         this.setores = await serviceRoteiro.getSetoresRoteiro();
         this.ferramentas = (await serviceFerramentas.getAllFerramentas()).data;
         this.parametros = await serviceParametros.buscarPametros();
+        this.insumos = await serviceInsumos.getInsumos();
         this.getRoteiro();
     },
     methods: {
@@ -407,6 +446,27 @@ export default {
             }
             this.modalMaterial = false;
         },
+        adicionarInsumo() {
+            if (this.novoInsumo && this.servicoAtual) {
+                this.servicoAtual.insumos.push({
+                    id: Date.now(),
+                    produto: this.novoInsumo,
+                    qtd: this.qtdInsumo,
+                    unidade: 'un'
+
+                });
+                var payload = {
+                    insumos: {
+                        produto_cod: this.novoInsumo.produto_cod,
+                        qtd: this.qtdInsumo,
+                        unidade: "un"
+
+                    }
+                }
+                serviceRoteiro.atualizarServico(this.servicoAtual.id, payload);
+            }
+            this.modalInsumo = false;
+        },
         adicionarFerramenta() {
             if (this.novaFerramenta && this.servicoAtual) {
                 this.servicoAtual.ferramentas.push({
@@ -419,6 +479,7 @@ export default {
             }
             this.modalFerramenta = false;
         },
+
         removerMaterial(servico, materialId) {
             servico.materiais = servico.materiais.filter(m => m.id !== materialId);
             serviceRoteiro.removerMaterial(materialId)
@@ -431,6 +492,11 @@ export default {
             servico.parametros = servico.parametros.filter(p => p.id !== parametroId);
             serviceRoteiro.removerParametro(parametroId)
         },
+        removerInsumo(servico, insumoId) {
+            servico.insumos = servico.insumos.filter(i => i.id !== insumoId);
+            serviceRoteiro.removerMaterial(insumoId);
+        },
+
         adicionarParametro(servico, parametroSelecionado) {
             if (parametroSelecionado) {
                 servico.parametros.push({
@@ -469,6 +535,7 @@ export default {
             this.modalFerramenta = false;
             this.modalConfirmacao = false;
             this.modalAnexos = false;
+            this.modalInsumo = false;
         },
 
 
