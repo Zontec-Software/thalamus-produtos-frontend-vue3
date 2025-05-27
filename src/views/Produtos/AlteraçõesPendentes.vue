@@ -7,8 +7,8 @@
       <div class="submit m-b">
         <button v-if="isTemplate" @click="enviarAprovacao()">Enviar para Aprovação</button>
       </div>
-      <div class=" bloco2">
-        <fieldset class="margem">
+      <div class="grid-4  container">
+        <div class="bloco2 margem col-3">
           <div class="grid-4">
             <div>
               <label>Código do Produto</label>
@@ -79,7 +79,6 @@
                 @input="atualizarPayLoad('linha_device', produto_original.linha_device)">
             </div>
             <div>
-
               <label>Modelo Device </label>
               <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.modelo_device"
                 @input="atualizarPayLoad('modelo_device', produto_original.modelo_device)">
@@ -131,10 +130,27 @@
               @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
               <option v-for="item in especificacao" :key="item.id" :value="item.id"> {{ item.nome }} </option>
             </select> -->
-        </fieldset>
+        </div>
+        <!-- FOTOS -->
+        <div class="bloco2 margem col-1 alinha-centro">
+          <div>
+            <div v-if="colaboradores.length > 0" class="carousel">
+              <img v-for="(colaborador, index) in colaboradores" :key="index"
+                :src="colaborador.path_image ? urlFoto.caminhoFoto + colaborador.path_image : placeholder"
+                :alt="colaborador.nomeCompleto" class="imagem" @click="indiceAtual = index"
+                :style="{ border: indiceAtual === index ? '2px solid var(--cor-primaria)' : 'none' }" />
+            </div>
+            <div v-else>
+              <p>Sem fotos cadastradas.</p>
+            </div>
+            <br />
+            <a style="cursor: pointer; border: 1px solid; color: var(--cor-primaria);" class="icone-camera"
+              @click="showModalFotos = true"> Gerenciar Fotos </a>
+          </div>
+        </div>
+        <!-- END FOTOS -->
       </div>
-      <br>
-      <div class="tags m-b" style="cursor: pointer;">
+      <div class="margem tags m-b" style="cursor: pointer;">
         <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')">Informações
           Adicionais</a>
         <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')">Recomendações Fiscais</a>
@@ -286,6 +302,29 @@
   <!-- MODAL -->
   <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
     @fecharModal="showModalEditarCombo = false, atualizarSelect()" />
+  <!-- MODAL FOTOS -->
+  <div v-if="showModalFotos" class="modal-mask">
+    <div class="modal-container" style="height: min-content; width: 50rem;">
+      <div class="modal-content">
+        <div class="modal-header alinha-centro">
+          <h3>Gerenciar Fotos</h3>
+        </div>
+        <div class="modal-body">
+          <input class="alinha-centro" type="file" accept="image/*" @change="adicionarFoto" />
+          <div class=" lista-imagens">
+            <div v-for="(foto, index) in fotosProduto" :key="index" class="foto-item">
+              <img :src="foto.url" alt="Foto Produto" />
+              <i class="bi-x-circle" @click="removerFoto(index)"></i>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer submit m-b direita">
+          <button class="acao-secundaria" @click="showModalFotos = false">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- END MODAL FOTOS -->
 </template>
 <script>
 import serviceProdutos from '@/services/serviceProdutos';
@@ -297,6 +336,9 @@ import { getPermissao } from '@/services/permissao-service';
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import AutoCompleteRoteiro from '@/components/AutoComplete/AutoCompleteRoteiro.vue';
+import { urlFoto } from '@/services/api';
+import { api } from "roboflex-thalamus-request-handler";
+
 
 const toaster = createToaster({
   position: "top-right",
@@ -350,10 +392,19 @@ export default {
       blocoVisivel: 'informacoes',
       showModalEditarCombo: false,
       itemEditado: null,
-      isLoading: true
+      isLoading: true,
+      showModalFotos: false,
+      fotosProduto: [],
+      indiceAtual: 0,
+      colaboradores: [],
+
 
     };
   },
+  setup() {
+    return { urlFoto };
+  },
+
   computed: {
     isFinanceiro() {
       return this.funcionalidades.includes(113);
@@ -384,7 +435,8 @@ export default {
         this.carregarUnidades(),
         this.carregarCores(),
         this.carregarVersaoModelo(),
-        this.carregarEspecificacoes()
+        this.carregarEspecificacoes(),
+        this.carregarColaboradores()
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -393,6 +445,36 @@ export default {
     }
   },
   methods: {
+    adicionarFoto(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        this.fotosProduto.push({ url });
+      }
+    },
+    removerFoto(index) {
+      this.fotosProduto.splice(index, 1);
+      if (this.indiceAtual >= this.fotosProduto.length) {
+        this.indiceAtual = this.fotosProduto.length - 1;
+      }
+    },
+    nextFoto() {
+      this.indiceAtual = (this.indiceAtual + 1) % this.colaboradores.length;
+    },
+    prevFoto() {
+      this.indiceAtual =
+        (this.indiceAtual - 1 + this.colaboradores.length) %
+        this.colaboradores.length;
+    },
+    async carregarColaboradores() {
+      try {
+        const response = await api.get('filtrar/pessoa');
+        this.colaboradores = response.data;
+      } catch (error) {
+        console.error('Erro ao carregar colaboradores:', error);
+      }
+    },
+
     removerEspecificação(i) {
       this.produto_original.especificacoes = this.produto_original.especificacoes.filter(item => item != i);
       this.atualizarPayLoad('especificacoes', this.produto_original.especificacoes.map(i => i.id))
@@ -701,6 +783,92 @@ export default {
 };
 </script>
 <style scoped>
+.lista-imagens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.foto-item {
+  border: 1px solid var(--cor-separador);
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.foto-item img {
+  max-width: 100px;
+  max-height: 100px;
+  border-radius: 8px;
+}
+
+.foto-item i {
+  cursor: pointer;
+  color: var(--cor-erro);
+  margin-top: 0.5rem;
+}
+
+.bi-x-circle {
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--cor-erro);
+}
+
+.carousel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.imagem {
+  max-width: 150px;
+  max-height: 150px;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.nav {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  margin: 0.2rem 0;
+}
+
+.prev {
+  left: -20px;
+}
+
+.next {
+  right: -20px;
+}
+
+.dots {
+  margin-top: 0.5rem;
+}
+
+.dots span {
+  height: 8px;
+  width: 8px;
+  margin: 0 2px;
+  background-color: gray;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.dots span.active {
+  background-color: var(--cor-primaria);
+}
+
 i {
   color: var(--cor-erro);
   font-size: 16px;
