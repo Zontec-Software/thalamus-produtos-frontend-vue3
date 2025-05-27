@@ -65,8 +65,7 @@
                                     <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
                                         <div class="conteudo-item">
                                             <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
-
-                                            }}</span>
+                                                }}</span>
 
                                             <span class="descricao-item">Descrição: {{ ferramenta.ferramenta.descricao
                                                 || '' }}</span>
@@ -144,14 +143,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -180,7 +179,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.descricao }} </option>
+                                }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
