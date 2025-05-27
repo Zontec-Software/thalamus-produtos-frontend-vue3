@@ -79,6 +79,7 @@
                 @input="atualizarPayLoad('linha_device', produto_original.linha_device)">
             </div>
             <div>
+
               <label>Modelo Device </label>
               <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.modelo_device"
                 @input="atualizarPayLoad('modelo_device', produto_original.modelo_device)">
