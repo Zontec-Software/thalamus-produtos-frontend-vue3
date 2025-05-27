@@ -310,7 +310,7 @@
           <h3>Gerenciar Fotos</h3>
         </div>
         <div class="modal-body">
-          <input type="file" accept="image/*" @change="adicionarFoto" />
+          <input class="alinha-centro" type="file" accept="image/*" @change="adicionarFoto" />
           <div class=" lista-imagens">
             <div v-for="(foto, index) in fotosProduto" :key="index" class="foto-item">
               <img :src="foto.url" alt="Foto Produto" />

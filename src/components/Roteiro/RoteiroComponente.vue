@@ -63,11 +63,10 @@
                                 <br>
                                 <ul class="lista-materiais ">
                                     <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                                        <div class="conteudo-item">
-                                            <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
-                                            }}</span>
-                                            <span class="descricao-item">Descrição: {{ ferramenta.ferramenta.descricao
-                                                || '' }}</span>
+                                        <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
+                                            ferramenta.produto.desc }}</span>
+                                            <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
+                                                }}</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
@@ -140,14 +139,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -176,7 +175,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.descricao }} </option>
+                                }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -230,7 +229,7 @@
                         <select v-model="novaFerramenta">
                             <option value="" disabled>Selecione uma ferramenta</option>
                             <option v-for="ferramenta in ferramentas" :key="ferramenta.id" :value="ferramenta"> {{
-                                ferramenta.codigo }} - {{ ferramenta.nome }} </option>
+                                ferramenta.cod }} - {{ ferramenta.desc }} </option>
                         </select>
                     </div>
                 </fieldset>
@@ -326,7 +325,7 @@ export default {
     },
     async mounted() {
         this.setores = await serviceRoteiro.getSetoresRoteiro();
-        this.ferramentas = (await serviceFerramentas.getAllFerramentas()).data;
+        this.ferramentas = await serviceFerramentas.getAllFerramentas();
         this.parametros = await serviceParametros.buscarPametros();
         this.insumos = await serviceInsumos.getInsumos();
         this.getRoteiro();
@@ -445,11 +444,14 @@ export default {
             if (this.novaFerramenta && this.servicoAtual) {
                 this.servicoAtual.ferramentas.push({
                     id: Date.now(),
-                    ferramenta: this.novaFerramenta
+                    produto: this.novaFerramenta
                 });
-                serviceRoteiro.atualizarServico(this.servicoAtual.id, {
-                    ferramenta_id: this.novaFerramenta.id
-                });
+                var payload = {
+                    ferramentas: {
+                        produto_cod: this.novaFerramenta.produto_cod
+                    }
+                }
+                serviceRoteiro.atualizarServico(this.servicoAtual.id, payload);
             }
             this.modalFerramenta = false;
         },

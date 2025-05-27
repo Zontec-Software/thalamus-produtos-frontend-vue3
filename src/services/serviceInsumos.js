@@ -5,6 +5,8 @@ const funcoes = {
         try {
             const payload = {
                 familia: [29, 30]
+                //29 = Insumos produtivos
+                //30 = Insumos Fabris
             };
 
             const response = await api.post('/produto-filtrar', payload);
