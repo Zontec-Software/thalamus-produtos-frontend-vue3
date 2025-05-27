@@ -65,9 +65,7 @@
                                     <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
                                         <div class="conteudo-item">
                                             <span>{{ ferramenta.ferramenta.codigo }} - {{ ferramenta.ferramenta.nome
-
                                             }}</span>
-
                                             <span class="descricao-item">Descrição: {{ ferramenta.ferramenta.descricao
                                                 || '' }}</span>
                                         </div>
@@ -82,14 +80,12 @@
                                     <label><b>Insumos Utilizados:</b></label>
                                 </div>
                                 <ul class="lista-materiais">
-
                                     <li v-for="insumo in servico.insumos" :key="insumo.id">
                                         <div class="conteudo-item">
                                             <span>{{ insumo.produto.cod ?? '' }} - {{ insumo.produto.descricao ??
                                                 insumo.produto.desc }} (Qtd: {{ insumo.qtd }})</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerInsumo(servico, insumo.id)"></i>
-   
                                     </li>
                                 </ul>
                             </div>
@@ -244,28 +240,6 @@
             </div>
         </div>
         <!-- END MODAL FERRAMENTA -->
-        <!-- MODAL INSUMO -->
-        <div v-if="modalInsumo" class="modal-mask" @click="modalInsumo = false">
-            <div class="jm margem" @click.stop>
-                <div class="alinha-centro">
-                    <h3>Adicionar Insumo</h3>
-                </div>
-                <fieldset class="grid">
-                    <div>
-                        <label>Insumos</label>
-                        <select v-model="novoInsumo">
-                            <option value="" disabled>Selecione uma insumo</option>
-                            <option v-for="insumo in insumos" :key="insumo.id" :value="insumo"> {{ insumo.codigo }} - {{
-                                insumo.nome }} </option>
-                        </select>
-                    </div>
-                </fieldset>
-                <div class="submit direita">
-                    <button @click="adicionarFerramenta">Adicionar</button>
-                </div>
-            </div>
-        </div>
-        <!-- END MODAL INSUMO -->
         <!-- Modal Confirmar Exclusão -->
         <div v-if="modalConfirmacao" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
