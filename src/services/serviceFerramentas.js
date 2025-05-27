@@ -1,14 +1,29 @@
 import { api } from "roboflex-thalamus-request-handler";
 
 
-function getAllFerramentas(){
-    return new Promise((resolve, reject) => {
-        return api.get('ferramenta/listar')
-        .then(response => resolve(response))
-        .catch(error => reject(error));
-    });
-} 
+// function getAllFerramentas(){
+//     return new Promise((resolve, reject) => {
+//         return api.get('ferramenta/listar')
+//         .then(response => resolve(response))
+//         .catch(error => reject(error));
+//     });
+// } 
 
+async function getAllFerramentas(){
+   try {
+            const payload = {
+                familia: [32]
+                //32 Ferramentas
+            };
+
+            const response = await api.post('/produto-filtrar', payload);
+
+            return response.data;
+        } catch(error){
+            console.error("Erro ao buscar insumos:", error);
+            throw error;
+        }
+} 
 
 function obterPorId(id){
     return new Promise( (resolve, reject) => {

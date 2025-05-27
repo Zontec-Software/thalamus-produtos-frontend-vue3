@@ -209,7 +209,7 @@ const funções = {
 
     async removerFerramenta(id) {
         try {
-            const response = await api.delete(`setor-servico/ferramenta/remover/${id}`);
+            const response = await api.delete(`setor-servico/material/remover/${id}`);
             return response.data;
         } catch (error) {
             console.error(error);
@@ -240,7 +240,7 @@ const funções = {
 
         async removerInsumo(id) {
         try {
-            const response = await api.delete(`setor-servico/insumo/remover/${id}`);
+            const response = await api.delete(`setor-servico/material/remover/${id}`);
             return response.data;
         } catch (error) {
             console.error(error);
