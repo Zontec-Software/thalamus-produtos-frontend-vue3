@@ -19,9 +19,8 @@
         <nav class="nav-maior separador">
             <router-link to="/" active-class="ativo">Portfólio de Produtos</router-link>
             <router-link to="/aprovacao" active-class="ativo">Aprovação</router-link>
-            <router-link to="/ferramentas" active-class="ativo">Ferramentas</router-link>
+            <!-- <router-link to="/ferramentas" active-class="ativo">Ferramentas</router-link> -->
             <router-link to="/parametrosTeste" active-class="ativo">Parametros de Teste</router-link>
-
             <!-- <router-link to="/servicos" active-class="ativo">Serviços</router-link> -->
             <!-- <router-link v-if="permissoes.includes(97)" to="/produtos" active-class="ativo">Produtos em
                 Edição</router-link> -->
