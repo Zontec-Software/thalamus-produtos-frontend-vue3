@@ -134,14 +134,13 @@
         <!-- FOTOS -->
         <div class="bloco2 margem col-1 alinha-centro">
           <div>
-            <div v-if="colaboradores.length > 0" class="carousel">
-              <img v-for="(colaborador, index) in colaboradores" :key="index"
-                :src="colaborador.path_image ? urlFoto.caminhoFoto + colaborador.path_image : placeholder"
-                :alt="colaborador.nomeCompleto" class="imagem" @click="indiceAtual = index"
+            <div v-if="fotosProduto.length > 0" class="carousel">
+              <img v-for="(foto, index) in fotosProduto" :key="index" :src="foto.url" :alt="foto.nome" class="imagem"
+                @click="indiceAtual = index"
                 :style="{ border: indiceAtual === index ? '2px solid var(--cor-primaria)' : 'none' }" />
             </div>
             <div v-else>
-              <p>Sem fotos cadastradas.</p>
+              <span>Sem fotos cadastradas.</span>
             </div>
             <br />
             <a style="cursor: pointer; border: 1px solid; color: var(--cor-primaria);" class="icone-camera"
@@ -337,7 +336,6 @@ import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import AutoCompleteRoteiro from '@/components/AutoComplete/AutoCompleteRoteiro.vue';
 import { urlFoto } from '@/services/api';
-import { api } from "roboflex-thalamus-request-handler";
 
 
 const toaster = createToaster({
@@ -395,8 +393,8 @@ export default {
       isLoading: true,
       showModalFotos: false,
       fotosProduto: [],
-      indiceAtual: 0,
-      colaboradores: [],
+      indiceAtual: 0
+
 
 
     };
@@ -436,7 +434,7 @@ export default {
         this.carregarCores(),
         this.carregarVersaoModelo(),
         this.carregarEspecificacoes(),
-        this.carregarColaboradores()
+        this.carregarFotosProduto()
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -445,35 +443,54 @@ export default {
     }
   },
   methods: {
-    adicionarFoto(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        this.fotosProduto.push({ url });
-      }
-    },
-    removerFoto(index) {
-      this.fotosProduto.splice(index, 1);
-      if (this.indiceAtual >= this.fotosProduto.length) {
-        this.indiceAtual = this.fotosProduto.length - 1;
-      }
-    },
-    nextFoto() {
-      this.indiceAtual = (this.indiceAtual + 1) % this.colaboradores.length;
-    },
-    prevFoto() {
-      this.indiceAtual =
-        (this.indiceAtual - 1 + this.colaboradores.length) %
-        this.colaboradores.length;
-    },
-    async carregarColaboradores() {
+
+    async carregarFotosProduto() {
       try {
-        const response = await api.get('filtrar/pessoa');
-        this.colaboradores = response.data;
+        const response = await serviceProdutos.listarAnexo(this.produto_cod);
+        this.fotosProduto = response.map(anexo => ({
+          id: anexo.id,
+          url: `${urlFoto.caminhoFoto}${anexo.caminho}`,
+          nome: anexo.nome
+        }));
       } catch (error) {
-        console.error('Erro ao carregar colaboradores:', error);
+        console.error("Erro ao carregar fotos do produto:", error);
       }
     },
+
+    async adicionarFoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (this.fotosProduto.length >= 4) {
+        toaster.error("Você pode adicionar no máximo 4 fotos.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('arquivo', file);
+
+      try {
+        await serviceProdutos.gravarAnexo(formData, this.produto_cod);
+        toaster.success("Foto adicionada com sucesso!");
+        await this.carregarFotosProduto();
+      } catch (error) {
+        toaster.error("Erro ao adicionar foto.");
+        console.error(error);
+      }
+    },
+
+    async removerFoto(index) {
+      const foto = this.fotosProduto[index];
+      try {
+        await serviceProdutos.deletarAnexo(this.produto_cod, foto.id);
+        toaster.success("Foto removida com sucesso!");
+        await this.carregarFotosProduto();
+      } catch (error) {
+        toaster.error("Erro ao remover foto.");
+        console.error(error);
+      }
+    },
+
 
     removerEspecificação(i) {
       this.produto_original.especificacoes = this.produto_original.especificacoes.filter(item => item != i);
@@ -737,7 +754,7 @@ export default {
     async finalizarCadastro() {
       try {
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
-        toaster.success("Produto finalizadp com sucesso!");
+        toaster.success("Produto finalizado com sucesso!");
       } catch (error) {
         toaster.error("Erro ao finalizar produto")
         console.error("Erro ao salvar produto:", error);
