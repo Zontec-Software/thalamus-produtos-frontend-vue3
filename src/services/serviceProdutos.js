@@ -358,6 +358,51 @@ const funções = {
         }
     },
 
+    //ANEXOS
+    async gravarAnexo(payload, produto_cod){
+        try {
+            const response = await api.post(`anexar/produto/${produto_cod}`, payload)
+            return response.data;
+
+        } catch (error) {
+            console.error("Erro ao gravar anexo")
+            throw error;
+        }
+    },
+
+    async deletarAnexo(produto_cod, anexo_id){
+          try {
+            const response = await api.delete(`anexos/produto/${produto_cod}/${anexo_id}`)
+            return response.data;
+
+        } catch (error) {
+            console.error("Erro ao deletar anexo")
+            throw error;
+        }
+    },
+
+    async listarAnexo(produto_cod){
+            try {
+            const response = await api.get(`anexos/produto/${produto_cod}`)
+            return response.data;
+
+        } catch (error) {
+            console.error("Erro ao listar anexos")
+            throw error;
+        }
+    },
+
+    async downloadAnexo(anexo_id){
+           try {
+            const response = await api.get(`anexo/download/${anexo_id}`)
+            return response.data;
+
+        } catch (error) {
+            console.error("Erro ao fazer download de anexo")
+            throw error;
+        }
+    }
+
 }
 
 export default funções;
