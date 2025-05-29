@@ -369,6 +369,7 @@ export default {
             if (this.setorSelecionado) {
                 await serviceRoteiro.adicionarSetor(this.roteiro.id, this.setorSelecionado.id);
                 this.getRoteiro()
+                this.setorSelecionado = null
             }
         },
         abrirModalServico(bloco) {
