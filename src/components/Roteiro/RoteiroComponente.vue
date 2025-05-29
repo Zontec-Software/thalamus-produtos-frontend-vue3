@@ -1,5 +1,5 @@
 <template>
-    <div class="container margem">
+    <div class="container margem" v-if="roteiro">
         <div class="bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Adicionar bloco</h3>
@@ -66,7 +66,7 @@
                                         <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
                                             ferramenta.produto.desc }}</span>
                                             <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
@@ -139,14 +139,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -175,7 +175,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.descricao }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -266,6 +266,15 @@
             </div>
         </div>
     </div>
+    <div v-else-if="criarRoteiro" class="alinha-centro">
+        <button @click="criarNovoRoteiro">Criar Roteiro</button>
+    </div>
+    <div v-else>
+        <br><br>
+        <div class="loading">
+            <div></div>
+        </div>
+    </div>
 </template>
 <script>
 import draggable from 'vuedraggable';
@@ -292,9 +301,10 @@ export default {
     },
     data() {
         return {
+            criarRoteiro: false,
             setores: [],
             ferramentas: [],
-            roteiro: [],
+            roteiro: null,
             setorSelecionado: null,
             modalAdicionarServico: false,
             modalMaterial: false,
@@ -332,6 +342,11 @@ export default {
     },
     methods: {
 
+        async criarNovoRoteiro() {
+            await serviceRoteiro.criarRoteiro(this.produto_cod, 'roteiro 01')
+            this.getRoteiro()
+        },
+
 
         atualizarObs(servico) {
             serviceRoteiro.atualizarServico(servico.id, { observacao: servico.observacao });
@@ -339,11 +354,15 @@ export default {
 
         async getRoteiro() {
             this.roteiro = await serviceRoteiro.buscarRoteiro(this.produto_cod);
-            this.roteiro.setores.forEach(bloco => {
-                bloco.servicos.forEach(servico => {
-                    servico.expandido = true;
+            if (this.roteiro) {
+                this.roteiro.setores.forEach(bloco => {
+                    bloco.servicos.forEach(servico => {
+                        servico.expandido = true;
+                    });
                 });
-            });
+            } else {
+                this.criarRoteiro = true
+            }
         },
 
         async criarBlocoSetor() {
