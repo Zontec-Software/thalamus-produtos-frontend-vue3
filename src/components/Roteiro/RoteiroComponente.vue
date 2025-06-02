@@ -40,6 +40,7 @@
                                         @click="confirmarExcluir(servico, 'servico')"></i>
                                 </div>
                             </div>
+                            
                             <br>
                             <div v-show="servico.expandido">
                                 <div class="bloco2 margem">
