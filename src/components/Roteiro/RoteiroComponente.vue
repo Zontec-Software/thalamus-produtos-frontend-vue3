@@ -21,8 +21,8 @@
                                 <h3 style="margin: 0;">{{ bloco.setor?.nome }}</h3>
                             </div>
                             <div>
-                                <button class="btn-adicionar" @click="abrirModalServico(bloco)">Adicionar
-                                    Serviço</button>
+                                <button class="btn-adicionar" @click="abrirModalServico(bloco)">
+                                    Adicionar Serviço</button>
                                 <i class="bi-trash" @click="confirmarExcluir(bloco, 'setor')"></i>
                             </div>
                         </div>
@@ -39,17 +39,6 @@
                                     <i style="margin-left: 0.5rem;" class="bi-trash"
                                         @click="confirmarExcluir(servico, 'servico')"></i>
                                 </div>
-                                <br>
-                                <ul class="lista-materiais ">
-                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                                        <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
-                                            ferramenta.produto.desc }}</span>
-                                            <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                            }}</span>
-                                        </div>
-                                        <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
-                                    </li>
-                                </ul>
                             </div>
                             <br>
                             <div v-show="servico.expandido">
