@@ -10,19 +10,36 @@
                     <option v-for="setor in setores" :key="setor.id" :value="setor">{{ setor.nome }}</option>
                 </select>
             </div>
-            <br>
-            <draggable v-model="roteiro.setores" group="setores" item-key="id" handle=".drag-handle" animation="200"
-                @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
-                <template #item="{ element: bloco }">
-                    <div class="bloco margem">
+            <select v-model="setorSelecionado" class="setor-listbox" @change="criarBlocoSetor">
+                <option :value="null" selected hidden>Selecione um setor</option>
+                <option v-for="setor in setores" :key="setor.id" :value="setor">{{ setor.nome }}</option>
+            </select>
+        </div>
+        <br>
+        
+        <draggable v-model="roteiro.setores" group="setores" item-key="id" handle=".drag-handle" animation="200"
+            @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
+            <template #item="{ element: bloco }">
+                <div class="bloco margem">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center;" class="alinha-v">
+                            <i class="bi-grip-vertical drag-handle" style="cursor: grab; margin-right: 10px;"></i>
+                            <h3 style="margin: 0;">{{ bloco.setor?.nome }}</h3>
+                        </div>
+                        <div>
+                            <button class="btn-adicionar" @click="abrirModalServico(bloco)">Adicionar Serviço</button>
+                            <i class="bi-trash" @click="confirmarExcluir(bloco, 'setor')"></i>
+                        </div>
+                    </div>
+                    <div class="servico-bloco margem bloco2" v-for="servico in bloco.servicos" :key="servico.id">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div style="display: flex; align-items: center;" class="alinha-v">
                                 <i class="bi-grip-vertical drag-handle" style="cursor: grab; margin-right: 10px;"></i>
                                 <h3 style="margin: 0;">{{ bloco.setor?.nome }}</h3>
                             </div>
                             <div>
-                                <button class="btn-adicionar" @click="abrirModalServico(bloco)">Adicionar
-                                    Serviço</button>
+                                <button class="btn-adicionar" @click="abrirModalServico(bloco)">
+                                    Adicionar Serviço</button>
                                 <i class="bi-trash" @click="confirmarExcluir(bloco, 'setor')"></i>
                             </div>
                         </div>
@@ -30,7 +47,7 @@
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="display: flex; align-items: center;">
                                     <h4 @click="toggleExpandir(servico)" style="cursor: pointer;">- {{ servico.descricao
-                                    }}</h4>
+                                        }}</h4>
                                 </div>
                                 <div>
                                     <span @click="toggleExpandir(servico)">
@@ -40,6 +57,7 @@
                                         @click="confirmarExcluir(servico, 'servico')"></i>
                                 </div>
                             </div>
+                            
                             <br>
                             <div v-show="servico.expandido">
                                 <div class="bloco2 margem">
@@ -67,9 +85,9 @@
                                         <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
                                             <div class="conteudo-item">
                                                 <span>{{ ferramenta.produto.cod }} - {{ ferramenta.produto.desc
-                                                }}</span>
+                                                    }}</span>
                                                 <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <i class="bi-x-circle"
                                                 @click="removerFerramenta(servico, ferramenta.id)"></i>
@@ -101,8 +119,7 @@
                                         <li v-for="parametro in servico.parametros" :key="parametro.id">
                                             <div class="conteudo-item">
                                                 <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome
-                                                }}</span>
-
+                                                    }}</span>
                                                 <span class="descricao-item">Descrição: {{ parametro.parametro.descricao
                                                     || '' }} </span>
                                             </div>
@@ -151,14 +168,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -187,7 +204,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.descricao }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -248,15 +265,6 @@
                 <div class="submit direita">
                     <button @click="adicionarFerramenta">Adicionar</button>
                 </div>
-            </div>
-        </div>
-        <div v-else-if="criarRoteiro" class="alinha-centro">
-            <button @click="criarNovoRoteiro">Criar Roteiro</button>
-        </div>
-        <div v-else>
-            <br><br>
-            <div class="loading">
-                <div></div>
             </div>
         </div>
     </div>
