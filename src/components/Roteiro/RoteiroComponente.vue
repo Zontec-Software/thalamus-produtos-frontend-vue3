@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <div v-if="roteiro" class="container margem">
+    <div v-if="roteiro">
+        <div class="container margem">
             <div class="bloco margem">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3>Adicionar bloco</h3>
@@ -30,7 +30,7 @@
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="display: flex; align-items: center;">
                                     <h4 @click="toggleExpandir(servico)" style="cursor: pointer;">- {{ servico.descricao
-                                        }}</h4>
+                                    }}</h4>
                                 </div>
                                 <div>
                                     <span @click="toggleExpandir(servico)">
@@ -39,17 +39,6 @@
                                     <i style="margin-left: 0.5rem;" class="bi-trash"
                                         @click="confirmarExcluir(servico, 'servico')"></i>
                                 </div>
-                                <br>
-                                <ul class="lista-materiais ">
-                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                                        <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
-                                            ferramenta.produto.desc }}</span>
-                                            <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                            }}</span>
-                                        </div>
-                                        <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
-                                    </li>
-                                </ul>
                             </div>
                             <br>
                             <div v-show="servico.expandido">
@@ -78,9 +67,9 @@
                                         <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
                                             <div class="conteudo-item">
                                                 <span>{{ ferramenta.produto.cod }} - {{ ferramenta.produto.desc
-                                                    }}</span>
+                                                }}</span>
                                                 <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <i class="bi-x-circle"
                                                 @click="removerFerramenta(servico, ferramenta.id)"></i>
@@ -112,7 +101,8 @@
                                         <li v-for="parametro in servico.parametros" :key="parametro.id">
                                             <div class="conteudo-item">
                                                 <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome
-                                                    }}</span>
+                                                }}</span>
+
                                                 <span class="descricao-item">Descrição: {{ parametro.parametro.descricao
                                                     || '' }} </span>
                                             </div>
@@ -145,9 +135,7 @@
                     </div>
                 </template>
             </draggable>
-                </div>
-            </template>
-        </draggable>
+        </div>
         <!-- MODAL SERVIÇO -->
         <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -163,14 +151,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -199,7 +187,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.descricao }} </option>
+                                }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -388,12 +376,6 @@ export default {
             await serviceRoteiro.criarRoteiro(this.produto_cod, 'roteiro 01')
             this.getRoteiro()
         },
-
-        async criarNovoRoteiro() {
-            await serviceRoteiro.criarRoteiro(this.produto_cod, 'roteiro 01')
-            this.getRoteiro()
-        },
-
 
         atualizarObs(servico) {
             serviceRoteiro.atualizarServico(servico.id, { observacao: servico.observacao });
