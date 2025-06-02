@@ -39,6 +39,17 @@
                                     <i style="margin-left: 0.5rem;" class="bi-trash"
                                         @click="confirmarExcluir(servico, 'servico')"></i>
                                 </div>
+                                <br>
+                                <ul class="lista-materiais ">
+                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
+                                        <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
+                                            ferramenta.produto.desc }}</span>
+                                            <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
+                                            }}</span>
+                                        </div>
+                                        <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
+                                    </li>
+                                </ul>
                             </div>
                             <br>
                             <div v-show="servico.expandido">
@@ -134,6 +145,122 @@
                     </div>
                 </template>
             </draggable>
+                </div>
+            </template>
+        </draggable>
+        <!-- MODAL SERVIÇO -->
+        <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Serviço</h3>
+                </div>
+                <fieldset class="grid-2">
+                    <div>
+                        <label>Código do serviço</label>
+                        <input type="number" readonly v-model="novoServico.cod">
+                    </div>
+                    <div>
+                        <label>Verbo</label>
+                        <select v-model="novoServico.ação" @change="montarCodServico">
+                            <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
+                            }} - {{ item.nome }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Objeto</label>
+                        <select v-model="novoServico.item" @change="montarCodServico">
+                            <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
+                            }} - {{ item.nome }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Local</label>
+                        <select v-model="novoServico.local" @change="montarCodServico">
+                            <option v-for="item, index in baseCodigoServico.Locais" :key="index" :value="item">{{
+                                item.id }} - {{ item.nome }}</option>
+                        </select>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarServico">Adicionar</button>
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL SERVIÇO -->
+        <!--MODAL MATERIAL -->
+        <div v-if="modalMaterial" class="modal-mask" @click="modalMaterial = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Material</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Material</label>
+                        <select v-model="novoMaterial" class="servico-listbox">
+                            <option value="" disabled>Selecione um material</option>
+                            <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
+                            }} - {{ material.descricao }} </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Quantidade</label>
+                        <input type="number" v-model="qtdMaterial" min="1" class="input-text" />
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarMaterial">Adicionar</button>
+                </div>
+            </div>
+        </div>
+        <!--END MODAL MATERIAL -->
+        <!-- MODAL INSUMO -->
+        <div v-if="modalInsumo" class="modal-mask" @click="modalInsumo = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Insumo</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Insumos</label>
+                        <select v-model="novoInsumo" class="servico-listbox">
+                            <option value="" disabled>Selecione uma insumo</option>
+                            <option v-for="insumo in insumos" :key="insumo.id" :value="insumo"> {{ insumo.cod }} - {{
+                                insumo.desc }} </option>
+                        </select>
+                    </div>
+                    <div>
+                        <div>
+                            <label>Quantidade</label>
+                            <input type="number" v-model="qtdInsumo" min="1" class="input-text" />
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarInsumo">Adicionar</button>
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL INSUMO -->
+        <!-- MODAL FERRAMENTA -->
+        <div v-if="modalFerramenta" class="modal-mask" @click="modalFerramenta = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Ferramenta</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Ferramentas</label>
+                        <select v-model="novaFerramenta">
+                            <option value="" disabled>Selecione uma ferramenta</option>
+                            <option v-for="ferramenta in ferramentas" :key="ferramenta.id" :value="ferramenta"> {{
+                                ferramenta.cod }} - {{ ferramenta.desc }} </option>
+                        </select>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarFerramenta">Adicionar</button>
+                </div>
+            </div>
         </div>
         <div v-else-if="criarRoteiro" class="alinha-centro">
             <button @click="criarNovoRoteiro">Criar Roteiro</button>
@@ -143,6 +270,15 @@
             <div class="loading">
                 <div></div>
             </div>
+        </div>
+    </div>
+    <div v-else-if="criarRoteiro" class="alinha-centro">
+        <button @click="criarNovoRoteiro">Criar Roteiro</button>
+    </div>
+    <div v-else>
+        <br><br>
+        <div class="loading">
+            <div></div>
         </div>
     </div>
 </template>
@@ -246,6 +382,11 @@ export default {
             }
             this.fecharModais();
             this.anexosSelecionados = [];
+        },
+
+        async criarNovoRoteiro() {
+            await serviceRoteiro.criarRoteiro(this.produto_cod, 'roteiro 01')
+            this.getRoteiro()
         },
 
         async criarNovoRoteiro() {
