@@ -10,11 +10,28 @@
                     <option v-for="setor in setores" :key="setor.id" :value="setor">{{ setor.nome }}</option>
                 </select>
             </div>
-            <br>
-            <draggable v-model="roteiro.setores" group="setores" item-key="id" handle=".drag-handle" animation="200"
-                @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
-                <template #item="{ element: bloco }">
-                    <div class="bloco margem">
+            <select v-model="setorSelecionado" class="setor-listbox" @change="criarBlocoSetor">
+                <option :value="null" selected hidden>Selecione um setor</option>
+                <option v-for="setor in setores" :key="setor.id" :value="setor">{{ setor.nome }}</option>
+            </select>
+        </div>
+        <br>
+        
+        <draggable v-model="roteiro.setores" group="setores" item-key="id" handle=".drag-handle" animation="200"
+            @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
+            <template #item="{ element: bloco }">
+                <div class="bloco margem">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center;" class="alinha-v">
+                            <i class="bi-grip-vertical drag-handle" style="cursor: grab; margin-right: 10px;"></i>
+                            <h3 style="margin: 0;">{{ bloco.setor?.nome }}</h3>
+                        </div>
+                        <div>
+                            <button class="btn-adicionar" @click="abrirModalServico(bloco)">Adicionar Serviço</button>
+                            <i class="bi-trash" @click="confirmarExcluir(bloco, 'setor')"></i>
+                        </div>
+                    </div>
+                    <div class="servico-bloco margem bloco2" v-for="servico in bloco.servicos" :key="servico.id">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div style="display: flex; align-items: center;" class="alinha-v">
                                 <i class="bi-grip-vertical drag-handle" style="cursor: grab; margin-right: 10px;"></i>
