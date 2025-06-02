@@ -39,17 +39,6 @@
                                     <i style="margin-left: 0.5rem;" class="bi-trash"
                                         @click="confirmarExcluir(servico, 'servico')"></i>
                                 </div>
-                                <br>
-                                <ul class="lista-materiais ">
-                                    <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.id">
-                                        <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
-                                            ferramenta.produto.desc }}</span>
-                                            <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                                }}</span>
-                                        </div>
-                                        <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
-                                    </li>
-                                </ul>
                             </div>
                             <br>
                             <div v-show="servico.expandido">
@@ -113,6 +102,7 @@
                                             <div class="conteudo-item">
                                                 <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome
                                                 }}</span>
+
                                                 <span class="descricao-item">Descrição: {{ parametro.parametro.descricao
                                                     || '' }} </span>
                                             </div>
