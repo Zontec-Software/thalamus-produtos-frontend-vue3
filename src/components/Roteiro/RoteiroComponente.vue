@@ -10,6 +10,7 @@
             </select>
         </div>
         <br>
+        
         <draggable v-model="roteiro.setores" group="setores" item-key="id" handle=".drag-handle" animation="200"
             @end="(event) => alterarOrdem(event.item.__draggable_context.element.id, event.newIndex)">
             <template #item="{ element: bloco }">
