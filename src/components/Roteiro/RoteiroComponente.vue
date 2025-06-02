@@ -1,5 +1,5 @@
 <template>
-    <div class="container margem">
+    <div class="container margem" v-if="roteiro">
         <div class="bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Adicionar bloco</h3>
@@ -116,8 +116,14 @@
                             <div class="bloco2 margem">
                                 <div class="cabecalho-lista">
                                     <label><b>Anexos:</b></label>
+                                    <ul class="lista-materiais" v-if="servico.anexos && servico.anexos.length">
+                                        <li v-for="anexo in servico.anexos" :key="anexo.id">
+                                            <a :href="anexo.url" target="_blank" download
+                                                style="color: var(--cor-primaria);"> {{ anexo.nome }} </a>
+                                        </li>
+                                    </ul>
                                 </div>
-                                <a @click="modalAnexos = true" class="icone-inc"></a>
+                                <a @click="abrirModalAnexos(servico)" class="icone-inc"></a>
                             </div>
                         </div>
                     </div>
@@ -252,18 +258,49 @@
                 </div>
             </div>
         </div>
-        <!-- Modal Anexos -->
+        <!-- MODAL ANEXOS -->
         <div v-if="modalAnexos" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
                 <div class="alinha-centro">
                     <h3>Anexos do Serviço</h3>
                 </div>
-                <div class="tags">
-                    <a>Anexo 1 <i class="bi-x-circle"></i></a>
-                    <a>Anexo 2 <i class="bi-x-circle"></i></a>
-                    <a title="Adicionar Anexo">+</a>
+                <div class="bloco margem">
+                    <input type="file" multiple @change="selecionarArquivos" />
+                    <br>
+                    <ul class="lista-materiais" v-if="anexosSelecionados.length">
+                        <li v-for="(file, index) in anexosSelecionados" :key="index">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <span>{{ file.name }}</span>
+                                <i class="bi-x-circle" @click="removerAnexo(index)"></i>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bloco margem" v-if="servicoAtual?.anexos?.length">
+                    <label><b>Anexos existentes:</b></label>
+                    <ul class="lista-materiais">
+                        <li v-for="anexo in servicoAtual.anexos" :key="anexo.id">
+                            <a :href="anexo.url" target="_blank" download style="color: var(--cor-primaria);"> {{
+                                anexo.nome }} </a>
+                            <i class="bi-x-circle" @click="deletarAnexo(anexo.id)"></i>
+                        </li>
+                    </ul>
+                </div>
+                <div class="submit direita">
+                    <button @click="enviarAnexos()">Salvar</button>
+                    <button class="acao-secundaria" @click="fecharModais">Fechar</button>
                 </div>
             </div>
+        </div>
+        <!-- END MODAL ANEXOS -->
+    </div>
+    <div v-else-if="criarRoteiro" class="alinha-centro">
+        <button @click="criarNovoRoteiro">Criar Roteiro</button>
+    </div>
+    <div v-else>
+        <br><br>
+        <div class="loading">
+            <div></div>
         </div>
     </div>
 </template>
@@ -292,9 +329,10 @@ export default {
     },
     data() {
         return {
+            criarRoteiro: false,
             setores: [],
             ferramentas: [],
-            roteiro: [],
+            roteiro: null,
             setorSelecionado: null,
             modalAdicionarServico: false,
             modalMaterial: false,
@@ -319,7 +357,9 @@ export default {
             novoMaterial: null,
             novaFerramenta: null,
             qtdMaterial: 1,
-            qtdInsumo: 1
+            qtdInsumo: 1,
+            anexosSelecionados: [],
+
 
         }
     },
@@ -331,6 +371,45 @@ export default {
         this.getRoteiro();
     },
     methods: {
+        selecionarArquivos(event) {
+            this.anexosSelecionados = Array.from(event.target.files);
+        },
+
+        removerAnexo(index) {
+            this.anexosSelecionados.splice(index, 1);
+        },
+
+        async deletarAnexo(anexoId) {
+            try {
+                await serviceRoteiro.deletarAnexo(this.roteiro.id, anexoId);
+                this.getRoteiro();
+            } catch (error) {
+                console.error("Erro ao deletar anexo:", error);
+            }
+        },
+
+
+        async enviarAnexos() {
+            if (!this.servicoAtual || this.anexosSelecionados.length === 0) return;
+            const formData = new FormData();
+            this.anexosSelecionados.forEach(file => {
+                formData.append('arquivo', file);
+            });
+            formData.append('servico_id', this.servicoAtual.id);
+            try {
+                await serviceRoteiro.gravarAnexo(formData, this.roteiro.id);
+                this.getRoteiro();
+            } catch (e) {
+                console.error('Erro ao enviar anexos', e);
+            }
+            this.fecharModais();
+            this.anexosSelecionados = [];
+        },
+
+        async criarNovoRoteiro() {
+            await serviceRoteiro.criarRoteiro(this.produto_cod, 'roteiro 01')
+            this.getRoteiro()
+        },
 
 
         atualizarObs(servico) {
@@ -339,17 +418,23 @@ export default {
 
         async getRoteiro() {
             this.roteiro = await serviceRoteiro.buscarRoteiro(this.produto_cod);
-            this.roteiro.setores.forEach(bloco => {
-                bloco.servicos.forEach(servico => {
-                    servico.expandido = true;
+            if (this.roteiro) {
+                this.roteiro.setores.forEach(bloco => {
+                    bloco.servicos.forEach(servico => {
+                        servico.expandido = true;
+                    });
                 });
-            });
+            } else {
+                this.criarRoteiro = true
+            }
         },
+
 
         async criarBlocoSetor() {
             if (this.setorSelecionado) {
                 await serviceRoteiro.adicionarSetor(this.roteiro.id, this.setorSelecionado.id);
                 this.getRoteiro()
+                this.setorSelecionado = null
             }
         },
         abrirModalServico(bloco) {
@@ -484,9 +569,11 @@ export default {
                 });
             }
         },
-        abrirModalAnexos() {
+        abrirModalAnexos(servico) {
+            this.servicoAtual = servico;
             this.modalAnexos = true;
         },
+
         confirmarExcluir(item, tipo) {
             this.itemParaExcluir = item;
             this.tipoExclusao = tipo;
