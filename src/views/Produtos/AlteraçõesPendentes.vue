@@ -100,7 +100,7 @@
               </select>
             </div>
             <div>
-              <label>Versão Modelo <i title="Editar Versão Modelo" class="bi bi-gear-fill adicionarItem"
+              <label>Versão Produto <i title="Editar Versão Modelo" class="bi bi-gear-fill adicionarItem"
                   @click="abrirModalEditarCombo('versaoModelo')"></i> </label>
               <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.versao_modelo_id"
                 @change="atualizarPayLoad('versao_modelo_id', produto_original.versao_modelo_id)">

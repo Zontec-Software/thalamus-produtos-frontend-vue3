@@ -652,7 +652,7 @@ const funções = {
             //a chave que você vai me mandar chama "arquivo", pode ser um array com varios, um um arquivo sozinho fora do array, aí você ve se vai mandar varios de uma vez ou de 1 em 1 
 
         } catch (error) {
-            console.error("Erro ao gravar anexo") 
+            console.error("Erro ao gravar anexo")
             throw error;
         }
     },
