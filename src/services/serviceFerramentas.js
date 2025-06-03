@@ -12,7 +12,7 @@ import { api } from "roboflex-thalamus-request-handler";
 async function getAllFerramentas(){
    try {
             const payload = {
-                familia: [32]
+                familia: [32,35,36]
                 //32 Ferramentas
             };
 
