@@ -235,7 +235,7 @@
                         <select v-model="novaFerramenta">
                             <option value="" disabled>Selecione uma ferramenta</option>
                             <option v-for="ferramenta in ferramentas" :key="ferramenta.id" :value="ferramenta"> {{
-                                ferramenta.cod }} - {{ ferramenta.desc }} </option>
+                                ferramentas }} {{ ferramenta.cod }} - {{ ferramenta.desc }} </option>
                         </select>
                     </div>
                 </fieldset>
