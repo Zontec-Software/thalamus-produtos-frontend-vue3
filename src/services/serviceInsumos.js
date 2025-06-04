@@ -23,7 +23,7 @@ const funcoes = {
             
             const response = await api.get('produto/listar/insumos');
 
-            return response.data;
+            return response;
         } catch(error){
             console.error("Erro ao buscar insumos:", error);
             throw error;
