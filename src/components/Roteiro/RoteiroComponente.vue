@@ -66,7 +66,7 @@
                                         <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
                                             ferramenta.produto.desc }}</span>
                                             <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                            }}</span>
+                                                }}</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
@@ -96,10 +96,10 @@
                                 <ul class="lista-materiais ">
                                     <li v-for="parametro in servico.parametros" :key="parametro.id">
                                         <div class="conteudo-item">
-                                            <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }}
+                                            <span> {{ parametro?.parametro?.codigo }} - {{ parametro?.parametro?.nome }}
                                             </span>
-                                            <span class="descricao-item">Descrição: {{ parametro.parametro.descricao ||
-                                                '' }} </span>
+                                            <span class="descricao-item">Descrição: {{ parametro?.parametro?.descricao
+                                                || '' }} </span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerParametro(servico, parametro.id)"></i>
                                     </li>
@@ -145,14 +145,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -181,7 +181,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.descricao }} </option>
+                                }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -559,7 +559,7 @@ export default {
         },
 
         adicionarParametro(servico, parametroSelecionado) {
-            if (parametroSelecionado) {
+            if (parametroSelecionado && parametroSelecionado.id && parametroSelecionado.codigo) {
                 servico.parametros.push({
                     id: Date.now(),
                     parametro: parametroSelecionado
