@@ -66,7 +66,7 @@
                                         <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
                                             ferramenta.produto.desc }}</span>
                                             <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
@@ -118,8 +118,8 @@
                                     <label><b>Anexos:</b></label>
                                     <ul class="lista-materiais" v-if="servico.anexos && servico.anexos.length">
                                         <li v-for="anexo in servico.anexos" :key="anexo.id">
-                                            <a :href="anexo.url" target="_blank" download
-                                                style="color: var(--cor-primaria);"> {{ anexo.nome }} </a>
+                                            <a :href="caminhoFoto + anexo.caminho" target="_blank"> {{
+                                                anexo.nome_original }}</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -145,14 +145,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -181,7 +181,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.descricao }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -269,9 +269,8 @@
                     <br>
                     <ul class="lista-materiais" v-if="anexosSelecionados.length">
                         <li v-for="(file, index) in anexosSelecionados" :key="index">
-                            <div style="display: flex; gap: 0.5rem;">
-                                <span>{{ file.name }}</span>
-                                <i class="bi-x-circle" @click="removerAnexo(index)"></i>
+                            <div style="display: flex; gap: 0.5rem;"> <span>{{ file.name }}</span>
+                                <i class="bi-x-circle" @click.prevent="removerAnexo(index)"></i>
                             </div>
                         </li>
                     </ul>
@@ -281,8 +280,8 @@
                     <ul class="lista-materiais">
                         <li v-for="anexo in servicoAtual.anexos" :key="anexo.id">
                             <a :href="anexo.url" target="_blank" download style="color: var(--cor-primaria);"> {{
-                                anexo.nome }} </a>
-                            <i class="bi-x-circle" @click="deletarAnexo(anexo.id)"></i>
+                                anexo.nome_gravado }} </a>
+                            <i class="bi-x-circle" @click.prevent="deletarAnexo(anexo.id)"></i>
                         </li>
                     </ul>
                 </div>
@@ -312,6 +311,14 @@ import serviceParametros from '@/services/serviceParametrosTeste';
 import serviceInsumos from '@/services/serviceInsumos'
 import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
+import { urlFoto } from '@/services/api';
+import { createToaster } from "@meforma/vue-toaster";
+
+
+const toaster = createToaster({
+    position: "top-right",
+    duration: 6000,
+});
 
 export default {
     components: {
@@ -329,6 +336,7 @@ export default {
     },
     data() {
         return {
+            caminhoFoto: urlFoto.caminhoFoto,
             criarRoteiro: false,
             setores: [],
             ferramentas: [],
@@ -377,18 +385,18 @@ export default {
         },
 
         removerAnexo(index) {
-            this.anexosSelecionados.splice(index, 1);
+            this.anexosSelecionados = this.anexosSelecionados.splice(index, 1);
         },
 
         async deletarAnexo(anexoId) {
             try {
-                await serviceRoteiro.deletarAnexo(this.roteiro.id, anexoId);
-                this.getRoteiro();
+                await serviceRoteiro.deletarAnexo(this.servicoAtual.id, anexoId);
+                this.servicoAtual.anexos = this.servicoAtual.anexos.filter(a => a.id !== anexoId);
+                toaster.success("Anexo excluído com sucesso!");
             } catch (error) {
                 console.error("Erro ao deletar anexo:", error);
             }
         },
-
 
         async enviarAnexos() {
             if (!this.servicoAtual || this.anexosSelecionados.length === 0) return;
@@ -398,7 +406,7 @@ export default {
             });
             formData.append('servico_id', this.servicoAtual.id);
             try {
-                await serviceRoteiro.gravarAnexo(formData, this.roteiro.id);
+                await serviceRoteiro.gravarAnexo(formData, this.servicoAtual.id);
                 this.getRoteiro();
             } catch (e) {
                 console.error('Erro ao enviar anexos', e);
