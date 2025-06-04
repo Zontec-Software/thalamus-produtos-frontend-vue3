@@ -1,17 +1,14 @@
 import { api } from "roboflex-thalamus-request-handler";
 
-
-
-
-function getAllFerramentas(){
-     return new Promise((resolve, reject) => {
-        return api.get('produto/listar/ferramentas')
-       .then(response => resolve(response))
-        .catch(error => reject(error));
-    });
- } 
-
-
+async function getAllFerramentas() {
+    try {
+        const response = await api.get('produto/listar/ferramentas');
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar ferramentas:", error);
+        throw error;
+    }
+}
 
 // async function getAllFerramentas(){
 //    try {

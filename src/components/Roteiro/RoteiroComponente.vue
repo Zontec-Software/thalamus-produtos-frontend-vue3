@@ -232,16 +232,22 @@
                 <fieldset class="grid">
                     <div>
                         <label>Ferramentas</label>
-                        <select v-model="novaFerramenta">
-                            <option value="" disabled>Selecione uma ferramenta</option>
-                            <option v-for="ferramenta in ferramentas" :key="ferramenta.id" :value="ferramenta"> {{
-                                ferramenta.cod }} - {{ ferramenta.desc }} </option>
-                        </select>
+                        <div class="dropdown-wrapper">
+                            <input type="text" v-model="search" placeholder="Buscar Ferramenta" />
+                            <div class="dropdown">
+                                <RecycleScroller :items="filteredOptions" :item-size="10" height-field="height"
+                                    key-field="produto_cod" class="scroller">
+                                    <template #default="{ item }">
+                                        <div class="item" @click="adicionarFerramenta(item)">
+                                            {{ `${item.cod} - ${item.desc}` }}
+                                        </div>
+                                    </template>
+                                </RecycleScroller>
+                            </div>
+                        </div>
+
                     </div>
                 </fieldset>
-                <div class="submit direita">
-                    <button @click="adicionarFerramenta">Adicionar</button>
-                </div>
             </div>
         </div>
         <!-- END MODAL FERRAMENTA -->
@@ -313,6 +319,8 @@ import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
 import { urlFoto } from '@/services/api';
 import { createToaster } from "@meforma/vue-toaster";
+import { RecycleScroller } from 'vue-virtual-scroller'
+import { ref, computed, onMounted } from 'vue'
 
 
 const toaster = createToaster({
@@ -323,7 +331,8 @@ const toaster = createToaster({
 export default {
     components: {
         draggable,
-        AutoCompleteRoteiro
+        AutoCompleteRoteiro,
+        RecycleScroller,
     },
     props: {
         produtos: {
@@ -332,6 +341,29 @@ export default {
         },
         produto_cod: {
             required: true,
+        }
+    },
+    setup() {
+        const ferramentas = ref([])
+        const search = ref('')
+
+        const filteredOptions = computed(() =>
+            ferramentas.value.filter((opt) =>
+                opt.desc.toLowerCase().includes(search.value.toLowerCase())
+            )
+        )
+
+        async function carregarFerramentas() {
+            ferramentas.value = await serviceFerramentas.getAllFerramentas()
+        }
+
+        onMounted(() => {
+            carregarFerramentas()
+        })
+
+        return {
+            search,
+            filteredOptions,
         }
     },
     data() {
@@ -363,7 +395,6 @@ export default {
             },
             servicoAtual: null,
             novoMaterial: null,
-            novaFerramenta: null,
             qtdMaterial: 1,
             qtdInsumo: 1,
             anexosSelecionados: [],
@@ -374,7 +405,6 @@ export default {
     async mounted() {
         this.getRoteiro();
         this.setores = await serviceRoteiro.getSetoresRoteiro();
-        this.ferramentas = await serviceFerramentas.getAllFerramentas();
         this.parametros = await serviceParametros.buscarPametros();
         this.insumos = await serviceInsumos.getInsumos();
 
@@ -486,7 +516,6 @@ export default {
         abrirModalFerramenta(servico) {
             this.servicoAtual = servico;
             this.modalFerramenta = true;
-            this.novaFerramenta = null;
         },
         abrirModalInsumo(servico) {
             this.servicoAtual = servico;
@@ -533,15 +562,15 @@ export default {
             }
             this.modalInsumo = false;
         },
-        adicionarFerramenta() {
-            if (this.novaFerramenta && this.servicoAtual) {
+        adicionarFerramenta(ferramenta) {
+            if (ferramenta && this.servicoAtual) {
                 this.servicoAtual.ferramentas.push({
                     id: Date.now(),
-                    produto: this.novaFerramenta
+                    produto: ferramenta
                 });
                 var payload = {
                     ferramentas: {
-                        produto_cod: this.novaFerramenta.produto_cod
+                        produto_cod: ferramenta.produto_cod
                     }
                 }
                 serviceRoteiro.atualizarServico(this.servicoAtual.id, payload);
@@ -614,6 +643,17 @@ export default {
 }
 </script>
 <style scoped>
+.scroller {
+  max-height: 30vh;
+  overflow-y: auto;
+  width: 40vw;
+}
+
+.item {
+    border-bottom: 1px solid var(--cor-separador);
+    cursor: pointer;
+}
+
 .lista-materiais li {
     display: flex;
     justify-content: space-between;
