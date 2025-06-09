@@ -24,7 +24,7 @@
                         <th></th>
                     </tr>
                     <tr v-for="i in parametros" :key="i.id">
-                        <td>
+                        <td style="white-space: nowrap;">
                             {{ i.codigo }}
                         </td>
                         <td>
@@ -105,7 +105,11 @@ export default {
     },
     methods: {
         async buscarParametros() {
-            this.parametros = await service.buscarPametros()
+            var response = await service.buscarPametros();
+            if(response){
+                response = response.sort((a, b) => a.codigo.localeCompare(b.codigo));
+                this.parametros = response;
+            }
         },
 
         async adicionarParametro() {

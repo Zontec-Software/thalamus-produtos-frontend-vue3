@@ -459,7 +459,7 @@ export default {
             if (this.roteiro) {
                 this.roteiro.setores.forEach(bloco => {
                     bloco.servicos.forEach(servico => {
-                        servico.expandido = true;
+                        servico.expandido = false;
                     });
                 });
             } else {
