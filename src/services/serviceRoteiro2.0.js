@@ -645,9 +645,9 @@ const funções = {
     }, 
 
       //ANEXOS
-    async gravarAnexo(payload, roteiro_id){
+    async gravarAnexo(payload, id_setor_servico){
         try {
-            const response = await api.post(`anexar/roteiro-servico/${roteiro_id}`, payload)
+            const response = await api.post(`anexar/roteiro-servico/${id_setor_servico}`, payload)
             return response.data;
             //a chave que você vai me mandar chama "arquivo", pode ser um array com varios, um um arquivo sozinho fora do array, aí você ve se vai mandar varios de uma vez ou de 1 em 1 
 
@@ -657,9 +657,9 @@ const funções = {
         }
     },
 
-    async deletarAnexo(roteiro_id, anexo_id){
+    async deletarAnexo(id_setor_servico, anexo_id){
           try {
-            const response = await api.delete(`anexos/roteiro-servico/${roteiro_id}/${anexo_id}`)
+            const response = await api.delete(`anexos/roteiro-servico/${id_setor_servico}/${anexo_id}`)
             return response.data;
 
         } catch (error) {

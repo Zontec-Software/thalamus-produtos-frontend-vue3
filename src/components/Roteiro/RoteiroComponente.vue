@@ -66,7 +66,7 @@
                                         <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
                                             ferramenta.produto.desc }}</span>
                                             <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
@@ -96,10 +96,10 @@
                                 <ul class="lista-materiais ">
                                     <li v-for="parametro in servico.parametros" :key="parametro.id">
                                         <div class="conteudo-item">
-                                            <span> {{ parametro.parametro.codigo }} - {{ parametro.parametro.nome }}
+                                            <span> {{ parametro?.parametro?.codigo }} - {{ parametro?.parametro?.nome }}
                                             </span>
-                                            <span class="descricao-item">Descrição: {{ parametro.parametro.descricao ||
-                                                '' }} </span>
+                                            <span class="descricao-item">Descrição: {{ parametro?.parametro?.descricao
+                                                || '' }} </span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerParametro(servico, parametro.id)"></i>
                                     </li>
@@ -118,8 +118,8 @@
                                     <label><b>Anexos:</b></label>
                                     <ul class="lista-materiais" v-if="servico.anexos && servico.anexos.length">
                                         <li v-for="anexo in servico.anexos" :key="anexo.id">
-                                            <a :href="anexo.url" target="_blank" download
-                                                style="color: var(--cor-primaria);"> {{ anexo.nome }} </a>
+                                            <a :href="caminhoFoto + anexo.caminho" target="_blank"> {{
+                                                anexo.nome_original }}</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -145,14 +145,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -181,7 +181,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.descricao }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -232,16 +232,22 @@
                 <fieldset class="grid">
                     <div>
                         <label>Ferramentas</label>
-                        <select v-model="novaFerramenta">
-                            <option value="" disabled>Selecione uma ferramenta</option>
-                            <option v-for="ferramenta in ferramentas" :key="ferramenta.id" :value="ferramenta"> {{
-                                ferramenta.cod }} - {{ ferramenta.desc }} </option>
-                        </select>
+                        <div class="dropdown-wrapper">
+                            <input type="text" v-model="search" placeholder="Buscar Ferramenta" />
+                            <div class="dropdown">
+                                <RecycleScroller :items="filteredOptions" :item-size="10" height-field="height"
+                                    key-field="produto_cod" class="scroller">
+                                    <template #default="{ item }">
+                                        <div class="item" @click="adicionarFerramenta(item)">
+                                            {{ `${item.cod} - ${item.desc}` }}
+                                        </div>
+                                    </template>
+                                </RecycleScroller>
+                            </div>
+                        </div>
+
                     </div>
                 </fieldset>
-                <div class="submit direita">
-                    <button @click="adicionarFerramenta">Adicionar</button>
-                </div>
             </div>
         </div>
         <!-- END MODAL FERRAMENTA -->
@@ -269,9 +275,8 @@
                     <br>
                     <ul class="lista-materiais" v-if="anexosSelecionados.length">
                         <li v-for="(file, index) in anexosSelecionados" :key="index">
-                            <div style="display: flex; gap: 0.5rem;">
-                                <span>{{ file.name }}</span>
-                                <i class="bi-x-circle" @click="removerAnexo(index)"></i>
+                            <div style="display: flex; gap: 0.5rem;"> <span>{{ file.name }}</span>
+                                <i class="bi-x-circle" @click.prevent="removerAnexo(index)"></i>
                             </div>
                         </li>
                     </ul>
@@ -281,8 +286,8 @@
                     <ul class="lista-materiais">
                         <li v-for="anexo in servicoAtual.anexos" :key="anexo.id">
                             <a :href="anexo.url" target="_blank" download style="color: var(--cor-primaria);"> {{
-                                anexo.nome }} </a>
-                            <i class="bi-x-circle" @click="deletarAnexo(anexo.id)"></i>
+                                anexo.nome_gravado }} </a>
+                            <i class="bi-x-circle" @click.prevent="deletarAnexo(anexo.id)"></i>
                         </li>
                     </ul>
                 </div>
@@ -312,11 +317,22 @@ import serviceParametros from '@/services/serviceParametrosTeste';
 import serviceInsumos from '@/services/serviceInsumos'
 import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
+import { urlFoto } from '@/services/api';
+import { createToaster } from "@meforma/vue-toaster";
+import { RecycleScroller } from 'vue-virtual-scroller'
+import { ref, computed, onMounted } from 'vue'
+
+
+const toaster = createToaster({
+    position: "top-right",
+    duration: 6000,
+});
 
 export default {
     components: {
         draggable,
-        AutoCompleteRoteiro
+        AutoCompleteRoteiro,
+        RecycleScroller,
     },
     props: {
         produtos: {
@@ -327,8 +343,32 @@ export default {
             required: true,
         }
     },
+    setup() {
+        const ferramentas = ref([])
+        const search = ref('')
+
+        const filteredOptions = computed(() =>
+            ferramentas.value.filter((opt) =>
+                opt.desc.toLowerCase().includes(search.value.toLowerCase())
+            )
+        )
+
+        async function carregarFerramentas() {
+            ferramentas.value = await serviceFerramentas.getAllFerramentas()
+        }
+
+        onMounted(() => {
+            carregarFerramentas()
+        })
+
+        return {
+            search,
+            filteredOptions,
+        }
+    },
     data() {
         return {
+            caminhoFoto: urlFoto.caminhoFoto,
             criarRoteiro: false,
             setores: [],
             ferramentas: [],
@@ -355,7 +395,6 @@ export default {
             },
             servicoAtual: null,
             novoMaterial: null,
-            novaFerramenta: null,
             qtdMaterial: 1,
             qtdInsumo: 1,
             anexosSelecionados: [],
@@ -364,11 +403,11 @@ export default {
         }
     },
     async mounted() {
+        this.getRoteiro();
         this.setores = await serviceRoteiro.getSetoresRoteiro();
-        this.ferramentas = await serviceFerramentas.getAllFerramentas();
         this.parametros = await serviceParametros.buscarPametros();
         this.insumos = await serviceInsumos.getInsumos();
-        this.getRoteiro();
+
     },
     methods: {
         selecionarArquivos(event) {
@@ -376,18 +415,18 @@ export default {
         },
 
         removerAnexo(index) {
-            this.anexosSelecionados.splice(index, 1);
+            this.anexosSelecionados = this.anexosSelecionados.splice(index, 1);
         },
 
         async deletarAnexo(anexoId) {
             try {
-                await serviceRoteiro.deletarAnexo(this.roteiro.id, anexoId);
-                this.getRoteiro();
+                await serviceRoteiro.deletarAnexo(this.servicoAtual.id, anexoId);
+                this.servicoAtual.anexos = this.servicoAtual.anexos.filter(a => a.id !== anexoId);
+                toaster.success("Anexo excluído com sucesso!");
             } catch (error) {
                 console.error("Erro ao deletar anexo:", error);
             }
         },
-
 
         async enviarAnexos() {
             if (!this.servicoAtual || this.anexosSelecionados.length === 0) return;
@@ -397,7 +436,7 @@ export default {
             });
             formData.append('servico_id', this.servicoAtual.id);
             try {
-                await serviceRoteiro.gravarAnexo(formData, this.roteiro.id);
+                await serviceRoteiro.gravarAnexo(formData, this.servicoAtual.id);
                 this.getRoteiro();
             } catch (e) {
                 console.error('Erro ao enviar anexos', e);
@@ -420,7 +459,7 @@ export default {
             if (this.roteiro) {
                 this.roteiro.setores.forEach(bloco => {
                     bloco.servicos.forEach(servico => {
-                        servico.expandido = true;
+                        servico.expandido = false;
                     });
                 });
             } else {
@@ -477,7 +516,6 @@ export default {
         abrirModalFerramenta(servico) {
             this.servicoAtual = servico;
             this.modalFerramenta = true;
-            this.novaFerramenta = null;
         },
         abrirModalInsumo(servico) {
             this.servicoAtual = servico;
@@ -524,15 +562,15 @@ export default {
             }
             this.modalInsumo = false;
         },
-        adicionarFerramenta() {
-            if (this.novaFerramenta && this.servicoAtual) {
+        adicionarFerramenta(ferramenta) {
+            if (ferramenta && this.servicoAtual) {
                 this.servicoAtual.ferramentas.push({
                     id: Date.now(),
-                    produto: this.novaFerramenta
+                    produto: ferramenta
                 });
                 var payload = {
                     ferramentas: {
-                        produto_cod: this.novaFerramenta.produto_cod
+                        produto_cod: ferramenta.produto_cod
                     }
                 }
                 serviceRoteiro.atualizarServico(this.servicoAtual.id, payload);
@@ -558,7 +596,7 @@ export default {
         },
 
         adicionarParametro(servico, parametroSelecionado) {
-            if (parametroSelecionado) {
+            if (parametroSelecionado && parametroSelecionado.id && parametroSelecionado.codigo) {
                 servico.parametros.push({
                     id: Date.now(),
                     parametro: parametroSelecionado
@@ -600,11 +638,21 @@ export default {
             this.modalInsumo = false;
         },
 
-
     }
 }
 </script>
 <style scoped>
+.scroller {
+    max-height: 30vh;
+    overflow-y: auto;
+    width: 40vw;
+}
+
+.item {
+    border-bottom: 1px solid var(--cor-separador);
+    cursor: pointer;
+}
+
 .lista-materiais li {
     display: flex;
     justify-content: space-between;

@@ -3,6 +3,12 @@
     <div></div>
   </div>
   <section v-else>
+    <div style="text-align: right;">
+      <strong>
+        {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
+        ${produto_original.editadoPor ?? '??'}` }}
+      </strong>
+    </div>
     <div>
       <div class="submit m-b">
         <button v-if="isTemplate" @click="enviarAprovacao()">Enviar para Aprovação</button>
@@ -443,7 +449,13 @@ export default {
     }
   },
   methods: {
+    formatarData(data) {
+      const [dataParte, horaParte] = data.split('T');
+      const [ano, mes, dia] = dataParte.split('-');
+      const [hora, minuto] = horaParte.split(':');
 
+      return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+    },
     async carregarFotosProduto() {
       try {
         const response = await serviceProdutos.listarAnexo(this.produto_cod);
