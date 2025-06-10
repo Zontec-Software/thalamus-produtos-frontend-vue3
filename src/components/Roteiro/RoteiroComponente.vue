@@ -1,5 +1,12 @@
 <template>
     <div class="container margem" v-if="roteiro">
+        <div style="justify-items: right;">
+            <div style="border: 1px solid var(--cor-separador); border-radius: 6px; text-align: center; width: 8rem;">
+                <label>Atualizado em</label>
+                {{ formatarData(roteiro.updated_at) }}
+            </div>
+        </div>
+        <br>
         <div class="bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Adicionar bloco</h3>
@@ -638,15 +645,21 @@ export default {
             this.modalInsumo = false;
         },
 
+        formatarData(data) {
+            var dataFormatada = data.split('T')[0].split('-');
+
+            return `${dataFormatada[2]}/${dataFormatada[1]}/${dataFormatada[0]}`;
+        },
+
 
     }
 }
 </script>
 <style scoped>
 .scroller {
-  max-height: 30vh;
-  overflow-y: auto;
-  width: 40vw;
+    max-height: 30vh;
+    overflow-y: auto;
+    width: 40vw;
 }
 
 .item {

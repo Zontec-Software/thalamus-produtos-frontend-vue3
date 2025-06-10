@@ -3,6 +3,12 @@
     <div></div>
   </div>
   <section v-else>
+    <div style="justify-items: right;">
+      <div style="border: 1px solid var(--cor-separador); border-radius: 6px; text-align: center; width: 8rem;">
+        <label>Atualizado em</label>
+        {{ formatarData(produto_original.updated_at) }}
+      </div>
+    </div>
     <div>
       <div class="submit m-b">
         <button v-if="isTemplate" @click="enviarAprovacao()">Enviar para Aprovação</button>
@@ -443,7 +449,11 @@ export default {
     }
   },
   methods: {
+    formatarData(data) {
+      var dataFormatada = data.split('T')[0].split('-');
 
+      return `${dataFormatada[2]}/${dataFormatada[1]}/${dataFormatada[0]}`;
+    },
     async carregarFotosProduto() {
       try {
         const response = await serviceProdutos.listarAnexo(this.produto_cod);
