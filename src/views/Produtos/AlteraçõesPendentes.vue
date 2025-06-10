@@ -3,11 +3,11 @@
     <div></div>
   </div>
   <section v-else>
-    <div style="justify-items: right;">
-      <div style="border: 1px solid var(--cor-separador); border-radius: 6px; text-align: center; width: 8rem;">
-        <label>Atualizado em</label>
-        {{ formatarData(produto_original.updated_at) }}
-      </div>
+    <div style="text-align: right;">
+      <strong>
+        {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
+        ${produto_original.editadoPor ?? '??'}` }}
+      </strong>
     </div>
     <div>
       <div class="submit m-b">
@@ -450,9 +450,11 @@ export default {
   },
   methods: {
     formatarData(data) {
-      var dataFormatada = data.split('T')[0].split('-');
+      const [dataParte, horaParte] = data.split('T');
+      const [ano, mes, dia] = dataParte.split('-');
+      const [hora, minuto] = horaParte.split(':');
 
-      return `${dataFormatada[2]}/${dataFormatada[1]}/${dataFormatada[0]}`;
+      return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
     },
     async carregarFotosProduto() {
       try {
