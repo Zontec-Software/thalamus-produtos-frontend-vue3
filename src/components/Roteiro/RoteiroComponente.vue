@@ -638,15 +638,14 @@ export default {
             this.modalInsumo = false;
         },
 
-
     }
 }
 </script>
 <style scoped>
 .scroller {
-  max-height: 30vh;
-  overflow-y: auto;
-  width: 40vw;
+    max-height: 30vh;
+    overflow-y: auto;
+    width: 40vw;
 }
 
 .item {
