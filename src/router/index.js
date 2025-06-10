@@ -10,6 +10,7 @@ import GerenciarServico from "@/views/Produtos/GerenciarServico.vue"
 import Ferramenta from "@/views/Produtos/FerramentaView.vue"
 import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue"
 import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
+import Gabarito from '@/views/Produtos/GabaritoView.vue';
 
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
@@ -150,7 +151,12 @@ const routes = [
     component: ParametroTeste,
     beforeEnter: guardPermissaoRoute
   },
-
+  {
+    path: '/gabarito',
+    name: 'gabaritos',
+    component: Gabarito,
+    beforeEnter: guardPermissaoRoute
+  },
 
   {
     path: "/login",
