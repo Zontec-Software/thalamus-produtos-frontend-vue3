@@ -678,6 +678,18 @@ const funções = {
             throw error;
         }
     },
+async  gravarAnexoParametro(formData, servicoId) {
+  return api.post(`/roteiro/${servicoId}/parametro/anexo`, formData);
+},
+
+async  deletarAnexoParametro(servicoId, parametroId, anexoId) {
+  return api.delete(`/roteiro/${servicoId}/parametro/${parametroId}/anexo/${anexoId}`);
+},
+
+async  atualizarParametro(servicoId, parametroId, payload) {
+  return api.put(`/roteiro/${servicoId}/parametro/${parametroId}`, payload);
+}
+
 
     // async downloadAnexo(anexo_id){
     //        try {
