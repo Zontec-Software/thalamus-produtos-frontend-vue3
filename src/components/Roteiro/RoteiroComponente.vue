@@ -66,7 +66,7 @@
                                         <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
                                             ferramenta.produto.desc }}</span>
                                             <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
@@ -85,6 +85,22 @@
                                                 insumo.produto.desc }} (Qtd: {{ insumo.qtd }})</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerInsumo(servico, insumo.id)"></i>
+                                    </li>
+                                </ul>
+                            </div>
+                            <br>
+                            <div class="bloco2 margem">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <button class="btn-adicionar" @click="abrirModalGabarito(servico)">+</button>
+                                    <label><b>Gabaritos:</b></label>
+                                </div>
+                                <ul class="lista-materiais">
+                                    <li v-for="gabarito in servico.gabaritos" :key="gabarito.id">
+                                        <div class="conteudo-item">
+                                            <span>{{ gabarito.produto.cod ?? '' }} - {{ gabarito.produto.descricao ??
+                                                gabarito.produto.desc }}</span>
+                                        </div>
+                                        <i class="bi-x-circle" @click="removerGabarito(servico, gabarito.id)"></i>
                                     </li>
                                 </ul>
                             </div>
@@ -109,28 +125,28 @@
                                 <br>
                                 <div>
                                     <label class="cabecalho-lista"><b>Link do drive</b></label>
-                                    <input type="text">
+                                    <input style="width: 32rem;" type="text">
                                 </div>
                                 <br>
-                                <div class="bloco2 margem">
-                                    <div class="cabecalho-lista">
-                                        <label><b>Anexos Parâmetros de Inspeção:</b></label>
-                                        <ul class="lista-materiais" v-if="servico.anexos && servico.anexos.length">
-                                            <li v-for="anexo in servico.anexos" :key="anexo.id">
-                                                <a :href="caminhoFoto + anexo.caminho" target="_blank"> {{
-                                                    anexo.nome_original }}</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <a @click="abrirModalAnexos(servico)" class="icone-inc"></a>
+                                <div class=" ">
+                                    <label><b>Anexos Parâmetros de Inspeção:</b></label>
+                                    <ul class="lista-materiais" v-if="servico.anexos && servico.anexos.length">
+                                        <li v-for="anexo in servico.anexos" :key="anexo.id">
+                                            <a :href="caminhoFoto + anexo.caminho" target="_blank"> {{
+                                                anexo.nome_original }}</a>
+                                        </li>
+                                    </ul>
+                                    <a @click="abrirModalAnexosInspecao(servico)" class="icone-inc"></a>
                                 </div>
                             </div>
-                            <div class="bloco3 margem">
+                            <br>
+                            <div class="bloco2 margem">
                                 <div class="cabecalho-lista">
                                     <label><b>Observações:</b></label>
                                 </div>
                                 <textarea v-model="servico.observacao" @focusout="atualizarObs(servico)"></textarea>
                             </div>
+                            <br>
                             <div class="bloco2 margem">
                                 <div class="cabecalho-lista">
                                     <label><b>Anexos Serviço:</b></label>
@@ -148,6 +164,63 @@
                 </div>
             </template>
         </draggable>
+        <!-- MODAL GABARITO -->
+        <div v-if="modalGabarito" class="modal-mask" @click.self="modalGabarito = false">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Gabarito</h3>
+                </div>
+                <fieldset class="grid">
+                    <div>
+                        <label>Gabaritos</label>
+                        <div class="dropdown-wrapper">
+                            <input type="text" v-model="searchGabarito" placeholder="Buscar Gabarito" />
+                            <div class="dropdown">
+                                <RecycleScroller :items="filteredGabaritos" :item-size="10" height-field="height"
+                                    key-field="produto_cod" class="scroller">
+                                    <template #default="{ item }">
+                                        <div class="item" @click="adicionarGabarito(item)"> {{ `${item.cod} -
+                                            ${item.desc}` }} </div>
+                                    </template>
+                                </RecycleScroller>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <!-- END MODAL GABARITO -->
+        <!-- MODAL ANEXOS INSPEÇÃO -->
+        <div v-if="modalAnexosInspecao" class="modal-mask" @click.self="fecharModais">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Anexos de Inspeção</h3>
+                </div>
+                <div class="bloco margem">
+                    <input type="file" multiple @change="selecionarArquivosInspecao" />
+                    <ul class="lista-materiais" v-if="anexosSelecionadosInspecao.length">
+                        <li v-for="(file, index) in anexosSelecionadosInspecao" :key="index">
+                            <span>{{ file.name }}</span>
+                            <i class="bi-x-circle" @click.prevent="removerAnexoInspecao(index)"></i>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bloco margem" v-if="servicoAtual?.anexos_inspecao?.length">
+                    <label><b>Anexos existentes:</b></label>
+                    <ul class="lista-materiais">
+                        <li v-for="anexo in servicoAtual.anexos_inspecao" :key="anexo.id">
+                            <a :href="anexo.url" target="_blank">{{ anexo.nome_gravado }}</a>
+                            <i class="bi-x-circle" @click.prevent="deletarAnexoInspecao(anexo.id)"></i>
+                        </li>
+                    </ul>
+                </div>
+                <div class="submit direita">
+                    <button @click="enviarAnexosInspecao()">Salvar</button>
+                    <button class="acao-secundaria" @click="fecharModais">Fechar</button>
+                </div>
+            </div>
+        </div>
+        <!-- END MODAL ANEXOS INSPEÇÃO -->
         <!-- MODAL SERVIÇO -->
         <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
@@ -163,14 +236,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -199,7 +272,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.descricao }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -362,6 +435,8 @@ export default {
     setup() {
         const ferramentas = ref([])
         const search = ref('')
+        const gabaritos = ref([])
+        const searchGabarito = ref('');
 
         const filteredOptions = computed(() =>
             ferramentas.value.filter((opt) =>
@@ -373,13 +448,24 @@ export default {
             ferramentas.value = await serviceFerramentas.getAllFerramentas()
         }
 
-        onMounted(() => {
-            carregarFerramentas()
-        })
+
+
+        const filteredGabaritos = computed(() =>
+            gabaritos.value.filter((g) =>
+                g.desc.toLowerCase().includes(searchGabarito.value.toLowerCase())
+            )
+        );
+
+        onMounted(async () => {
+            carregarFerramentas();
+            gabaritos.value = await serviceRoteiro.getAllGabaritos();
+        });
+
 
         return {
             search,
             filteredOptions,
+            filteredGabaritos
         }
     },
     data() {
@@ -414,6 +500,13 @@ export default {
             qtdMaterial: 1,
             qtdInsumo: 1,
             anexosSelecionados: [],
+            modalGabarito: false,
+            searchGabarito: '',
+            gabaritos: [],
+            modalAnexosInspecao: false,
+            anexosSelecionadosInspecao: [],
+
+
 
 
         }
@@ -426,6 +519,72 @@ export default {
 
     },
     methods: {
+        abrirModalAnexosInspecao(servico) {
+            this.servicoAtual = servico;
+            this.modalAnexosInspecao = true;
+        },
+
+        selecionarArquivosInspecao(event) {
+            this.anexosSelecionadosInspecao = Array.from(event.target.files);
+        },
+
+        removerAnexoInspecao(index) {
+            this.anexosSelecionadosInspecao.splice(index, 1);
+        },
+
+        async deletarAnexoInspecao(anexoId) {
+            try {
+                await serviceRoteiro.deletarAnexoInspecao(this.servicoAtual.id, anexoId);
+                this.servicoAtual.anexos_inspecao = this.servicoAtual.anexos_inspecao.filter(a => a.id !== anexoId);
+                toaster.success("Anexo de inspeção removido!");
+            } catch (error) {
+                console.error("Erro ao deletar anexo de inspeção:", error);
+            }
+        },
+
+        async enviarAnexosInspecao() {
+            if (!this.servicoAtual || this.anexosSelecionadosInspecao.length === 0) return;
+            const formData = new FormData();
+            this.anexosSelecionadosInspecao.forEach(file => formData.append('arquivo', file));
+            formData.append('servico_id', this.servicoAtual.id);
+            try {
+                await serviceRoteiro.gravarAnexoInspecao(formData, this.servicoAtual.id);
+                this.getRoteiro();
+            } catch (e) {
+                console.error('Erro ao enviar anexos de inspeção', e);
+            }
+            this.fecharModais();
+            this.anexosSelecionadosInspecao = [];
+        },
+
+        abrirModalGabarito(servico) {
+            this.servicoAtual = servico;
+            this.modalGabarito = true;
+            this.searchGabarito = '';
+        },
+
+        adicionarGabarito(gabarito) {
+            if (gabarito && this.servicoAtual) {
+                this.servicoAtual.gabaritos = this.servicoAtual.gabaritos || [];
+                this.servicoAtual.gabaritos.push({
+                    id: Date.now(),
+                    produto: gabarito
+                });
+                const payload = {
+                    gabaritos: {
+                        produto_cod: gabarito.produto_cod
+                    }
+                };
+                serviceRoteiro.atualizarServico(this.servicoAtual.id, payload);
+            }
+            this.modalGabarito = false;
+        },
+        removerGabarito(servico, gabaritoId) {
+            servico.gabaritos = servico.gabaritos.filter(g => g.id !== gabaritoId);
+            serviceRoteiro.removerGabarito(gabaritoId);
+        },
+
+
         selecionarArquivos(event) {
             this.anexosSelecionados = Array.from(event.target.files);
         },
@@ -652,6 +811,9 @@ export default {
             this.modalConfirmacao = false;
             this.modalAnexos = false;
             this.modalInsumo = false;
+            this.modalAnexosInspecao = false;
+            this.modalGabarito = false;
+
         },
 
     }
