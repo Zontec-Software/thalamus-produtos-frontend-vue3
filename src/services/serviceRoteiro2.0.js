@@ -678,6 +678,19 @@ const funções = {
             throw error;
         }
     },
+
+     // async downloadAnexo(anexo_id){
+    //        try {
+    //         const response = await api.get(`anexo/download/${anexo_id}`)
+    //         return response.data;
+
+    //     } catch (error) {
+    //         console.error("Erro ao fazer download de anexo")
+    //         throw error;
+    //     }
+    // }
+
+    //ANEXO INSPEÇÃO
 async  gravarAnexoParametro(formData, servicoId) {
   return api.post(`/roteiro/${servicoId}/parametro/anexo`, formData);
 },
@@ -691,16 +704,8 @@ async  atualizarParametro(servicoId, parametroId, payload) {
 }
 
 
-    // async downloadAnexo(anexo_id){
-    //        try {
-    //         const response = await api.get(`anexo/download/${anexo_id}`)
-    //         return response.data;
 
-    //     } catch (error) {
-    //         console.error("Erro ao fazer download de anexo")
-    //         throw error;
-    //     }
-    // }
+   
 
 }
 

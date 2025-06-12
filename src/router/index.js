@@ -11,6 +11,7 @@ import Ferramenta from "@/views/Produtos/FerramentaView.vue"
 import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue"
 import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
 import Gabarito from '@/views/Produtos/GabaritoView.vue';
+import ConfiguracaoProdutos from '@/views/Produtos/ConfiguracaoProdutos.vue';
 
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
@@ -157,7 +158,12 @@ const routes = [
     component: Gabarito,
     beforeEnter: guardPermissaoRoute
   },
-
+  {
+    path: '/configurar',
+    name: 'ConfigurarCamposPorTipo',
+    component: ConfiguracaoProdutos,
+    beforeEnter: guardPermissaoRoute
+  },
   {
     path: "/login",
     redirect: "http://portal.thalamus.com.br/#/login",

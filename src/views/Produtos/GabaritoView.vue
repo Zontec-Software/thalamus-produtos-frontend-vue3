@@ -28,7 +28,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="g in gabaritos" :key="g.id">
+                        <tr v-for="g in gabaritos" :key="g.id" @click="abrirProdutosComGabarito(g)"
+                            style="cursor: pointer;">
                             <td>{{ g.codigo }}</td>
                             <td>{{ g.produto }}</td>
                             <td>{{ g.modelo }}</td>
@@ -45,6 +46,7 @@
                                         </v-btn>
                                     </template>
                                     <v-list>
+                                        <v-list-item @click="abrirProdutosComGabarito(g)">Ver Produtos</v-list-item>
                                         <v-list-item @click="editarGabarito(g)">Editar</v-list-item>
                                         <v-list-item @click="excluirGabarito(g.id)"
                                             style="color: red;">Excluir</v-list-item>
@@ -162,6 +164,11 @@ export default {
 
     },
     methods: {
+        abrirProdutosComGabarito(gabarito) {
+            this.gabaritoSelecionadoId = gabarito.id;
+            this.trocarAba('produtos');
+        },
+
         trocarAba(aba) {
             this.abaSelecionada = aba;
             localStorage.setItem('abaGabaritos', aba);
