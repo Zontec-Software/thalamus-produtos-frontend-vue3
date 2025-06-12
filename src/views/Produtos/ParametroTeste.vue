@@ -12,7 +12,7 @@
     </div>
     <div class="margem container">
         <div class="margem">
-            <button @click="modoAdição = true, showModal = true">Adicionar Parametro</button>
+            <button class="acao-secundaria" @click="modoAdição = true, showModal = true">Adicionar Parametro</button>
         </div>
         <div class="bloco margem">
             <table class="tabela">
@@ -24,15 +24,9 @@
                         <th></th>
                     </tr>
                     <tr v-for="i in parametros" :key="i.id">
-                        <td style="white-space: nowrap;">
-                            {{ i.codigo }}
-                        </td>
-                        <td>
-                            {{ i.nome }}
-                        </td>
-                        <td>
-                            {{ i.descricao }}
-                        </td>
+                        <td style="white-space: nowrap;"> {{ i.codigo }} </td>
+                        <td> {{ i.nome }} </td>
+                        <td> {{ i.descricao }} </td>
                         <td>
                             <v-menu>
                                 <template v-slot:activator="{ props }">
@@ -41,13 +35,10 @@
                                         class="acao-secundaria" icon="mdi-dots-horizontal" v-bind="props">
                                     </v-btn>
                                 </template>
-
                                 <v-list>
                                     <v-list-item @click="novoParametro = i, modoAdição = false, showModal = true">
-                                        Editar
-                                    </v-list-item>
-                                    <v-list-item style="color: red;" @click="excluirParametro(i.id)">
-                                        Excluir
+                                        Editar </v-list-item>
+                                    <v-list-item style="color: red;" @click="excluirParametro(i.id)"> Excluir
                                     </v-list-item>
                                 </v-list>
                             </v-menu>
@@ -57,7 +48,6 @@
             </table>
         </div>
     </div>
-
     <!-- MODAL -->
     <div class="modal-mask" v-if="showModal" @click="showModal = false">
         <div class="jm margem" style="min-width: 30vw" @click.stop>
@@ -80,14 +70,11 @@
             </fieldset>
             <div class="direita margem submit">
                 <button class="acao-secundaria" @click="showModal = false">Cancelar</button>
-                <button @click="modoAdição ? adicionarParametro() : atualizarParametro()">
-                    Salvar
-                </button>
+                <button @click="modoAdição ? adicionarParametro() : atualizarParametro()"> Salvar </button>
             </div>
         </div>
     </div>
 </template>
-
 <script>
 import service from '@/services/serviceParametrosTeste'
 export default {
@@ -106,7 +93,7 @@ export default {
     methods: {
         async buscarParametros() {
             var response = await service.buscarPametros();
-            if(response){
+            if (response) {
                 response = response.sort((a, b) => a.codigo.localeCompare(b.codigo));
                 this.parametros = response;
             }
@@ -130,5 +117,4 @@ export default {
     },
 }
 </script>
-
 <style scoped></style>

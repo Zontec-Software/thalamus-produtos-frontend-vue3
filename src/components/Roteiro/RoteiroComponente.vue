@@ -66,7 +66,7 @@
                                         <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
                                             ferramenta.produto.desc }}</span>
                                             <span class="descricao-item">Descrição: {{ ferramenta.produto.desc || ''
-                                            }}</span>
+                                                }}</span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerFerramenta(servico, ferramenta.id)"></i>
                                     </li>
@@ -106,6 +106,24 @@
                                 </ul>
                                 <AutoCompleteRoteiro :BaseOpcoes="parametros"
                                     @adicionarItem="(event) => adicionarParametro(servico, event)" />
+                                <br>
+                                <div>
+                                    <label class="cabecalho-lista"><b>Link do drive</b></label>
+                                    <input type="text">
+                                </div>
+                                <br>
+                                <div class="bloco2 margem">
+                                    <div class="cabecalho-lista">
+                                        <label><b>Anexos Parâmetros de Inspeção:</b></label>
+                                        <ul class="lista-materiais" v-if="servico.anexos && servico.anexos.length">
+                                            <li v-for="anexo in servico.anexos" :key="anexo.id">
+                                                <a :href="caminhoFoto + anexo.caminho" target="_blank"> {{
+                                                    anexo.nome_original }}</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <a @click="abrirModalAnexos(servico)" class="icone-inc"></a>
+                                </div>
                             </div>
                             <div class="bloco3 margem">
                                 <div class="cabecalho-lista">
@@ -115,7 +133,7 @@
                             </div>
                             <div class="bloco2 margem">
                                 <div class="cabecalho-lista">
-                                    <label><b>Anexos:</b></label>
+                                    <label><b>Anexos Serviço:</b></label>
                                     <ul class="lista-materiais" v-if="servico.anexos && servico.anexos.length">
                                         <li v-for="anexo in servico.anexos" :key="anexo.id">
                                             <a :href="caminhoFoto + anexo.caminho" target="_blank"> {{
@@ -145,14 +163,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -181,7 +199,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.descricao }} </option>
+                                }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -238,14 +256,12 @@
                                 <RecycleScroller :items="filteredOptions" :item-size="10" height-field="height"
                                     key-field="produto_cod" class="scroller">
                                     <template #default="{ item }">
-                                        <div class="item" @click="adicionarFerramenta(item)">
-                                            {{ `${item.cod} - ${item.desc}` }}
-                                        </div>
+                                        <div class="item" @click="adicionarFerramenta(item)"> {{ `${item.cod} -
+                                            ${item.desc}` }} </div>
                                     </template>
                                 </RecycleScroller>
                             </div>
                         </div>
-
                     </div>
                 </fieldset>
             </div>
