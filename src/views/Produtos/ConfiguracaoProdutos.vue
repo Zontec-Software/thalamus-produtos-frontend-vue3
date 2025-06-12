@@ -56,20 +56,37 @@ export default {
             camposPorTipo: {},
         };
     },
+
     computed: {
         camposSelecionados: {
             get() {
                 return this.camposPorTipo[this.tipoSelecionado] || [];
             },
             set(val) {
-                this.$set(this.camposPorTipo, this.tipoSelecionado, val);
-            },
+                this.camposPorTipo = {
+                    ...this.camposPorTipo,
+                    [this.tipoSelecionado]: val
+                };
+            }
         },
         tipoSelecionadoNome() {
             const tipo = this.tiposProduto.find(t => t.id === this.tipoSelecionado);
             return tipo ? tipo.nome : '';
-        },
+        }
     },
+
+    watch: {
+        tipoSelecionado(novoTipo) {
+            if (!(novoTipo in this.camposPorTipo)) {
+                this.camposPorTipo = {
+                    ...this.camposPorTipo,
+                    [novoTipo]: []
+                };
+            }
+        }
+    },
+
+
     methods: {
         formatarCampo(campo) {
             return campo.replaceAll('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
