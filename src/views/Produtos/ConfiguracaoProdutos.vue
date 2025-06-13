@@ -6,11 +6,20 @@
     </div>
     <div class="margem container">
         <div>
-            <label for="tipo">Selecione o Tipo de Produto:</label>
-            <select v-model="tipoSelecionado">
-                <option disabled value="">Selecione</option>
-                <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id"> {{ tipo.nome }} </option>
-            </select>
+            <div>
+                <label for="tipo">Selecione o Tipo de Produto:</label>
+                <select v-model="tipoSelecionado">
+                    <option disabled value="">Selecione</option>
+                    <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id"> {{ tipo.nome }} </option>
+                </select>
+            </div>
+            <br>
+            <div>
+                <label for="familia">Selecione a Familia:</label>
+                <select>
+                    <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
+                </select>
+            </div>
         </div>
         <br>
         <div class="bloco2 margem" v-if="tipoSelecionado">
@@ -18,7 +27,7 @@
             <br>
             <div class="checkbox-grid">
                 <label v-for="campo in camposDisponiveis" :key="campo">
-                    <input type="checkbox" :value="campo" v-model="camposSelecionados" /> {{ formatarCampo(campo) }}
+                    <input type="radio" :value="campo" v-model="camposSelecionados" /> {{ formatarCampo(campo) }}
                 </label>
             </div>
         </div>
@@ -29,6 +38,8 @@
     </div>
 </template>
 <script>
+
+import serviceProdutos from '@/services/serviceProdutos';
 export default {
     name: 'ConfigurarCamposPorTipo',
     data() {
@@ -48,6 +59,8 @@ export default {
                 { id: '11', nome: 'Outros Insumos' },
                 { id: '12', nome: 'Outras' },
             ],
+            familiaSelecionada: '',
+            familias: [],
             camposDisponiveis: [
                 'modelo', 'cor', 'versao_modelo', 'fixacao', 'tamanho', 'linha_device',
                 'modelo_device', 'peso_liq', 'peso_bruto', 'altura', 'largura',
@@ -56,6 +69,8 @@ export default {
             camposPorTipo: {},
         };
     },
+
+
 
     computed: {
         camposSelecionados: {
@@ -96,11 +111,22 @@ export default {
         salvarConfiguracao() {
             localStorage.setItem('camposPorTipoProduto', JSON.stringify(this.camposPorTipo));
             alert('Configuração salva com sucesso!');
-        }
+        },
+
+        async carregarFamilias() {
+            try {
+                const response = await serviceProdutos.listarFamilia();
+                this.familias = response;
+            } catch (error) {
+                console.error("Erro ao carregar famílias de produtos:", error);
+            }
+        },
     },
     created() {
         const saved = localStorage.getItem('camposPorTipoProduto');
         if (saved) this.camposPorTipo = JSON.parse(saved);
+        this.carregarFamilias()
+
     },
 };
 </script>

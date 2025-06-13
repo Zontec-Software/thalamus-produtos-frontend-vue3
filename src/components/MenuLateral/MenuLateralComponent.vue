@@ -27,6 +27,16 @@
             <!-- <router-link v-if="permissoes.includes(97)" to="/produtos" active-class="ativo">Produtos em
                 Edição</router-link> -->
         </nav>
+        <nav class="nav-maior separador">
+            <router-link active-class="ativo">Modelo</router-link>
+            <router-link active-class="ativo">Fixação</router-link>
+            <router-link active-class="ativo">Tamanho</router-link>
+            <router-link active-class="ativo">Linha Device</router-link>
+            <router-link active-class="ativo">Modelo Device</router-link>
+            <router-link active-class="ativo">Cor</router-link>
+            <router-link active-class="ativo">Versão Produto</router-link>
+            <router-link active-class="ativo">Especificação Técnica</router-link>
+        </nav>
     </aside>
 </template>
 <script>

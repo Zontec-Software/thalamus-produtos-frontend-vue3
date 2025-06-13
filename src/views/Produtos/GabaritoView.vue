@@ -1,83 +1,63 @@
 <template>
     <div class="titulo">
         <div class="margem container">
+            <div class="m-icone direita">
+                <div class="pesquisa">
+                    <input type="text" placeholder="Pesquise aqui" v-model="searchQuery" />
+                    <a class="icone-pesquisa" title="Pesquise"></a>
+                </div>
+            </div>
             <h2>Gabaritos</h2>
         </div>
     </div>
     <div class="margem container">
-        <div class="abas" style="cursor: pointer;">
-            <a @click="trocarAba('gabaritos')" :class="abaSelecionada === 'gabaritos' ? 'ativo' : ''">Gabaritos</a>
-            <a @click="trocarAba('produtos')" :class="abaSelecionada === 'produtos' ? 'ativo' : ''">Produtos com
-                Gabarito</a>
+        <div class="margem">
+            <button class="acao-secundaria" @click="abrirModal()">Adicionar Gabarito</button>
         </div>
-        <div v-if="abaSelecionada === 'gabaritos'">
-            <div class="margem">
-                <button class="acao-secundaria" @click="abrirModal()">Adicionar Gabarito</button>
-            </div>
-            <div class="bloco margem">
-                <table class="tabela">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Nome</th>
-                            <!-- <th>Produto</th>
+        <div class="bloco margem">
+            <table class="tabela">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome</th>
+                        <!-- <th>Produto</th>
                             <th>Modelo</th>
                             <th>Material</th> -->
-                            <th>Descrição</th>
-                            <th>Anexo</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="g in gabaritos" :key="g.id" @click="abrirProdutosComGabarito(g)"
-                            style="cursor: pointer;">
-                            <td>{{ g.codigo }}</td>
-                            <td>{{ g.nome }}</td>
-                            <!-- <td>{{ g.produto }}</td>
+                        <th>Descrição</th>
+                        <th>Anexo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="g in gabaritos" :key="g.id" style="cursor: pointer;">
+                        <td>{{ g.codigo }}</td>
+                        <td>{{ g.nome }}</td>
+                        <!-- <td>{{ g.produto }}</td>
                             <td>{{ g.modelo }}</td>
                             <td>{{ g.material }}</td> -->
-                            <td>{{ g.descricao }}</td>
-                            <td>
-                                <a :href="g.anexo" target="_blank" v-if="g.anexo">Ver</a>
-                            </td>
-                            <td>
-                                <v-menu>
-                                    <template v-slot:activator="{ props }">
-                                        <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
-                                            style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
-                                        </v-btn>
-                                    </template>
-                                    <v-list>
-                                        <v-list-item @click="abrirProdutosComGabarito(g)">Ver Produtos</v-list-item>
-                                        <v-list-item @click="editarGabarito(g)">Editar</v-list-item>
-                                        <v-list-item @click="excluirGabarito(g.id)"
-                                            style="color: red;">Excluir</v-list-item>
-                                    </v-list>
-                                </v-menu>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <!--  PRODUTOS COM GABARITO -->
-        <div v-else>
-            <div class="bloco margem">
-                <select v-model="gabaritoSelecionadoId">
-                    <option disabled value="">Selecione...</option>
-                    <option v-for="g in gabaritos" :key="g.id" :value="g.id"> {{ g.codigo }} - {{ g.descricao }}
-                    </option>
-                </select>
-                <div class="margem" v-if="produtoSelecionado">
-                    <span>
-                        <strong>{{ produtoSelecionado.codigo }}</strong> - {{ produtoSelecionado.nome }} ({{
-                            produtoSelecionado.tipo }}) </span>
-                </div>
-                <span v-else class="margem">Nenhum produto encontrado para o gabarito selecionado.</span>
-            </div>
+                        <td>{{ g.descricao }}</td>
+                        <td>
+                            <a :href="g.anexo" target="_blank" v-if="g.anexo">Ver</a>
+                        </td>
+                        <td>
+                            <v-menu>
+                                <template v-slot:activator="{ props }">
+                                    <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
+                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
+                                    </v-btn>
+                                </template>
+                                <v-list>
+                                    <v-list-item @click="editarGabarito(g)">Editar</v-list-item>
+                                    <v-list-item @click="excluirGabarito(g.id)"
+                                        style="color: red;">Excluir</v-list-item>
+                                </v-list>
+                            </v-menu>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
-    <!-- END PRODUTOS COM GABARITO -->
     <!-- MODAL -->
     <div class="modal-mask" v-if="showModal" @click="showModal = false">
         <div class="jm margem" style="min-width: 30vw" @click.stop>
@@ -172,11 +152,7 @@ export default {
     },
 
     computed: {
-        produtoSelecionado() {
-            const gabarito = this.gabaritos.find(g => g.id === this.gabaritoSelecionadoId);
-            if (!gabarito) return null;
-            return this.produtosDisponiveis.find(p => p.codigo === gabarito.produto) || null;
-        }
+
     },
 
     async mounted() {
@@ -234,15 +210,8 @@ export default {
                 console.error("Erro ao carregar gabaritos:", e);
             }
         },
-        abrirProdutosComGabarito(gabarito) {
-            this.gabaritoSelecionadoId = gabarito.id;
-            this.trocarAba('produtos');
-        },
 
-        trocarAba(aba) {
-            this.abaSelecionada = aba;
-            localStorage.setItem('abaGabaritos', aba);
-        },
+
         abrirModal() {
             this.modoAdicao = true;
             this.gabaritoAtual = {
