@@ -19,9 +19,10 @@
                     <thead>
                         <tr>
                             <th>Código</th>
-                            <th>Produto</th>
+                            <th>Nome</th>
+                            <!-- <th>Produto</th>
                             <th>Modelo</th>
-                            <th>Material</th>
+                            <th>Material</th> -->
                             <th>Descrição</th>
                             <th>Anexo</th>
                             <th></th>
@@ -31,9 +32,10 @@
                         <tr v-for="g in gabaritos" :key="g.id" @click="abrirProdutosComGabarito(g)"
                             style="cursor: pointer;">
                             <td>{{ g.codigo }}</td>
-                            <td>{{ g.produto }}</td>
+                            <td>{{ g.nome }}</td>
+                            <!-- <td>{{ g.produto }}</td>
                             <td>{{ g.modelo }}</td>
-                            <td>{{ g.material }}</td>
+                            <td>{{ g.material }}</td> -->
                             <td>{{ g.descricao }}</td>
                             <td>
                                 <a :href="g.anexo" target="_blank" v-if="g.anexo">Ver</a>
@@ -83,13 +85,15 @@
                 <h3>{{ `${modoAdicao ? 'Adicionar' : 'Editar'} Gabarito` }}</h3>
             </div>
             <fieldset class="grid-2 margem">
-                <div>
+                <!-- <div class="autocomplete-wrapper">
                     <label>Produto</label>
-                    <select v-model="gabaritoAtual.produto">
-                        <option disabled value="">Selecione</option>
-                        <option v-for="p in produtosDisponiveis" :key="p.codigo" :value="p.codigo"> {{ p.codigo }} - {{
-                            p.nome }} </option>
-                    </select>
+                    <input v-model="buscaProduto" @input="filtrarProdutos" @focus="mostrarSugestoes"
+                        @blur="ocultarListaComDelay" placeholder="Digite código ou nome do produto" />
+                    <ul v-if="mostrarListaProdutos && produtosFiltrados.length" class="autocomplete-list">
+                        <li v-for="produto in produtosFiltrados" :key="produto.codigo"
+                            @mousedown.prevent="selecionarProduto(produto)"> {{ produto.cod }} - {{ produto.desc }}
+                        </li>
+                    </ul>
                 </div>
                 <div>
                     <label>Modelo</label>
@@ -102,6 +106,10 @@
                     <select v-model="gabaritoAtual.material">
                         <option v-for="m in materiais" :key="m">{{ m }}</option>
                     </select>
+                </div> -->
+                <div>
+                    <label>Nome</label>
+                    <input type="text" v-model="gabaritoAtual.nome">
                 </div>
                 <div>
                     <label>Anexo</label>
@@ -120,27 +128,32 @@
     </div>
 </template>
 <script>
+import gabaritoService from "@/services/serviceGabarito";
+import serviceProdutos from "@/services/serviceProdutos";
+import { createToaster } from "@meforma/vue-toaster";
+
+const toaster = createToaster({
+    position: "top-right",
+    duration: 6000,
+});
+
 export default {
     name: 'GabaritosView',
     data() {
         return {
+
             abaSelecionada: localStorage.getItem('abaGabaritos') || 'gabaritos',
             showModal: false,
             modoAdicao: true,
-            contadorCodigo: 1,
             gabaritoAtual: {
                 id: null,
-                codigo: '',
                 produto: '',
                 modelo: '',
                 material: '',
                 descricao: '',
-                anexo: '',
+                arquivos: [],
             },
-            gabaritos: [
-                { id: 1, codigo: 'GAB001', produto: 'CST0023', modelo: 'X115', material: 'Polietileno', descricao: 'Usado em embalagem', anexo: '' },
-                { id: 2, codigo: 'GAB002', produto: 'CST0030', modelo: 'X999', material: 'PVC', descricao: 'Para tubos', anexo: '' }
-            ],
+            gabaritos: [],
             produtosDisponiveis: [
                 { codigo: 'CST0023', nome: 'Produto A', tipo: 'acabado' },
                 { codigo: 'CST0024', nome: 'Produto B', tipo: 'em processo' },
@@ -150,6 +163,10 @@ export default {
             modelos: ['X115', 'X120', 'X999'],
             materiais: ['Polietileno', 'PVC', 'Aço Inox'],
             gabaritoSelecionadoId: '',
+            produtos: [],
+            buscaProduto: '',
+            produtosFiltrados: [],
+            mostrarListaProdutos: false,
 
         };
     },
@@ -160,10 +177,63 @@ export default {
             if (!gabarito) return null;
             return this.produtosDisponiveis.find(p => p.codigo === gabarito.produto) || null;
         }
-
-
     },
+
+    async mounted() {
+        try {
+            this.carregarGabaritos();
+            this.produtosDisponiveis = await serviceProdutos.getProdutos();
+        } catch (error) {
+            console.error("Erro ao carregar dados:", error);
+        }
+    },
+
+
     methods: {
+        mostrarSugestoes() {
+            this.mostrarListaProdutos = true;
+            this.produtosFiltrados = this.produtosDisponiveis;
+        },
+
+
+        filtrarProdutos() {
+            const termo = this.buscaProduto.toLowerCase();
+
+            if (!termo) {
+                this.produtosFiltrados = this.produtosDisponiveis;
+                this.mostrarListaProdutos = true;
+                return;
+            }
+
+            this.produtosFiltrados = this.produtosDisponiveis.filter(p => {
+                const codigo = p.cod ? p.cod.toLowerCase() : '';
+                const descricao = p.desc ? p.desc.toLowerCase() : '';
+                return codigo.includes(termo) || descricao.includes(termo);
+            });
+
+            this.mostrarListaProdutos = true;
+        },
+
+        selecionarProduto(produto) {
+            this.gabaritoAtual.produto = produto.cod;
+            this.buscaProduto = `${produto.cod} - ${produto.desc}`;
+            this.mostrarListaProdutos = false;
+        },
+
+        ocultarListaComDelay() {
+            setTimeout(() => {
+                this.mostrarListaProdutos = false;
+            }, 200);
+        },
+
+        async carregarGabaritos() {
+            try {
+                const dados = await gabaritoService.listar();
+                this.gabaritos = dados;
+            } catch (e) {
+                console.error("Erro ao carregar gabaritos:", e);
+            }
+        },
         abrirProdutosComGabarito(gabarito) {
             this.gabaritoSelecionadoId = gabarito.id;
             this.trocarAba('produtos');
@@ -177,40 +247,55 @@ export default {
             this.modoAdicao = true;
             this.gabaritoAtual = {
                 id: null,
-                codigo: `GAB${String(this.contadorCodigo).padStart(3, '0')}`,
                 produto: '',
                 modelo: '',
                 material: '',
                 descricao: '',
-                anexo: ''
+                arquivos: [],
             };
+            this.buscaProduto = '';
             this.showModal = true;
         },
+
         editarGabarito(g) {
             this.modoAdicao = false;
-            this.gabaritoAtual = { ...g };
+            this.gabaritoAtual = { ...g, arquivos: [] };
+            const p = this.produtosDisponiveis.find(p => p.cod === g.produto);
+            this.buscaProduto = p ? `${p.cod} - ${p.desc}` : '';
             this.showModal = true;
         },
-        excluirGabarito(id) {
-            this.gabaritos = this.gabaritos.filter(g => g.id !== id);
-        },
-        salvarGabarito() {
-            if (this.modoAdicao) {
-                this.gabaritoAtual.id = Date.now();
-                this.gabaritos.push({ ...this.gabaritoAtual });
-                this.contadorCodigo++;
-            } else {
-                const idx = this.gabaritos.findIndex(g => g.id === this.gabaritoAtual.id);
-                if (idx !== -1) this.gabaritos[idx] = { ...this.gabaritoAtual };
+
+        async excluirGabarito(id) {
+
+            try {
+                await gabaritoService.excluir(id);
+                this.gabaritos = this.gabaritos.filter(g => g.id !== id);
+                toaster.success("Gabarito excluído com sucesso!");
+
+            } catch (e) {
+                console.error("Erro ao excluir gabarito:", e);
+                toaster.error("Não foi possível excluir o gabarito.");
             }
-            this.showModal = false;
+        },
+        async salvarGabarito() {
+            try {
+                if (this.modoAdicao) {
+                    await gabaritoService.gravar(this.gabaritoAtual);
+                } else {
+                    await gabaritoService.atualizar(this.gabaritoAtual);
+                }
+                this.showModal = false;
+                await this.carregarGabaritos();
+            } catch (e) {
+                console.error("Erro ao salvar gabarito:", e);
+            }
         },
         handleAnexo(event) {
             const file = event.target.files[0];
             if (file) {
-                this.gabaritoAtual.anexo = URL.createObjectURL(file);
+                this.gabaritoAtual.arquivos = [file];
             }
-        }
+        },
     }
 };
 </script>
@@ -235,5 +320,31 @@ export default {
         height: 2.0rem;
         transition: all 400ms ease-in-out;
     }
+}
+
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.autocomplete-list {
+    position: absolute;
+    z-index: 10;
+    background: white;
+    border: 1px solid var(--cor-separador);
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.autocomplete-list li {
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.autocomplete-list li:hover {
+    background-color: var(--cor-hover);
 }
 </style>
