@@ -24,17 +24,16 @@ function atualizar(id, formData) {
 
 
 function anexarArquivo(gabaritoId, arquivos) {
-    return new Promise((resolve, reject) => {
-        const formData = new FormData();
-        arquivos.forEach(file => {
-            formData.append("arquivos", file);
-        });
+    const formData = new FormData();
+    arquivos.forEach(file => {
+        formData.append("arquivo", file); 
+    });
 
-        api.post(`anexar/gabarito/${gabaritoId}`, formData)
-            .then(response => resolve(response))
-            .catch(error => reject(error));
+    return api.post(`anexar/gabarito/${gabaritoId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
     });
 }
+
 
 function excluir(id) {
     return api.delete(`gabarito/excluir/${id}`);
