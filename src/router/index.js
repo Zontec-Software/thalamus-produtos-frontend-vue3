@@ -12,7 +12,7 @@ import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue"
 import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
 import Gabarito from '@/views/Produtos/GabaritoView.vue';
 import ConfiguracaoProdutos from '@/views/Produtos/ConfiguracaoProdutos.vue';
-
+import ModaisProdutos from '@/views/Produtos/ModaisProdutos.vue';
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
   const buildMode = process.env.NODE_ENV;
@@ -162,6 +162,12 @@ const routes = [
     path: '/configurar',
     name: 'ConfigurarCamposPorTipo',
     component: ConfiguracaoProdutos,
+    beforeEnter: guardPermissaoRoute
+  },
+    {
+    path: '/modais',
+    name: 'ModaisProdutos',
+    component: ModaisProdutos,
     beforeEnter: guardPermissaoRoute
   },
   {

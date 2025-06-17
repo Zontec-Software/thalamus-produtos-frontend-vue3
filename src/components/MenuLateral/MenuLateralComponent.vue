@@ -27,6 +27,16 @@
             <!-- <router-link v-if="permissoes.includes(97)" to="/produtos" active-class="ativo">Produtos em
                 Edição</router-link> -->
         </nav>
+        <nav class="nav-maior separador">
+            <a @click="$emit('abrirModal', 'modelo')">Modelo</a>
+            <a @click="$emit('abrirModal', 'fixacao')">Fixação</a>
+            <a @click="$emit('abrirModal', 'tamanho')">Tamanho</a>
+            <a @click="$emit('abrirModal', 'linha')">Linha Device</a>
+            <a @click="$emit('abrirModal', 'modeloDevice')">Modelo Device</a>
+            <a @click="$emit('abrirModal', 'cor')">Cor</a>
+            <a @click="$emit('abrirModal', 'versaoProduto')">Versão Produto</a>
+            <a @click="$emit('abrirModal', 'especificacao')">Especificação Técnica</a>
+        </nav>
     </aside>
 </template>
 <script>
