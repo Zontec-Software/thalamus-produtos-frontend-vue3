@@ -29,7 +29,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="g in gabaritos" :key="g.id" style="cursor: pointer;" @click="editarGabarito(g)">
+                    <tr v-for="g in gabaritosFiltrados" :key="g.id" @click="editarGabarito(g)">
                         <td>{{ g.codigo }}</td>
                         <td>{{ g.nome }}</td>
                         <!-- <td>{{ g.produto }}</td>
@@ -130,7 +130,7 @@ export default {
     name: 'GabaritosView',
     data() {
         return {
-
+            searchQuery: '',
             showModal: false,
             modoAdicao: true,
             gabaritoAtual: {
@@ -152,8 +152,21 @@ export default {
     },
 
     computed: {
+        gabaritosFiltrados() {
+            if (!this.searchQuery) return this.gabaritos;
 
+            const termo = this.searchQuery.toLowerCase();
+
+            return this.gabaritos.filter(g => {
+                return (
+                    (g.codigo && g.codigo.toString().toLowerCase().includes(termo)) ||
+                    (g.nome && g.nome.toLowerCase().includes(termo)) ||
+                    (g.descricao && g.descricao.toLowerCase().includes(termo))
+                );
+            });
+        }
     },
+
 
     async mounted() {
         try {
