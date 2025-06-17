@@ -29,7 +29,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="g in gabaritos" :key="g.id" style="cursor: pointer;">
+                    <tr v-for="g in gabaritos" :key="g.id" style="cursor: pointer;" @click="editarGabarito(g)">
                         <td>{{ g.codigo }}</td>
                         <td>{{ g.nome }}</td>
                         <!-- <td>{{ g.produto }}</td>
@@ -37,7 +37,10 @@
                             <td>{{ g.material }}</td> -->
                         <td>{{ g.descricao }}</td>
                         <td>
-                            <a :href="g.anexo" target="_blank" v-if="g.anexo">Ver</a>
+                            <div v-if="g.anexos?.length">
+                                <a v-for="anexo in g.anexos" :key="anexo.id" :href="anexo.url" target="_blank"> {{
+                                    anexo.nome_original }} </a>
+                            </div>
                         </td>
                         <td>
                             <v-menu>
@@ -47,7 +50,7 @@
                                     </v-btn>
                                 </template>
                                 <v-list>
-                                    <v-list-item @click="editarGabarito(g)">Editar</v-list-item>
+                                    <v-list-item>Editar</v-list-item>
                                     <v-list-item @click="excluirGabarito(g.id)"
                                         style="color: red;">Excluir</v-list-item>
                                 </v-list>
@@ -93,7 +96,13 @@
                 </div>
                 <div>
                     <label>Anexo</label>
-                    <input type="file" @change="handleAnexo" />
+                    <input type="file" multiple @change="handleAnexo" />
+                    <ul class="lista-materiais" v-if="gabaritoAtual.arquivos?.length">
+                        <li v-for="(file, index) in gabaritoAtual.arquivos" :key="index">
+                            <span>{{ file.name ?? file.nome_original }}</span>
+                            <i class="bi-x-circle" @click.prevent="removerAnexo(index)"></i>
+                        </li>
+                    </ul>
                 </div>
                 <div class="col-2">
                     <label>Descrição</label>
@@ -102,7 +111,7 @@
             </fieldset>
             <div class="direita margem submit">
                 <button class="acao-secundaria" @click="showModal = false">Cancelar</button>
-                <button @click="salvarGabarito">Salvar</button>
+                <button @click="salvarGabarito()">Salvar</button>
             </div>
         </div>
     </div>
@@ -122,7 +131,6 @@ export default {
     data() {
         return {
 
-            abaSelecionada: localStorage.getItem('abaGabaritos') || 'gabaritos',
             showModal: false,
             modoAdicao: true,
             gabaritoAtual: {
@@ -131,17 +139,9 @@ export default {
                 modelo: '',
                 material: '',
                 descricao: '',
-                arquivos: [],
+                anexos: [],
             },
             gabaritos: [],
-            produtosDisponiveis: [
-                { codigo: 'CST0023', nome: 'Produto A', tipo: 'acabado' },
-                { codigo: 'CST0024', nome: 'Produto B', tipo: 'em processo' },
-                { codigo: 'CST0030', nome: 'Produto C', tipo: 'acabado' },
-                { codigo: 'CST0100', nome: 'Produto D', tipo: 'em processo' }
-            ],
-            modelos: ['X115', 'X120', 'X999'],
-            materiais: ['Polietileno', 'PVC', 'Aço Inox'],
             gabaritoSelecionadoId: '',
             produtos: [],
             buscaProduto: '',
@@ -166,6 +166,58 @@ export default {
 
 
     methods: {
+        handleAnexo(event) {
+            const files = Array.from(event.target.files);
+            if (!this.gabaritoAtual.anexos) {
+                this.gabaritoAtual.anexos = [];
+            }
+            this.gabaritoAtual.anexos = this.gabaritoAtual.anexos.concat(files);
+        },
+
+
+        removerAnexo(index) {
+            this.gabaritoAtual.anexos.splice(index, 1);
+        },
+
+
+        async salvarGabarito() {
+            try {
+                const formData = new FormData();
+                formData.append("nome", this.gabaritoAtual.nome);
+                formData.append("descricao", this.gabaritoAtual.descricao);
+
+                this.gabaritoAtual.anexos.forEach(file => {
+                    if (file instanceof File) {
+                        formData.append("arquivos", file);
+                    }
+                });
+
+                if (this.modoAdicao) {
+                    await gabaritoService.gravar(formData);
+                } else {
+                    await gabaritoService.atualizar(this.gabaritoAtual.id, formData);
+                }
+
+                this.showModal = false;
+                await this.carregarGabaritos();
+            } catch (error) {
+                console.error("Erro ao salvar gabarito:", error);
+            }
+        },
+
+
+        async deletarAnexoExistente(anexoId, gabaritoId) {
+            try {
+                await gabaritoService.deletarAnexo(gabaritoId, anexoId);
+                const g = this.gabaritos.find(g => g.id === gabaritoId);
+                if (g) {
+                    g.anexos = g.anexos.filter(a => a.id !== anexoId);
+                }
+            } catch (e) {
+                console.error("Erro ao deletar anexo:", e);
+            }
+        },
+
         mostrarSugestoes() {
             this.mostrarListaProdutos = true;
             this.produtosFiltrados = this.produtosDisponiveis;
@@ -216,23 +268,24 @@ export default {
             this.modoAdicao = true;
             this.gabaritoAtual = {
                 id: null,
+                nome: '',
                 produto: '',
-                modelo: '',
-                material: '',
                 descricao: '',
-                arquivos: [],
+                anexos: [],
             };
             this.buscaProduto = '';
             this.showModal = true;
         },
 
+
         editarGabarito(g) {
             this.modoAdicao = false;
-            this.gabaritoAtual = { ...g, arquivos: [] };
+            this.gabaritoAtual = { ...g, anexos: g.anexos ? [...g.anexos] : [] };
             const p = this.produtosDisponiveis.find(p => p.cod === g.produto);
             this.buscaProduto = p ? `${p.cod} - ${p.desc}` : '';
             this.showModal = true;
         },
+
 
         async excluirGabarito(id) {
 
@@ -246,25 +299,20 @@ export default {
                 toaster.error("Não foi possível excluir o gabarito.");
             }
         },
-        async salvarGabarito() {
-            try {
-                if (this.modoAdicao) {
-                    await gabaritoService.gravar(this.gabaritoAtual);
-                } else {
-                    await gabaritoService.atualizar(this.gabaritoAtual);
-                }
-                this.showModal = false;
-                await this.carregarGabaritos();
-            } catch (e) {
-                console.error("Erro ao salvar gabarito:", e);
-            }
-        },
-        handleAnexo(event) {
-            const file = event.target.files[0];
-            if (file) {
-                this.gabaritoAtual.arquivos = [file];
-            }
-        },
+        // async salvarGabarito() {
+        //     try {
+        //         if (this.modoAdicao) {
+        //             await gabaritoService.gravar(this.gabaritoAtual);
+        //         } else {
+        //             await gabaritoService.atualizar(this.gabaritoAtual);
+        //         }
+        //         this.showModal = false;
+        //         await this.carregarGabaritos();
+        //     } catch (e) {
+        //         console.error("Erro ao salvar gabarito:", e);
+        //     }
+        // },
+
     }
 };
 </script>
