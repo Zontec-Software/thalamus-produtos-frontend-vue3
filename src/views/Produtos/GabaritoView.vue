@@ -20,46 +20,43 @@
                     <tr>
                         <th>Código</th>
                         <th>Nome</th>
-                        <!-- <th>Produto</th>
-                            <th>Modelo</th>
-                            <th>Material</th> -->
                         <th>Descrição</th>
                         <th>Anexo</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="g in gabaritosFiltrados" :key="g.id" @click="editarGabarito(g)">
+                    <tr v-for="g in gabaritosFiltrados" :key="g.id">
                         <td>{{ g.codigo }}</td>
                         <td>{{ g.nome }}</td>
-                        <!-- <td>{{ g.produto }}</td>
-                            <td>{{ g.modelo }}</td>
-                            <td>{{ g.material }}</td> -->
                         <td>{{ g.descricao }}</td>
                         <td>
                             <div v-if="g.anexos?.length">
-                                <a v-for="anexo in g.anexos" :key="anexo.id" :href="anexo.url" target="_blank"> {{
-                                    anexo.nome_original }} </a>
+                        <td>
+                            <div v-if="g.anexos?.length">
+                                <a v-for="anexo in g.anexos" :key="anexo.id" :href="caminhoFoto + anexo.caminho"
+                                    target="_blank" style="color: var(--cor-primaria);"> {{ anexo.nome_original }} </a>
                             </div>
                         </td>
-                        <td>
-                            <v-menu>
-                                <template v-slot:activator="{ props }">
-                                    <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
-                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
-                                    </v-btn>
-                                </template>
-                                <v-list>
-                                    <v-list-item>Editar</v-list-item>
-                                    <v-list-item @click="excluirGabarito(g.id)"
-                                        style="color: red;">Excluir</v-list-item>
-                                </v-list>
-                            </v-menu>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
+        </td>
+        <td>
+            <v-menu>
+                <template v-slot:activator="{ props }">
+                    <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
+                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
+                    </v-btn>
+                </template>
+                <v-list>
+                    <v-list-item>Editar</v-list-item>
+                    <v-list-item @click="excluirGabarito(g.id)" style="color: red;">Excluir</v-list-item>
+                </v-list>
+            </v-menu>
+        </td>
+        </tr>
+        </tbody>
+        </table>
+    </div>
     </div>
     <!-- MODAL -->
     <div class="modal-mask" v-if="showModal" @click="showModal = false">
@@ -68,28 +65,6 @@
                 <h3>{{ `${modoAdicao ? 'Adicionar' : 'Editar'} Gabarito` }}</h3>
             </div>
             <fieldset class="grid-2 margem">
-                <!-- <div class="autocomplete-wrapper">
-                    <label>Produto</label>
-                    <input v-model="buscaProduto" @input="filtrarProdutos" @focus="mostrarSugestoes"
-                        @blur="ocultarListaComDelay" placeholder="Digite código ou nome do produto" />
-                    <ul v-if="mostrarListaProdutos && produtosFiltrados.length" class="autocomplete-list">
-                        <li v-for="produto in produtosFiltrados" :key="produto.codigo"
-                            @mousedown.prevent="selecionarProduto(produto)"> {{ produto.cod }} - {{ produto.desc }}
-                        </li>
-                    </ul>
-                </div>
-                <div>
-                    <label>Modelo</label>
-                    <select v-model="gabaritoAtual.modelo">
-                        <option v-for="m in modelos" :key="m">{{ m }}</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Material</label>
-                    <select v-model="gabaritoAtual.material">
-                        <option v-for="m in materiais" :key="m">{{ m }}</option>
-                    </select>
-                </div> -->
                 <div>
                     <label>Nome</label>
                     <input type="text" v-model="gabaritoAtual.nome">
@@ -97,10 +72,10 @@
                 <div>
                     <label>Anexo</label>
                     <input type="file" multiple @change="handleAnexo" />
-                    <ul class="lista-materiais" v-if="gabaritoAtual.arquivos?.length">
-                        <li v-for="(file, index) in gabaritoAtual.arquivos" :key="index">
-                            <span>{{ file.name ?? file.nome_original }}</span>
-                            <i class="bi-x-circle" @click.prevent="removerAnexo(index)"></i>
+                    <ul v-if="gabaritoAtual.anexos.length">
+                        <li v-for="(file, index) in gabaritoAtual.anexos" :key="index"> {{ file.name ??
+                            file.nome_original }} <i class="bi-x-circle" style="color: red;"
+                                @click.prevent="removerAnexo(index)"></i>
                         </li>
                     </ul>
                 </div>
@@ -120,6 +95,7 @@
 import gabaritoService from "@/services/serviceGabarito";
 import serviceProdutos from "@/services/serviceProdutos";
 import { createToaster } from "@meforma/vue-toaster";
+import { urlFoto } from '@/services/api';
 
 const toaster = createToaster({
     position: "top-right",
@@ -135,9 +111,7 @@ export default {
             modoAdicao: true,
             gabaritoAtual: {
                 id: null,
-                produto: '',
-                modelo: '',
-                material: '',
+                nome: '',
                 descricao: '',
                 anexos: [],
             },
@@ -147,6 +121,7 @@ export default {
             buscaProduto: '',
             produtosFiltrados: [],
             mostrarListaProdutos: false,
+            caminhoFoto: urlFoto.caminhoFoto,
 
         };
     },
@@ -181,10 +156,7 @@ export default {
     methods: {
         handleAnexo(event) {
             const files = Array.from(event.target.files);
-            if (!this.gabaritoAtual.anexos) {
-                this.gabaritoAtual.anexos = [];
-            }
-            this.gabaritoAtual.anexos = this.gabaritoAtual.anexos.concat(files);
+            this.gabaritoAtual.anexos = [...this.gabaritoAtual.anexos, ...files];
         },
 
 
@@ -195,29 +167,31 @@ export default {
 
         async salvarGabarito() {
             try {
-                const formData = new FormData();
-                formData.append("nome", this.gabaritoAtual.nome);
-                formData.append("descricao", this.gabaritoAtual.descricao);
+                const payload = new FormData();
+                payload.append("nome", this.gabaritoAtual.nome);
+                payload.append("descricao", this.gabaritoAtual.descricao);
 
-                this.gabaritoAtual.anexos.forEach(file => {
-                    if (file instanceof File) {
-                        formData.append("arquivos", file);
-                    }
-                });
-
+                let response;
                 if (this.modoAdicao) {
-                    await gabaritoService.gravar(formData);
+                    response = await gabaritoService.gravar(payload);
                 } else {
-                    await gabaritoService.atualizar(this.gabaritoAtual.id, formData);
+                    response = await gabaritoService.atualizar(this.gabaritoAtual.id, payload);
                 }
 
+                const gabaritoId = response.data.id ?? this.gabaritoAtual.id;
+
+                if (this.gabaritoAtual.anexos.length > 0) {
+                    await gabaritoService.anexarArquivo(gabaritoId, this.gabaritoAtual.anexos);
+                }
+
+                toaster.success("Gabarito salvo com sucesso!");
                 this.showModal = false;
                 await this.carregarGabaritos();
             } catch (error) {
                 console.error("Erro ao salvar gabarito:", error);
+                toaster.error("Erro ao salvar gabarito.");
             }
         },
-
 
         async deletarAnexoExistente(anexoId, gabaritoId) {
             try {
@@ -282,22 +256,26 @@ export default {
             this.gabaritoAtual = {
                 id: null,
                 nome: '',
-                produto: '',
                 descricao: '',
                 anexos: [],
             };
-            this.buscaProduto = '';
             this.showModal = true;
         },
+
 
 
         editarGabarito(g) {
             this.modoAdicao = false;
-            this.gabaritoAtual = { ...g, anexos: g.anexos ? [...g.anexos] : [] };
-            const p = this.produtosDisponiveis.find(p => p.cod === g.produto);
-            this.buscaProduto = p ? `${p.cod} - ${p.desc}` : '';
+            this.gabaritoAtual = {
+                id: g.id,
+                nome: g.nome,
+                descricao: g.descricao,
+                anexos: g.anexos ? [...g.anexos] : []
+            };
             this.showModal = true;
         },
+
+
 
 
         async excluirGabarito(id) {

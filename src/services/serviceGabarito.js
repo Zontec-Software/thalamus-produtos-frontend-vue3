@@ -2,84 +2,45 @@
 import { api } from "roboflex-thalamus-request-handler";
 
 function listar() {
-    return new Promise((resolve, reject) => {
-        api.get('gabarito/listar')
-            .then(response => resolve(response.data))
-            .catch(error => reject(error));
-    });
+    return api.get('gabarito/listar').then(r => r.data);
 }
 
 function buscar(id) {
-    return new Promise((resolve, reject) => {
-        api.get(`gabarito/buscar/${id}`)
-            .then(response => resolve(response.data))
-            .catch(error => reject(error));
+    return api.get(`gabarito/buscar/${id}`).then(r => r.data);
+}
+
+function gravar(formData) {
+    return api.post('gabarito/gravar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
     });
 }
 
-function gravar(gabarito) {
-    return new Promise((resolve, reject) => {
-        const formData = new FormData();
-        formData.append("nome", gabarito.nome);
-        formData.append("descricao", gabarito.descricao);
-
-        if (gabarito.arquivos) {
-            gabarito.arquivos.forEach(file => {
-                formData.append("arquivos", file);
-            });
-        }
-
-        api.post('gabarito/gravar', formData)
-            .then(response => resolve(response))
-            .catch(error => reject(error));
+function atualizar(id, formData) {
+    return api.post(`gabarito/atualizar/${id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
     });
 }
 
-function atualizar(gabarito) {
-    return new Promise((resolve, reject) => {
-        const formData = new FormData();
-        formData.append("nome", gabarito.nome);
-        formData.append("descricao", gabarito.descricao);
 
-        if (gabarito.arquivos) {
-            gabarito.arquivos.forEach(file => {
-                formData.append("arquivos", file);
-            });
-        }
-
-        api.post(`gabarito/atualizar/${gabarito.id}`, formData)
-            .then(response => resolve(response))
-            .catch(error => reject(error));
-    });
-}
 
 function anexarArquivo(gabaritoId, arquivos) {
-    return new Promise((resolve, reject) => {
-        const formData = new FormData();
-        arquivos.forEach(file => {
-            formData.append("arquivos", file);
-        });
-
-        api.post(`anexar/gabarito/${gabaritoId}`, formData)
-            .then(response => resolve(response))
-            .catch(error => reject(error));
+    const formData = new FormData();
+    arquivos.forEach(file => {
+        formData.append("arquivo", file); 
     });
+
+    return api.post(`anexar/gabarito/${gabaritoId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+}
+
+
+function excluir(id) {
+    return api.delete(`gabarito/excluir/${id}`);
 }
 
 function deletarAnexo(gabaritoId, anexoId) {
-    return new Promise((resolve, reject) => {
-        api.post(`anexos/gabarito/${gabaritoId}/${anexoId}`)
-            .then(response => resolve(response))
-            .catch(error => reject(error));
-    });
-}
-
-function excluir(id) {
-    return new Promise((resolve, reject) => {
-        api.delete(`gabarito/excluir/${id}`)
-            .then(response => resolve(response))
-            .catch(error => reject(error));
-    });
+    return api.post(`anexos/gabarito/${gabaritoId}/${anexoId}`);
 }
 
 export default {
