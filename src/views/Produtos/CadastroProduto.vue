@@ -2,6 +2,8 @@
   <div class="titulo">
     <div class="margem container" style="display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <div class="m-icone esquerda"><a @click="this.$router.back();" style="cursor: pointer;"
+            class="icone-voltar m-d"></a></div>
         <h2 style="margin: 0;"> {{ tiposProduto.includes(this.id) ? `Cadastro de ${this.id}` : "Editar Produto" }} </h2>
         <i class="fa-solid fa-circle" :style="{
           color: produto?.status == 1 ? 'var(--cor-sucesso)' : 'var(--cor-erro)',

@@ -526,7 +526,6 @@ export default {
         this.carregarCores(),
         this.carregarVersaoModelo(),
         this.carregarEspecificacoes()
-
     },
     async cadastrarOMIE() {
       var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
