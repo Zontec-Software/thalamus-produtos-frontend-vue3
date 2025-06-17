@@ -97,10 +97,9 @@
                 <div>
                     <label>Anexo</label>
                     <input type="file" multiple @change="handleAnexo" />
-                    <ul class="lista-materiais" v-if="gabaritoAtual.arquivos?.length">
-                        <li v-for="(file, index) in gabaritoAtual.arquivos" :key="index">
-                            <span>{{ file.name ?? file.nome_original }}</span>
-                            <i class="bi-x-circle" @click.prevent="removerAnexo(index)"></i>
+                    <ul v-if="gabaritoAtual.anexos.length">
+                        <li v-for="(file, index) in gabaritoAtual.anexos" :key="index"> {{ file.name ??
+                            file.nome_original }} <i class="bi-x-circle" @click.prevent="removerAnexo(index)"></i>
                         </li>
                     </ul>
                 </div>
@@ -135,9 +134,7 @@ export default {
             modoAdicao: true,
             gabaritoAtual: {
                 id: null,
-                produto: '',
-                modelo: '',
-                material: '',
+                nome: '',
                 descricao: '',
                 anexos: [],
             },
@@ -181,10 +178,7 @@ export default {
     methods: {
         handleAnexo(event) {
             const files = Array.from(event.target.files);
-            if (!this.gabaritoAtual.anexos) {
-                this.gabaritoAtual.anexos = [];
-            }
-            this.gabaritoAtual.anexos = this.gabaritoAtual.anexos.concat(files);
+            this.gabaritoAtual.anexos = [...this.gabaritoAtual.anexos, ...files];
         },
 
 
@@ -201,7 +195,7 @@ export default {
 
                 this.gabaritoAtual.anexos.forEach(file => {
                     if (file instanceof File) {
-                        formData.append("arquivos", file);
+                        formData.append("anexos[]", file);
                     }
                 });
 
@@ -211,13 +205,14 @@ export default {
                     await gabaritoService.atualizar(this.gabaritoAtual.id, formData);
                 }
 
+                toaster.success("Gabarito salvo com sucesso!");
                 this.showModal = false;
                 await this.carregarGabaritos();
             } catch (error) {
                 console.error("Erro ao salvar gabarito:", error);
+                toaster.error("Erro ao salvar gabarito.");
             }
         },
-
 
         async deletarAnexoExistente(anexoId, gabaritoId) {
             try {
@@ -282,22 +277,26 @@ export default {
             this.gabaritoAtual = {
                 id: null,
                 nome: '',
-                produto: '',
                 descricao: '',
                 anexos: [],
             };
-            this.buscaProduto = '';
             this.showModal = true;
         },
+
 
 
         editarGabarito(g) {
             this.modoAdicao = false;
-            this.gabaritoAtual = { ...g, anexos: g.anexos ? [...g.anexos] : [] };
-            const p = this.produtosDisponiveis.find(p => p.cod === g.produto);
-            this.buscaProduto = p ? `${p.cod} - ${p.desc}` : '';
+            this.gabaritoAtual = {
+                id: g.id,
+                nome: g.nome,
+                descricao: g.descricao,
+                anexos: g.anexos ? [...g.anexos] : []
+            };
             this.showModal = true;
         },
+
+
 
 
         async excluirGabarito(id) {
