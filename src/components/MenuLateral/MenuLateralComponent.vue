@@ -28,14 +28,14 @@
                 Edição</router-link> -->
         </nav>
         <nav class="nav-maior separador">
-            <router-link active-class="ativo">Modelo</router-link>
-            <router-link active-class="ativo">Fixação</router-link>
-            <router-link active-class="ativo">Tamanho</router-link>
-            <router-link active-class="ativo">Linha Device</router-link>
-            <router-link active-class="ativo">Modelo Device</router-link>
-            <router-link active-class="ativo">Cor</router-link>
-            <router-link active-class="ativo">Versão Produto</router-link>
-            <router-link active-class="ativo">Especificação Técnica</router-link>
+            <a @click="$emit('abrirModal', 'modelo')">Modelo</a>
+            <a @click="$emit('abrirModal', 'fixacao')">Fixação</a>
+            <a @click="$emit('abrirModal', 'tamanho')">Tamanho</a>
+            <a @click="$emit('abrirModal', 'linha')">Linha Device</a>
+            <a @click="$emit('abrirModal', 'modeloDevice')">Modelo Device</a>
+            <a @click="$emit('abrirModal', 'cor')">Cor</a>
+            <a @click="$emit('abrirModal', 'versaoProduto')">Versão Produto</a>
+            <a @click="$emit('abrirModal', 'especificacao')">Especificação Técnica</a>
         </nav>
     </aside>
 </template>
