@@ -24,14 +24,16 @@
         <br>
         <div class="bloco2 margem" v-if="tipoSelecionado">
             <h3>Campos Ativos para: {{ tipoSelecionadoNome }}</h3>
-            <br>
+            <br />
             <div class="checkbox-grid">
-                <label v-for="campo in camposDisponiveis" :key="campo">
-                    <input type="radio" :value="campo" v-model="camposSelecionados" /> {{ formatarCampo(campo) }}
+                <label v-for="campo in camposDisponiveis" :key="campo" class="toggle-wrapper">
+                    <span>{{ formatarCampo(campo) }}</span>
+                    <input type="checkbox" :value="campo" v-model="camposSelecionados" />
+                    <span class="toggle-slider"></span>
                 </label>
             </div>
         </div>
-        <br>
+        <br />
         <div v-if="tipoSelecionado" class="direita">
             <button @click="salvarConfiguracao"> Salvar Configuração </button>
         </div>
@@ -140,5 +142,49 @@ export default {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 0.75rem;
     margin-bottom: 1rem;
+}
+
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f9f9f9;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.toggle-wrapper input {
+    display: none;
+}
+
+.toggle-slider {
+    width: 42px;
+    height: 22px;
+    background-color: #ccc;
+    border-radius: 34px;
+    position: relative;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.toggle-slider::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    top: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.toggle-wrapper input:checked+.toggle-slider {
+    background-color: var(--cor-primaria);
+}
+
+.toggle-wrapper input:checked+.toggle-slider::before {
+    transform: translateX(20px);
 }
 </style>
