@@ -83,30 +83,53 @@ export default {
             },
         };
     },
-    async created() {
-        const params = this.$route.params.tipo;
-        this.definirItemEditado(params);
-        await this.carregarDados();
+    watch: {
+        '$route.params.tipo': {
+            handler(newTipo) {
+                this.definirItemEditado(newTipo);
+                this.carregarDados();
+            },
+            immediate: true
+        }
     },
+
     methods: {
         definirItemEditado(tipo) {
             const combos = {
-                modelo: { tipo: 'Modelo', url: 'modelo' },
+                unidadeMedida: { tipo: 'Unidade Medida', url: 'unidade-medida' },
                 fixacao: { tipo: 'Fixação', url: 'fixacao' },
-                tamanho: { tipo: 'Tamanho', url: 'tamanho-produto' },
                 linha: { tipo: 'Linha', url: 'linha' },
-                modeloDevice: { tipo: 'Modelo Device', url: 'modelo-device' },
+
+
+
+                modelo: { tipo: 'Modelo', url: 'produto/modelo' },
+                tamanho: { tipo: 'Tamanho', url: 'tamanho-produto' },
                 cor: { tipo: 'Cor', url: 'produto/cor' },
-                versaoModelo: { tipo: 'Versão Modelo', url: 'produto/versao-modelo' },
-                especificacao: { tipo: 'Especificação', url: 'produto/especificacao' },
+
+                modeloDevice: { tipo: 'Modelo Device', url: 'modelo-device' },
+                especificacao: { tipo: 'Especificação Técnica', url: 'produto/especificacao' },
+                // linhaDevice: { tipo: 'Linha Device', url: 'produto/linhaDevice' },
+
+                // versaoModelo: { tipo: 'Versão Modelo', url: 'produto/versao-modelo' },
             };
+
+            if (!combos[tipo]) {
+                this.$router.push('/');
+                return;
+            }
+
             this.itemEditado = combos[tipo];
         },
 
         async carregarDados() {
-            const response = await serviceProdutos.getGenerico(this.itemEditado.url);
-            this.dados = response;
+            try {
+                const response = await serviceProdutos.getGenerico(this.itemEditado.url);
+                this.dados = response;
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
         },
+
 
         abrirFormulario() {
             this.showForm = true;
@@ -121,19 +144,34 @@ export default {
         },
 
         async salvarItem() {
-            if (this.itemSelecionado) {
-                await serviceProdutos.atualizarGenerico(this.itemEditado.url, this.itemSelecionado.id, this.form);
-            } else {
-                await serviceProdutos.criarGenerico(this.itemEditado.url, this.form);
+            try {
+                if (this.itemSelecionado) {
+                    await serviceProdutos.atualizarGenerico(
+                        this.itemEditado.url,
+                        this.itemSelecionado.id,
+                        this.form
+                    );
+                } else {
+                    await serviceProdutos.criarGenerico(this.itemEditado.url, this.form);
+                }
+                await this.carregarDados();
+                this.fecharFormulario();
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
             }
-            await this.carregarDados();
-            this.fecharFormulario();
         },
 
         async excluirItem(item) {
-            await serviceProdutos.excluirGenerico(this.itemEditado.url, item.id);
-            await this.carregarDados();
+            if (confirm(`Deseja excluir ${item.nome}?`)) {
+                try {
+                    await serviceProdutos.excluirGenerico(this.itemEditado.url, item.id);
+                    await this.carregarDados();
+                } catch (error) {
+                    console.error('Erro ao excluir:', error);
+                }
+            }
         },
+
 
         fecharFormulario() {
             this.showForm = false;
