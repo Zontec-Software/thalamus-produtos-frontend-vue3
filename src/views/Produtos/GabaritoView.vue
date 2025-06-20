@@ -48,7 +48,7 @@
                     </v-btn>
                 </template>
                 <v-list>
-                    <v-list-item>Editar</v-list-item>
+                    <v-list-item @click="editarGabarito(g)">Editar</v-list-item>
                     <v-list-item @click="excluirGabarito(g.id)" style="color: red;">Excluir</v-list-item>
                 </v-list>
             </v-menu>
