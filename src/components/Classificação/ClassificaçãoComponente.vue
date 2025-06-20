@@ -88,6 +88,8 @@ export default {
             handler(newTipo) {
                 this.definirItemEditado(newTipo);
                 this.carregarDados();
+                console.log(this.$route.params.tipo);
+
             },
             immediate: true
         }
@@ -99,18 +101,14 @@ export default {
                 unidadeMedida: { tipo: 'Unidade Medida', url: 'unidade-medida' },
                 fixacao: { tipo: 'Fixação', url: 'fixacao' },
                 linha: { tipo: 'Linha', url: 'linha' },
-
-
-
-                modelo: { tipo: 'Modelo', url: 'produto/modelo' },
+                modelo: { tipo: 'Modelo', url: 'modelo' },
                 tamanho: { tipo: 'Tamanho', url: 'tamanho-produto' },
                 cor: { tipo: 'Cor', url: 'produto/cor' },
-
                 modeloDevice: { tipo: 'Modelo Device', url: 'modelo-device' },
                 especificacao: { tipo: 'Especificação Técnica', url: 'produto/especificacao' },
-                // linhaDevice: { tipo: 'Linha Device', url: 'produto/linhaDevice' },
+                versaoModelo: { tipo: 'Versão Produto', url: 'produto/versao-modelo' },
+                linhaDevice: { tipo: 'Linha Device', url: 'produto/linha-device' },
 
-                // versaoModelo: { tipo: 'Versão Modelo', url: 'produto/versao-modelo' },
             };
 
             if (!combos[tipo]) {
