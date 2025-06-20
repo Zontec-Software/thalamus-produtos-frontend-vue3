@@ -5,7 +5,7 @@
         </div>
     </div>
     <div class="margem container">
-        <div>
+        <div class="bloco2 margem">
             <div>
                 <label for="tipo">Selecione o Tipo de Produto:</label>
                 <select v-model="tipoSelecionado">

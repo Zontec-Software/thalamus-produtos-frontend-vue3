@@ -4,10 +4,8 @@
   </div>
   <section v-else>
     <div style="text-align: right;">
-      <strong>
-        {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
-        ${produto_original.editadoPor ?? '??'}` }}
-      </strong>
+      <strong> {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
+        ${produto_original.editadoPor ?? '??'}` }} </strong>
     </div>
     <div>
       <div class="submit m-b">

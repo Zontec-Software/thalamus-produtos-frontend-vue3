@@ -13,6 +13,7 @@ import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
 import Gabarito from '@/views/Produtos/GabaritoView.vue';
 import ConfiguracaoProdutos from '@/views/Produtos/ConfiguracaoProdutos.vue';
 import ModaisProdutos from '@/views/Produtos/ModaisProdutos.vue';
+import AssociaçãodeCampos from '@/views/Produtos/AssociaçãodeCampos.vue';
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
   const buildMode = process.env.NODE_ENV;
@@ -170,6 +171,20 @@ const routes = [
     component: ModaisProdutos,
     beforeEnter: guardPermissaoRoute
   },
+  {
+  path: '/cadastro/:tipo',
+  name: 'CadastroGenerico',
+  component: () => import('@/components/Classificação/ClassificaçãoComponente.vue'),
+  beforeEnter: guardPermissaoRoute,
+  props: true,
+},
+  {
+    path: '/associar',
+    name: 'AssociaçãodeCampos',
+    component: AssociaçãodeCampos,
+    beforeEnter: guardPermissaoRoute
+  },
+
   {
     path: "/login",
     redirect: "http://portal.thalamus.com.br/#/login",
