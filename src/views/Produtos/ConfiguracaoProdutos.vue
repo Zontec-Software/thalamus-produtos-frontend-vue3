@@ -6,17 +6,17 @@
     </div>
     <div class="margem container">
         <div class="bloco2 margem">
-            <div>
+            <!-- <div>
                 <label for="tipo">Selecione o Tipo de Produto:</label>
-                <select v-model="tipoSelecionado">
+                <select >
                     <option disabled value="">Selecione</option>
                     <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id"> {{ tipo.nome }} </option>
                 </select>
             </div>
-            <br>
+            <br> -->
             <div>
                 <label for="familia">Selecione a Familia:</label>
-                <select>
+                <select v-model="tipoSelecionado">
                     <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
                 </select>
             </div>
