@@ -51,8 +51,10 @@
             </div>
             <fieldset class="grid-2 margem">
                 <div>
-                    <label>Selecione a Família</label>
-                    <select></select>
+                    <label>Selecione a Familia:</label>
+                    <select>
+                        <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
+                    </select>
                 </div>
                 <div>
                     <label>Nome</label>
@@ -85,6 +87,7 @@ export default {
                 nome: '',
                 descricao: '',
             },
+            familias: [],
         };
     },
     watch: {
@@ -97,6 +100,11 @@ export default {
             },
             immediate: true
         }
+    },
+
+    created() {
+        this.carregarFamilias()
+
     },
 
     methods: {
@@ -171,6 +179,15 @@ export default {
                 } catch (error) {
                     console.error('Erro ao excluir:', error);
                 }
+            }
+        },
+
+        async carregarFamilias() {
+            try {
+                const response = await serviceProdutos.listarFamilia();
+                this.familias = response;
+            } catch (error) {
+                console.error("Erro ao carregar famílias de produtos:", error);
             }
         },
 

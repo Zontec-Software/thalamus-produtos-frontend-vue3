@@ -97,9 +97,9 @@
                                 <ul class="lista-materiais">
                                     <li v-for="gabarito in servico.gabaritos" :key="gabarito.id">
                                         <div class="conteudo-item">
-                                            <span>{{ gabarito.codigo }} - {{ gabarito.nome }}</span>
-                                            <span class="descricao-item">Descrição: {{ gabarito?.descricao || '' }}
-                                            </span>
+                                            <span>{{ gabarito.gabarito.codigo }} - {{ gabarito.gabarito.nome }}</span>
+                                            <span class="descricao-item">Descrição: {{ gabarito?.gabarito?.descricao ||
+                                                '' }} </span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerGabarito(servico, gabarito.id)"></i>
                                     </li>
@@ -774,7 +774,7 @@ export default {
             if (gabarito && this.servicoAtual) {
                 this.servicoAtual.gabaritos = this.servicoAtual.gabaritos || [];
 
-                const existe = this.servicoAtual.gabaritos.find(g => g.id === gabarito.id);
+                const existe = this.servicoAtual.gabaritos.find(g => g.gabarito?.id === gabarito.id);
                 if (existe) {
                     toaster.warning("Gabarito já adicionado.");
                     return;
@@ -782,10 +782,12 @@ export default {
 
                 const novoGabarito = {
                     id: Date.now(),
-                    gabarito_id: gabarito.id,
-                    codigo: gabarito.codigo,
-                    nome: gabarito.nome,
-
+                    gabarito: {
+                        id: gabarito.id,
+                        codigo: gabarito.codigo,
+                        nome: gabarito.nome,
+                        descricao: gabarito.descricao
+                    }
                 };
 
                 this.servicoAtual.gabaritos.push(novoGabarito);
@@ -801,6 +803,7 @@ export default {
                 this.modalGabarito = false;
             }
         },
+
 
         abrirModalAnexos(servico) {
             this.servicoAtual = servico;
