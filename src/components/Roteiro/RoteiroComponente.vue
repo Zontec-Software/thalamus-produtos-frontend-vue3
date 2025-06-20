@@ -98,8 +98,8 @@
                                     <li v-for="gabarito in servico.gabaritos" :key="gabarito.id">
                                         <div class="conteudo-item">
                                             <span>{{ gabarito.codigo }} - {{ gabarito.nome }}</span>
-                                            <span class="descricao-item">Descrição: {{ gabarito?.gabarito?.descricao ||
-                                                '' }} </span>
+                                            <span class="descricao-item">Descrição: {{ gabarito?.descricao || '' }}
+                                            </span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerGabarito(servico, gabarito.id)"></i>
                                     </li>
@@ -181,7 +181,7 @@
                                     key-field="codigo" class="scroller">
                                     <template #default="{ item }">
                                         <div class="item" @click="adicionarGabarito(item)"> {{ `${item.codigo} -
-                                            ${item.descricao}` }} </div>
+                                            ${item.nome} - ${item.descricao}` }} </div>
                                     </template>
                                 </RecycleScroller>
                             </div>
@@ -566,10 +566,7 @@ export default {
 
 
 
-        removerGabarito(servico, gabaritoId) {
-            servico.gabaritos = servico.gabaritos.filter(g => g.id !== gabaritoId);
-            serviceRoteiro.removerGabarito(gabaritoId);
-        },
+
 
 
         selecionarArquivos(event) {
@@ -757,6 +754,10 @@ export default {
             serviceRoteiro.removerMaterial(insumoId);
         },
 
+        removerGabarito(servico, gabaritoId) {
+            servico.gabaritos = servico.gabaritos.filter(g => g.id !== gabaritoId);
+            serviceRoteiro.removerGabarito(gabaritoId);
+        },
         adicionarParametro(servico, parametroSelecionado) {
             if (parametroSelecionado && parametroSelecionado.id && parametroSelecionado.codigo) {
                 servico.parametros.push({
