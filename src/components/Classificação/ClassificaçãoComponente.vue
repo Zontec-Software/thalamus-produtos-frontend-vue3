@@ -51,6 +51,10 @@
             </div>
             <fieldset class="grid-2 margem">
                 <div>
+                    <label>Selecione a Família</label>
+                    <select></select>
+                </div>
+                <div>
                     <label>Nome</label>
                     <input type="text" v-model="form.nome">
                 </div>
