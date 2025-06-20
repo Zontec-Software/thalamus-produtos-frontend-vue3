@@ -97,8 +97,9 @@
                                 <ul class="lista-materiais">
                                     <li v-for="gabarito in servico.gabaritos" :key="gabarito.id">
                                         <div class="conteudo-item">
-                                            <span>{{ gabarito.produto.cod ?? '' }} - {{ gabarito.produto.descricao ??
-                                                gabarito.produto.desc }}</span>
+                                            <span>{{ gabarito.codigo }} - {{ gabarito.nome }}</span>
+                                            <span class="descricao-item">Descrição: {{ gabarito?.gabarito?.descricao ||
+                                                '' }} </span>
                                         </div>
                                         <i class="bi-x-circle" @click="removerGabarito(servico, gabarito.id)"></i>
                                     </li>
@@ -177,10 +178,10 @@
                             <input type="text" v-model="searchGabarito" placeholder="Buscar Gabarito" />
                             <div class="dropdown">
                                 <RecycleScroller :items="filteredGabaritos" :item-size="10" height-field="height"
-                                    key-field="produto_cod" class="scroller">
+                                    key-field="codigo" class="scroller">
                                     <template #default="{ item }">
-                                        <div class="item" @click="adicionarGabarito(item)"> {{ `${item.cod} -
-                                            ${item.desc}` }} </div>
+                                        <div class="item" @click="adicionarGabarito(item)"> {{ `${item.codigo} -
+                                            ${item.descricao}` }} </div>
                                     </template>
                                 </RecycleScroller>
                             </div>
@@ -405,6 +406,7 @@ import serviceRoteiro from '@/services/serviceRoteiro2.0';
 import serviceParametros from '@/services/serviceParametrosTeste';
 import serviceInsumos from '@/services/serviceInsumos'
 import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
+import gabaritoService from '@/services/serviceGabarito';
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
 import { urlFoto } from '@/services/api';
 import { createToaster } from "@meforma/vue-toaster";
@@ -448,17 +450,16 @@ export default {
             ferramentas.value = await serviceFerramentas.getAllFerramentas()
         }
 
-
-
         const filteredGabaritos = computed(() =>
             gabaritos.value.filter((g) =>
-                g.desc.toLowerCase().includes(searchGabarito.value.toLowerCase())
+                g.nome.toLowerCase().includes(searchGabarito.value.toLowerCase()) ||
+                g.codigo.toLowerCase().includes(searchGabarito.value.toLowerCase())
             )
         );
 
         onMounted(async () => {
             carregarFerramentas();
-            gabaritos.value = await serviceRoteiro.getAllGabaritos();
+            gabaritos.value = await gabaritoService.listar();
         });
 
 
@@ -563,22 +564,8 @@ export default {
             this.searchGabarito = '';
         },
 
-        adicionarGabarito(gabarito) {
-            if (gabarito && this.servicoAtual) {
-                this.servicoAtual.gabaritos = this.servicoAtual.gabaritos || [];
-                this.servicoAtual.gabaritos.push({
-                    id: Date.now(),
-                    produto: gabarito
-                });
-                const payload = {
-                    gabaritos: {
-                        produto_cod: gabarito.produto_cod
-                    }
-                };
-                serviceRoteiro.atualizarServico(this.servicoAtual.id, payload);
-            }
-            this.modalGabarito = false;
-        },
+
+
         removerGabarito(servico, gabaritoId) {
             servico.gabaritos = servico.gabaritos.filter(g => g.id !== gabaritoId);
             serviceRoteiro.removerGabarito(gabaritoId);
@@ -781,6 +768,39 @@ export default {
                 });
             }
         },
+
+        adicionarGabarito(gabarito) {
+            if (gabarito && this.servicoAtual) {
+                this.servicoAtual.gabaritos = this.servicoAtual.gabaritos || [];
+
+                const existe = this.servicoAtual.gabaritos.find(g => g.id === gabarito.id);
+                if (existe) {
+                    toaster.warning("Gabarito já adicionado.");
+                    return;
+                }
+
+                const novoGabarito = {
+                    id: Date.now(),
+                    gabarito_id: gabarito.id,
+                    codigo: gabarito.codigo,
+                    nome: gabarito.nome,
+
+                };
+
+                this.servicoAtual.gabaritos.push(novoGabarito);
+
+                const payload = {
+                    gabaritos: {
+                        gabarito_id: gabarito.id
+                    }
+                };
+
+                serviceRoteiro.atualizarServico(this.servicoAtual.id, payload);
+
+                this.modalGabarito = false;
+            }
+        },
+
         abrirModalAnexos(servico) {
             this.servicoAtual = servico;
             this.modalAnexos = true;

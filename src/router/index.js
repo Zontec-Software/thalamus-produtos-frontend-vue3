@@ -171,6 +171,14 @@ const routes = [
     beforeEnter: guardPermissaoRoute
   },
   {
+  path: '/cadastro/:tipo',
+  name: 'CadastroGenerico',
+  component: () => import('@/components/Classificação/ClassificaçãoComponente.vue'),
+  beforeEnter: guardPermissaoRoute,
+  props: true,
+},
+
+  {
     path: "/login",
     redirect: "http://portal.thalamus.com.br/#/login",
   },

@@ -27,7 +27,7 @@
             <!-- <router-link v-if="permissoes.includes(97)" to="/produtos" active-class="ativo">Produtos em
                 Edição</router-link> -->
         </nav>
-        <nav class="nav-maior separador">
+        <!-- <nav class="nav-maior separador">
             <a @click="$emit('abrirModal', 'modelo')">Modelo</a>
             <a @click="$emit('abrirModal', 'fixacao')">Fixação</a>
             <a @click="$emit('abrirModal', 'tamanho')">Tamanho</a>
@@ -36,6 +36,16 @@
             <a @click="$emit('abrirModal', 'cor')">Cor</a>
             <a @click="$emit('abrirModal', 'versaoProduto')">Versão Produto</a>
             <a @click="$emit('abrirModal', 'especificacao')">Especificação Técnica</a>
+        </nav> -->
+        <nav class="nav-maior separador">
+            <router-link to="/cadastro/modelo" active-class="ativo">Modelo</router-link>
+            <router-link to="/cadastro/fixacao" active-class="ativo">Fixação</router-link>
+            <router-link to="/cadastro/tamanho" active-class="ativo">Tamanho</router-link>
+            <router-link to="/cadastro/linha" active-class="ativo">Linha Device</router-link>
+            <router-link to="/cadastro/modeloDevice" active-class="ativo">Modelo Device</router-link>
+            <router-link to="/cadastro/cor" active-class="ativo">Cor</router-link>
+            <router-link to="/cadastro/versaoModelo" active-class="ativo">Versão Produto</router-link>
+            <router-link to="/cadastro/especificacao" active-class="ativo">Especificação Técnica</router-link>
         </nav>
     </aside>
 </template>

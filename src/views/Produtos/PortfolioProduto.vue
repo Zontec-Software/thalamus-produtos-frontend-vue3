@@ -12,16 +12,22 @@
       </div>
     </div>
     <div class="margem container">
-      <!-- <div class="tags">
-        <a @click="listarProdutos()">Produtos em Desenvolvimento P&D</a>
-        <a>Produtos para Recomendações Fiscal</a>
-      </div> -->
-      <br />
-      <!-- <div class="tags m-b" style="cursor: pointer;">
-        <a :class="{ ativo: blocoVisivel === 'portfolio' }" @click="mostrarBloco('portfolio')">Portfólio</a>
-        <a :class="{ ativo: blocoVisivel === 'novosProdutos' }" @click="mostrarBloco('novosProdutos')">Novos
-          Produtos</a>
-      </div> -->
+      <div class="filtros" style="display: flex; gap: 1rem; align-items: center; margin: 10px 0;">
+        <div>
+          <label>Tipo:</label>
+          <select v-model="filtroTipo">
+            <option value="">Todos</option>
+            <option v-for="(tipo, index) in tiposProduto" :key="index" :value="tipo">{{ tipo }}</option>
+          </select>
+        </div>
+        <div>
+          <label>Família:</label>
+          <select v-model="filtroFamilia">
+            <option value="">Todas</option>
+            <option v-for="(familia, index) in familiasProduto" :key="index" :value="familia">{{ familia }}</option>
+          </select>
+        </div>
+      </div>
       <div class="bloco margem">
         <div class="alinha-v" style="display: flex; justify-content: space-between">
           <!-- <div class="tags" style="cursor: pointer">
@@ -37,9 +43,9 @@
             <!-- <BotaoFlutuante /> -->
           </div>
         </div>
-        <br />
         <v-btn class="acao-secundaria" icon="mdi-plus" @click="cadastrarProduto()"></v-btn>
-        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" />
+        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
+          :filtroFamilia="filtroFamilia" />
         <!-- <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos> -->
       </div>
     </div>
@@ -47,6 +53,7 @@
 </template>
 <script>
 import TabelaProdutos from "@/components/Tabelas/TabelaProdutos.vue";
+import serviceProdutos from "@/services/serviceProdutos"
 // import BotaoFlutuante from "@/components/Botão/BotaoFlutuante.vue";
 import { getPermissao } from '@/services/permissao-service'
 // import NovosProdutos from "@/components/Tabelas/NovosProdutos.vue";
@@ -63,19 +70,26 @@ export default {
     return {
       tiposProduto: [
 
-        "Produto em Processo",
-        "Produto Acabado",
+        // "Produto em Processo",
+        // "Produto Acabado",
 
       ],
       searchQuery: "",
       filtro: "",
       blocoVisivel: 'portfolio',
       funcionalidades: [],
+      filtroTipo: "",
+      filtroFamilia: "",
+      familiasProduto: [],
 
     };
   },
   async created() {
     this.funcionalidades = await getPermissao();
+
+    const { tipos, familias } = await serviceProdutos.getTipoeFamilias();
+    this.tiposProduto = tipos.map(t => t.nome);
+    this.familiasProduto = familias.map(f => f.familia_nome);
 
     this.blocoVisivel = this.funcionalidades.includes(113) ? 'portfolio' : 'novosProdutos';
 

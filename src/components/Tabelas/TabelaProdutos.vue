@@ -61,6 +61,8 @@ export default {
   props: {
     searchQuery: { required: true },
     filtro: { type: String, default: "" },
+    filtroTipo: { type: String, default: "" },
+    filtroFamilia: { type: String, default: "" }
   },
   data() {
     return {
@@ -83,7 +85,14 @@ export default {
     filtro() {
       this.filtrarProdutos();
     },
+    filtroTipo() {
+      this.filtrarProdutos();
+    },
+    filtroFamilia() {
+      this.filtrarProdutos();
+    },
   },
+
 
   methods: {
     atualizarStatus(id, status) {
@@ -94,11 +103,11 @@ export default {
       serviceProdutos.finalizarCadastro(id, payload)
     },
     filtrarProdutos() {
-      this.listaProdutosFiltrada = this.produtos.filter((item) => {
+      this.listaProdutosFiltrada = this.produtos.filter(item => {
         const matchQuery = this.searchQuery
-          ? Object.values(item).some((valor) => {
+          ? Object.values(item).some(valor => {
             if (valor && typeof valor === 'object') {
-              return Object.values(valor).some((subValor) =>
+              return Object.values(valor).some(subValor =>
                 String(subValor).toLowerCase().includes(this.searchQuery.toLowerCase())
               );
             }
@@ -106,13 +115,22 @@ export default {
           })
           : true;
 
-        const matchFiltro = this.filtro
+        const matchFiltroBotao = this.filtro
           ? item.tipo?.nome === this.filtro
           : true;
 
-        return matchQuery && matchFiltro;
+        const matchTipoSelect = this.filtroTipo
+          ? item.tipo?.nome === this.filtroTipo
+          : true;
+
+        const matchFamilia = this.filtroFamilia
+          ? item.familia_produto?.familia_nome === this.filtroFamilia
+          : true;
+
+        return matchQuery && matchFiltroBotao && matchTipoSelect && matchFamilia;
       });
     },
+
     abrirTemplate(id) {
       this.$router.push({ name: "template", params: { id } });
 

@@ -1,0 +1,144 @@
+<template>
+    <div class="titulo">
+        <div class="margem container">
+            <div class="m-icone direita"></div>
+            <h2>{{ itemEditado.tipo }}</h2>
+        </div>
+    </div>
+    <div class="margem container">
+        <div class="margem">
+            <button class="acao-secundaria" @click="abrirFormulario"> Adicionar {{ itemEditado.tipo }} </button>
+        </div>
+        <div class="bloco margem">
+            <table class="tabela">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item, index) in dados" :key="index" @click="editarItem(item)">
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.nome }}</td>
+                        <td>{{ item.descricao }}</td>
+                        <td>
+                            <v-menu>
+                                <template v-slot:activator="{ props }">
+                                    <v-btn
+                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador); color: var(--cor-fonte);"
+                                        class="acao-secundaria" icon="mdi-dots-horizontal" v-bind="props">
+                                    </v-btn>
+                                </template>
+                                <v-list>
+                                    <v-list-item @click="editarItem(item)">Editar</v-list-item>
+                                    <v-list-item @click="excluirItem(item)" style="color: red;">Excluir</v-list-item>
+                                </v-list>
+                            </v-menu>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- MODAL -->
+    <div class="modal-mask" v-if="showForm" @click="fecharFormulario">
+        <div class="jm margem" style="min-width: 30vw" @click.stop>
+            <div class="alinha-centro">
+                <h3>{{ itemSelecionado ? 'Editar' : 'Adicionar' }} {{ itemEditado.tipo }}</h3>
+            </div>
+            <fieldset class="grid-2 margem">
+                <div>
+                    <label>Nome</label>
+                    <input type="text" v-model="form.nome">
+                </div>
+                <div class="col-2">
+                    <label>Descrição</label>
+                    <textarea v-model="form.descricao"></textarea>
+                </div>
+            </fieldset>
+            <div class="direita margem submit">
+                <button class="acao-secundaria" @click="fecharFormulario">Cancelar</button>
+                <button @click="salvarItem">Salvar</button>
+            </div>
+        </div>
+    </div>
+</template>
+<script>
+import serviceProdutos from '@/services/serviceProdutos';
+
+export default {
+    name: 'CrudComboView',
+    data() {
+        return {
+            itemEditado: {},
+            dados: [],
+            showForm: false,
+            itemSelecionado: null,
+            form: {
+                nome: '',
+                descricao: '',
+            },
+        };
+    },
+    async created() {
+        const params = this.$route.params.tipo;
+        this.definirItemEditado(params);
+        await this.carregarDados();
+    },
+    methods: {
+        definirItemEditado(tipo) {
+            const combos = {
+                modelo: { tipo: 'Modelo', url: 'modelo' },
+                fixacao: { tipo: 'Fixação', url: 'fixacao' },
+                tamanho: { tipo: 'Tamanho', url: 'tamanho-produto' },
+                linha: { tipo: 'Linha', url: 'linha' },
+                modeloDevice: { tipo: 'Modelo Device', url: 'modelo-device' },
+                cor: { tipo: 'Cor', url: 'produto/cor' },
+                versaoModelo: { tipo: 'Versão Modelo', url: 'produto/versao-modelo' },
+                especificacao: { tipo: 'Especificação', url: 'produto/especificacao' },
+            };
+            this.itemEditado = combos[tipo];
+        },
+
+        async carregarDados() {
+            const response = await serviceProdutos.getGenerico(this.itemEditado.url);
+            this.dados = response;
+        },
+
+        abrirFormulario() {
+            this.showForm = true;
+            this.itemSelecionado = null;
+            this.form = { nome: '', descricao: '' };
+        },
+
+        editarItem(item) {
+            this.itemSelecionado = item;
+            this.form = { nome: item.nome, descricao: item.descricao };
+            this.showForm = true;
+        },
+
+        async salvarItem() {
+            if (this.itemSelecionado) {
+                await serviceProdutos.atualizarGenerico(this.itemEditado.url, this.itemSelecionado.id, this.form);
+            } else {
+                await serviceProdutos.criarGenerico(this.itemEditado.url, this.form);
+            }
+            await this.carregarDados();
+            this.fecharFormulario();
+        },
+
+        async excluirItem(item) {
+            await serviceProdutos.excluirGenerico(this.itemEditado.url, item.id);
+            await this.carregarDados();
+        },
+
+        fecharFormulario() {
+            this.showForm = false;
+        },
+    },
+};
+</script>
+<style scoped></style>
