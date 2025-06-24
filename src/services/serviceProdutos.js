@@ -35,7 +35,7 @@ const funções = {
     async getProdutos() {
         try {
             const payload = {
-                tipo: [4, 5]
+                tipo: [1,2,3,4, 5,6,7,8,9,10,11,12]
             };
 
             const responseProdutos = await api.get('/produto-filtrar', {
@@ -98,7 +98,7 @@ const funções = {
     async getTipoeFamilias() {
         try {
             const payload = {
-                tipo: [4, 5]
+                tipo: [1,2,3,4, 5,6,7,8,9,10,11,12]
             };
 
             const responseProdutos = await api.get('/produto-filtrar', {
