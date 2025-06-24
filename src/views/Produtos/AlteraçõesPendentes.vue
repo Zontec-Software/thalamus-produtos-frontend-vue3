@@ -414,7 +414,8 @@ export default {
     camposVazios() {
       return ['origem_mercadoria', 'id_preco_tabelado', 'id_cest', 'indicador_escala', 'cnpj_fabricante', 'cupom_fiscal', 'market_place']
         .some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '')
-    }
+    },
+
   },
   async created() {
     this.funcionalidades = await getPermissao();
@@ -448,12 +449,17 @@ export default {
   },
   methods: {
     formatarData(data) {
-      const [dataParte, horaParte] = data.split('T');
-      const [ano, mes, dia] = dataParte.split('-');
-      const [hora, minuto] = horaParte.split(':');
-
-      return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+      if (!data) return "-";
+      try {
+        const [dataParte, horaParte] = data.split('T');
+        const [ano, mes, dia] = dataParte.split('-');
+        const [hora, minuto] = horaParte.split(':');
+        return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+      } catch {
+        return "-";
+      }
     },
+
     async carregarFotosProduto() {
       try {
         const response = await serviceProdutos.listarAnexo(this.produto_cod);

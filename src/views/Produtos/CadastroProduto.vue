@@ -30,7 +30,7 @@
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-      <div class="bloco margem" v-if="!tiposProduto.includes(this.id)">
+      <div class="bloco margem" v-if="exibirEstruturaERoteiro">
         <header class="alinha-centro">
           <h2>Estrutura</h2>
         </header>
@@ -52,7 +52,7 @@
           <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
         </div>
       </div>
-      <div class="bloco margem" v-if="!tiposProduto.includes(this.id)">
+      <div class="bloco margem" v-if="exibirEstruturaERoteiro">
         <div class="alinha-centro">
           <h2>Roteiro</h2>
         </div>
@@ -107,6 +107,13 @@ export default {
 
     };
   },
+  computed: {
+    exibirEstruturaERoteiro() {
+      const tipoId = this.produto?.tipo?.id;
+      return tipoId === 4 || tipoId === 5;
+    }
+  },
+
   async created() {
     this.getProduto();
     this.usuarioLogado = sso.getUsuarioLogado();
