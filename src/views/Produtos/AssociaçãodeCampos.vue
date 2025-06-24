@@ -5,7 +5,7 @@
         </div>
     </div>
     <div class="margem container">
-        <div class="bloco2 margem">
+        <div class="bloco2 margem grid-1">
             <div>
                 <label>Família</label>
                 <select v-model="filtro.familia_id">
