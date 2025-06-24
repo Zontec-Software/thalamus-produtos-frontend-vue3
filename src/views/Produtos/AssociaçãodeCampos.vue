@@ -9,19 +9,17 @@
             <div>
                 <label>Família</label>
                 <select v-model="filtro.familia_id">
-                    <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
+                    <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome }}</option>
                 </select>
             </div>
             <div>
-                <div>
-                    <label>Tipo Produto</label>
-                    <select v-model="filtro.tipoProduto_id">
-                        <option v-for="tipo in tipos" :key="tipo.id" :value="tipo.id"> {{ tipo.nome }} </option>
-                    </select>
-                </div>
+                <label>Tipo Produto</label>
+                <select v-model="filtro.tipoProduto_id">
+                    <option v-for="tipo in tipos" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}</option>
+                </select>
             </div>
         </div>
-        <br>
+        <br />
         <div class="grid-2">
             <div class="bloco2 margem">
                 <h3>Campos</h3>
@@ -29,11 +27,18 @@
                     <label>
                         <input type="checkbox" :disabled="campo.obrigatorio"
                             :checked="camposSelecionados.includes(campo.id)" @change="toggleCampo(campo.id)" /> {{
-                                campo.label }} <span v-if="campo.obrigatorio"> (Obrigatório)</span>
+                                campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
                     </label>
                 </div>
-                <button class="acao-secundaria" v-if="filtro.familia_id && filtro.tipoProduto_id" @click="salvarCampos">
-                    Salvar Campos </button>
+                <div class="bloco2 margem" v-if="listaCampos.length > 0">
+                    <h3>Campos Adicionais</h3>
+                    <div v-for="(campo, index) in camposExtras" :key="index" class="margem alinha-v">
+                        <input v-model="campo.label" type="text" placeholder="Nome do campo" />
+                        <a @click="removerCampoExtra(index)" title="Clique para excluir campo"
+                            class="icone-lixeira"></a>
+                    </div>
+                    <button class="acao-secundaria" @click="adicionarCampoExtra"> + Adicionar Campo </button>
+                </div>
             </div>
             <div class="bloco2 margem">
                 <h3>Características</h3>
@@ -45,9 +50,12 @@
                                 @change="toggleCaracteristica(chave, item.id)" /> {{ item.nome }} </label>
                     </div>
                 </div>
-                <button v-if="filtro.familia_id && filtro.tipoProduto_id" class="acao-secundaria"
-                    @click="salvarCaracteristicas"> Salvar Características </button>
             </div>
+        </div>
+        <br />
+        <div class="alinha-centro">
+            <button v-if="filtro.familia_id && filtro.tipoProduto_id" class="acao-primaria" @click="salvarTudo"> Salvar
+                Campos e Características </button>
         </div>
     </div>
 </template>
@@ -62,7 +70,7 @@ const toaster = createToaster({
 });
 
 export default {
-    name: "AssociaçãodeCampos",
+    name: "AssociacaoCampos",
     data() {
         return {
             filtro: {
@@ -73,21 +81,19 @@ export default {
             tipos: [],
             listaCampos: [],
             camposSelecionados: [],
+            camposExtras: [],
             caracteristicasPossiveis: {},
             caracteristicasSelecionadas: {},
         };
     },
     watch: {
-        'filtro.familia_id': 'verificarCarregamento',
-        'filtro.tipoProduto_id': 'verificarCarregamento',
+        "filtro.familia_id": "verificarCarregamento",
+        "filtro.tipoProduto_id": "verificarCarregamento",
     },
     methods: {
         async verificarCarregamento() {
             if (this.filtro.familia_id && this.filtro.tipoProduto_id) {
-                await Promise.all([
-                    this.buscarCampos(),
-                    this.buscarCaracteristicas()
-                ]);
+                await Promise.all([this.buscarCampos(), this.buscarCaracteristicas()]);
             }
         },
 
@@ -99,7 +105,7 @@ export default {
                 ]);
 
                 this.listaCampos = todos;
-                this.camposSelecionados = selecionados.map(item => item.id);
+                this.camposSelecionados = selecionados.map((item) => item.id);
             } catch (e) {
                 console.error("Erro ao buscar campos", e);
             }
@@ -114,17 +120,12 @@ export default {
             }
         },
 
-        async salvarCampos() {
-            try {
-                await associacaoService.sincronizarFamiliaTipo({
-                    ...this.filtro,
-                    campo_ids: this.camposSelecionados,
-                });
-                toaster.success("Campos salvos com sucesso!");
-            } catch (e) {
-                console.error("Erro ao salvar campos", e);
-                toaster.error("Erro ao salvar campos.");
-            }
+        adicionarCampoExtra() {
+            this.camposExtras.push({ label: "" });
+        },
+
+        removerCampoExtra(index) {
+            this.camposExtras.splice(index, 1);
         },
 
         async buscarCaracteristicas() {
@@ -132,7 +133,7 @@ export default {
                 const retorno = await associacaoService.listarCaracteristicas(this.filtro);
                 this.caracteristicasSelecionadas = {};
                 for (const chave in retorno) {
-                    this.caracteristicasSelecionadas[chave] = retorno[chave].map(item => item.id);
+                    this.caracteristicasSelecionadas[chave] = retorno[chave].map((item) => item.id);
                 }
 
                 const [
@@ -182,16 +183,23 @@ export default {
             }
         },
 
-        async salvarCaracteristicas() {
+        async salvarTudo() {
             try {
+                await associacaoService.sincronizarFamiliaTipo({
+                    ...this.filtro,
+                    campo_ids: this.camposSelecionados,
+                    campos_extras: this.camposExtras,
+                });
+
                 await associacaoService.sincronizarCaracteristica({
                     ...this.filtro,
                     ...this.caracteristicasSelecionadas,
                 });
-                toaster.success("Características salvas com sucesso!");
+
+                toaster.success("Campos e características salvos com sucesso!");
             } catch (e) {
-                console.error("Erro ao salvar características", e);
-                toaster.error("Erro ao salvar características.");
+                console.error("Erro ao salvar", e);
+                toaster.error("Erro ao salvar.");
             }
         },
 
