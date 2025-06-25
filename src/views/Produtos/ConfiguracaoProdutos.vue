@@ -24,11 +24,9 @@
         </div>
         <br>
         <div class="bloco2 margem" v-if="nomeFamiliaSelecionada">
-            <div class="alinha-v ">
+            <div class="alinha-v" style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Campos para: {{ nomeFamiliaSelecionada }}</h3>
-                <div>
-                    <button class="acao-secundaria">Novo Campo</button>
-                </div>
+                <button class="acao-secundaria" @click="showModal = true">Novo Campo</button>
             </div>
             <br />
             <div class="checkbox-grid">
@@ -41,15 +39,66 @@
             </div>
         </div>
         <br />
-        <div v-if="nomeFamiliaSelecionada" class="submit m-b">
+        <div v-if="nomeFamiliaSelecionada" class="direita">
             <button @click="salvarConfiguracao"> Salvar Configuração </button>
         </div>
     </div>
+    <!-- MODAL -->
+    <div class="modal-mask" v-if="showModal" @click="showModal = false">
+        <div class="jm margem" style="min-width: 30vw" @click.stop>
+            <div class="alinha-centro">
+                <h3>Adicionar Campo</h3>
+            </div>
+            <fieldset class="grid-2 margem">
+                <div>
+                    <label>Nome</label>
+                    <input type="text" v-model="novoCampo.nome" />
+                </div>
+                <div>
+                    <label>Tipo</label>
+                    <select v-model="novoCampo.tipo">
+                        <option disabled value="">Selecione</option>
+                        <option>Texto</option>
+                        <option>Número</option>
+                        <option>Área de Texto</option>
+                        <option>Lista</option>
+                    </select>
+                </div>
+                <div class="toggle-wrapper" style="grid-column: span 2">
+                    <label style="margin-right: 1rem;">Obrigatório</label>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Não</span>
+                        <label class="toggle-wrapper" style="margin: 0;">
+                            <input type="checkbox" v-model="novoCampo.obrigatorio" />
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Sim</span>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <div>
+                    <label>Descrição</label>
+                    <textarea v-model="novoCampo.descricao"></textarea>
+                </div>
+            </fieldset>
+            <div class="direita margem submit">
+                <button class="acao-secundaria" @click="showModal = false">Cancelar</button>
+                <button @click="cadastrarCampos()">Salvar</button>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
 </template>
 <script>
 
 import associacaoService from '@/services/camposPorFamilia-service';
-import serviceProdutos from '@/services/serviceProdutos'
+import { createToaster } from "@meforma/vue-toaster";
+
+const toaster = createToaster({
+    position: "top-right",
+    duration: 6000,
+});
 export default {
     name: 'ConfigurarCamposPorTipo',
     data() {
@@ -60,6 +109,13 @@ export default {
             camposSelecionados: [],
             filtro: {
                 familia_id: ''
+            },
+            showModal: false,
+            novoCampo: {
+                nome: '',
+                tipo: '',
+                descricao: '',
+                obrigatorio: false,
             }
         };
     },
@@ -82,18 +138,31 @@ export default {
             try {
                 const payload = { familia_id: this.filtro.familia_id };
 
-                const [todos, selecionados] = await Promise.all([
-                    associacaoService.listarCampos(payload),
+                const [todosCampos, camposDaFamilia] = await Promise.all([
+                    associacaoService.listarCampos(),
+                    associacaoService.listarCamposFamilia(payload)
                 ]);
 
-                this.listaCampos = todos;
-                this.camposSelecionados = selecionados.map(item => item.id);
+                const camposMarcadosIds = camposDaFamilia.map(c => c.id);
+
+                this.listaCampos = todosCampos.map(campo => {
+                    const correspondente = camposDaFamilia.find(f => f.id === campo.id);
+                    return {
+                        ...campo,
+                        obrigatorio: correspondente?.obrigatorio || false,
+                        marcado: camposMarcadosIds.includes(campo.id)
+                    };
+                });
+
+                this.camposSelecionados = this.listaCampos
+                    .filter(c => !c.obrigatorio && c.marcado)
+                    .map(c => c.id);
+
             } catch (e) {
+                toaster.error("Erro ao buscar campos")
                 console.error("Erro ao buscar campos", e);
             }
         },
-
-
 
         toggleCampo(id) {
             if (this.camposSelecionados.includes(id)) {
@@ -103,15 +172,56 @@ export default {
             }
         },
 
-        salvarConfiguracao() {
+        async salvarConfiguracao() {
+            try {
+                const payload = {
+                    familia_id: this.filtro.familia_id,
+                    campo_ids: this.camposSelecionados,
+                };
 
+                await associacaoService.sincronizarCamposFamilia(payload);
+                toaster.success('Configuração salva com sucesso!')
+            } catch (e) {
+                console.error("Erro ao salvar configuração da família", e);
+                toaster.error('Erro ao salvar configuração.');
+            }
+        },
+
+        async cadastrarCampos() {
+            try {
+                if (!this.novoCampo.nome || !this.novoCampo.tipo) {
+                    toaster.error("Preencha o nome e tipo do campo.");
+                    return;
+                }
+
+                const payload = {
+                    nome: this.novoCampo.nome,
+                    tipo: this.novoCampo.tipo,
+                    descricao: this.novoCampo.descricao,
+                    obrigatorio: this.novoCampo.obrigatorio,
+                };
+
+                await associacaoService.gravarCampo(payload);
+
+                toaster.success("Campo criado com sucesso!");
+
+                this.showModal = false;
+                this.novoCampo = { nome: '', tipo: '', descricao: '', obrigatorio: false };
+
+                await this.buscarCampos();
+            } catch (e) {
+                console.error("Erro ao gravar campo", e);
+                toaster.error("Erro ao criar campo.");
+            }
         }
+
+
 
 
     },
     async mounted() {
         try {
-            const familiasResponse = await serviceProdutos.listarFamilia();
+            const familiasResponse = await associacaoService.listarFamilia();
             this.familias = familiasResponse.sort((a, b) => a.nome.localeCompare(b.nome));
         } catch (e) {
             console.error("Erro ao carregar tipos e famílias", e);

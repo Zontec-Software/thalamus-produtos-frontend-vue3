@@ -1,5 +1,7 @@
 import { api } from "roboflex-thalamus-request-handler";
 
+
+
 //Campos
 function listarCampos() {
     return api.get(`produto/campos/listar`).then(res => res.data);
@@ -31,7 +33,17 @@ function deletarValoresCampos(payload,id){
 
 }
 
+function gravarCampo(payload){
+            return api.post(`produto/campos/gravar/`,payload).then(res => res.data);
+
+}
+
 //Familia
+
+function listarFamilia(){
+    return api.get(`familia/listar`).then(res => res.data);
+
+}
 
 function sincronizarCamposFamilia(payload) {
     return api.post(`familia/campos/sincronizar`, payload).then(res => res.data);
@@ -53,11 +65,13 @@ function listarValoresCampos(payload) {
 }
 
 export default {
+    listarFamilia,
     listarCampos,
      sincronizarCamposFamilia,
     listarValoresCampos,
     cadastrarValoresCampo,
     atualizarValoresCampo,
     deletarValoresCampos,
-    listarCamposFamilia
+    listarCamposFamilia,
+    gravarCampo
 };
