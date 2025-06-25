@@ -8,7 +8,7 @@
             <a class="icone-pesquisa" title="Pesquise"></a>
           </div>
         </div>
-        <h2>Portfólio de Produtos</h2>
+        <h2>Produtos</h2>
       </div>
     </div>
     <div class="margem container">
@@ -88,13 +88,19 @@ export default {
     this.funcionalidades = await getPermissao();
 
     const { tipos, familias } = await serviceProdutos.getTipoeFamilias();
-    this.tiposProduto = tipos.map(t => t.nome);
-    this.familiasProduto = familias.map(f => f.familia_nome);
+
+    this.tiposProduto = tipos
+      .map(t => t.nome)
+      .sort((a, b) => a.localeCompare(b));
+
+    this.familiasProduto = familias
+      .map(f => f.familia_nome)
+      .sort((a, b) => a.localeCompare(b));
 
     this.blocoVisivel = this.funcionalidades.includes(113) ? 'portfolio' : 'novosProdutos';
-
-
   },
+
+
   methods: {
 
     cadastrarProduto() {
