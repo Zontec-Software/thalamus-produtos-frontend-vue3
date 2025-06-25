@@ -7,15 +7,15 @@
     <div class="margem container">
         <div class="bloco2 margem grid-1">
             <div>
-                <label>Família</label>
-                <select v-model="filtro.familia_id">
-                    <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome }}</option>
-                </select>
-            </div>
-            <div>
                 <label>Tipo Produto</label>
                 <select v-model="filtro.tipoProduto_id">
                     <option v-for="tipo in tipos" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}</option>
+                </select>
+            </div>
+            <div>
+                <label>Família</label>
+                <select v-model="filtro.familia_id">
+                    <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome }}</option>
                 </select>
             </div>
         </div>
@@ -61,7 +61,7 @@
 </template>
 <script>
 import serviceProdutos from "@/services/serviceProdutos";
-import associacaoService from "@/services/associacao-service";
+import associacaoService from "@/services/camposPorFamilia-service";
 import { createToaster } from "@meforma/vue-toaster";
 
 const toaster = createToaster({
