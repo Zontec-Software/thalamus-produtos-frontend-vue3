@@ -5,14 +5,11 @@
                 <div class="m-icone esquerda">
                     <a @click="this.$router.back()" class="icone-voltar m-d" title="Voltar"></a>
                 </div>
-                <h2> Cadastro de Campos: {{ this.campoNome }}</h2>
+                <h2> Cadastro de Campos: {{ this.campoNome }} </h2>
             </div>
         </div>
         <div class="margem container">
-            <div class="submit m-b">
-                <button class="acao-secundaria" @click="cadastrar()">Cadastrar</button>
-            </div>
-            <div class="bloco margem">
+            <div class="bloco2 margem">
                 <div>
                     <label>Família</label>
                     <select v-model="familiaId" @change="buscarValoresCampo">
@@ -22,37 +19,57 @@
                     </select>
                 </div>
             </div>
-            <div class="bloco margem">
-                <table class="tabela alinha-centro">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Nome</th>
-                            <th>Descrição</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody class="alinha-centro" style="cursor: pointer">
-                        <tr v-for="item in campos" :key="item.id">
-                            <td>{{ item.id }}</td>
-                            <td>{{ item.label }}</td>
-                            <td>{{ item.descricao }}</td>
-                            <td>
-                                <v-menu>
-                                    <template v-slot:activator="{ props }">
-                                        <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
-                                            style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
-                                        </v-btn>
-                                    </template>
-                                    <v-list>
-                                        <v-list-item>Editar</v-list-item>
-                                        <v-list-item style="color: red;">Excluir</v-list-item>
-                                    </v-list>
-                                </v-menu>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <br>
+            <div class="  grid-2 ">
+                <div class="bloco margem">
+                    <table class="tabela alinha-centro">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nome</th>
+                                <th>Descrição</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody class="alinha-centro" style="cursor: pointer">
+                            <tr v-for="item in campos" :key="item.id" @click="carregarDados(item)">
+                                <td>{{ item.id }}</td>
+                                <td>{{ item.label }}</td>
+                                <td>{{ item.descricao }}</td>
+                                <td>
+                                    <v-menu>
+                                        <template v-slot:activator="{ props }">
+                                            <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
+                                                style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
+                                            </v-btn>
+                                        </template>
+                                        <v-list>
+                                            <v-list-item>Editar</v-list-item>
+                                            <v-list-item style="color: red;">Excluir</v-list-item>
+                                        </v-list>
+                                    </v-menu>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bloco margem" v-if="dadosDoCampo.length">
+                    <button class="acao-secundaria" @click="cadastrar()">Cadastrar </button>
+                    <table class="tabela alinha-centro">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="dado in dadosDoCampo" :key="dado.id">
+                                <td>{{ dado.valor }}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <!-- MODAL -->
             <div class="modal-mask" v-if="showModal" @click="showModal = false">
@@ -98,6 +115,7 @@ export default {
             familiaId: null,
             familias: [],
             showModal: false,
+            dadosDoCampo: []
         };
     },
     async mounted() {
@@ -123,10 +141,27 @@ export default {
                     campo_id: Number(this.campoId)
                 };
 
-                const dados = await listaService.listarCamposFamilia(payload);
+                const dados = await listaService.listarSelectCampos(payload);
                 this.campos = dados;
             } catch (e) {
                 console.error("Erro ao buscar valores do campo da família", e);
+            }
+        },
+        async carregarDados(campo) {
+            try {
+                const payload = {
+                    familia_id: this.familiaId,
+                    campo_id: campo.id
+                };
+
+                const dados = await listaService.listarDadosdoCampo(payload);
+                this.dadosDoCampo = dados;
+
+                this.campoId = campo.id;
+                this.campoNome = campo.label;
+
+            } catch (e) {
+                console.error("Erro ao carregar dados do campo", e);
             }
         },
 
