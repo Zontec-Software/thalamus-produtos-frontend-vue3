@@ -13,7 +13,6 @@ import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
 import Gabarito from '@/views/Produtos/GabaritoView.vue';
 import ConfiguracaoProdutos from '@/views/Produtos/ConfiguracaoProdutos.vue';
 import ModaisProdutos from '@/views/Produtos/ModaisProdutos.vue';
-import AssociaçãodeCampos from '@/views/Produtos/AssociaçãodeCampos.vue';
 import CamposView from '@/views/Produtos/CamposView.vue';
 import CamposListar from '@/views/Produtos/CamposListar.vue';
 // redireciona usuario para LOGIN baseado no env
@@ -180,12 +179,7 @@ const routes = [
   beforeEnter: guardPermissaoRoute,
   props: true,
 },
-  {
-    path: '/associar',
-    name: 'AssociaçãodeCampos',
-    component: AssociaçãodeCampos,
-    beforeEnter: guardPermissaoRoute
-  },
+
     {
     path: '/campos',
     name: 'CamposView',

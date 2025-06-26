@@ -6,14 +6,6 @@
     </div>
     <div class="margem container">
         <div class="bloco2 margem">
-            <!-- <div>
-                <label for="tipo">Selecione o Tipo de Produto:</label>
-                <select >
-                    <option disabled value="">Selecione</option>
-                    <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id"> {{ tipo.nome }} </option>
-                </select>
-            </div>
-            <br> -->
             <div>
                 <label for="familia">Selecione a Família:</label>
                 <select v-model="filtro.familia_id" @change="verificarCarregamento">
@@ -60,17 +52,19 @@
                         <label>Tipo</label>
                         <select v-model="novoCampo.tipo">
                             <option disabled value="">Selecione</option>
-                            <option>Texto</option>
-                            <option>Número</option>
-                            <option>Área de Texto</option>
-                            <option>Lista</option>
+                            <option value="Texto">Texto</option>
+                            <option value="Número">Número</option>
+                            <option value="AreaTexto">Área de Texto</option>
+                            <option value="Data">Data</option>
+                            <option value="Lista">Lista</option>
+                            <option value="MultiLista">Multilista</option>
                         </select>
                     </div>
                     <div>
                         <label>Obrigatório</label>
-                        <select>
-                            <option>Sim</option>
-                            <option>Não</option>
+                        <select v-model="novoCampo.obrigatorio">
+                            <option :value="true">Sim</option>
+                            <option :value="false">Não</option>
                         </select>
                     </div>
                 </div>
@@ -204,14 +198,13 @@ export default {
                 }
 
                 const payload = {
-                    nome: this.novoCampo.nome,
+                    label: this.novoCampo.nome,
                     tipo: this.novoCampo.tipo,
                     descricao: this.novoCampo.descricao,
                     obrigatorio: this.novoCampo.obrigatorio,
                 };
 
                 await associacaoService.gravarCampo(payload);
-
                 toaster.success("Campo criado com sucesso!");
 
                 this.showModal = false;
@@ -223,9 +216,6 @@ export default {
                 toaster.error("Erro ao criar campo.");
             }
         }
-
-
-
 
     },
     async mounted() {

@@ -23,11 +23,11 @@
                         </tr>
                     </thead>
                     <tbody class="alinha-centro" style="cursor: pointer">
-                        <tr v-for="item in campos" :key="item.id" @click="abrirDetalhes(item)">
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                        <tr v-for="item in camposFiltrados" :key="item.id">
+                            <td>{{ item.label }}</td>
+                            <td>{{ item.descricao ?? '-' }}</td>
+                            <td>{{ item.obrigatorio ? 'Obrigatório' : 'Opcional' }}</td>
+                            <td>{{ item.tipo }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -36,12 +36,24 @@
     </section>
 </template>
 <script>
-import listaService from '@/services/camposPorFamilia-service';
+import listaService from "@/services/camposPorFamilia-service";
 
 export default {
     data() {
         return {
-            campos: ''
+            campos: [],
+            searchQuery: ""
+        };
+    },
+
+    computed: {
+        camposFiltrados() {
+            const busca = this.searchQuery.toLowerCase();
+            return this.campos.filter(item =>
+                (item.label ?? '').toLowerCase().includes(busca) ||
+                (item.descricao ?? '').toLowerCase().includes(busca) ||
+                (item.tipo ?? '').toLowerCase().includes(busca)
+            );
         }
     },
 
@@ -50,17 +62,14 @@ export default {
     },
 
     methods: {
-
         async listarCampos() {
             try {
                 const response = await listaService.listarSelectCampos();
-                this.campos = response.data;
+                this.campos = response;
             } catch (error) {
-                console.error("Erro ao carregar serviços:", error);
+                console.error("Erro ao carregar campos:", error);
             }
         }
-
     }
-}
-
+};
 </script>
