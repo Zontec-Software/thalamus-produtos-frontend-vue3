@@ -30,7 +30,8 @@
             </div>
             <br />
             <div class="checkbox-grid">
-                <label v-for="campo in listaCampos" :key="campo.id" class="toggle-wrapper ">
+                <label v-for="campo in listaCampos" :key="campo.id" class="toggle-wrapper "
+                    @click="irParaCamposDeLista(campo.id, campo.label)">
                     <span>{{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span></span>
                     <input type="checkbox" :disabled="campo.obrigatorio"
                         :checked="camposSelecionados.includes(campo.id)" @change="toggleCampo(campo.id)" />
@@ -49,34 +50,31 @@
             <div class="alinha-centro">
                 <h3>Adicionar Campo</h3>
             </div>
-            <fieldset class="grid-2 margem">
-                <div>
-                    <label>Nome</label>
-                    <input type="text" v-model="novoCampo.nome" />
-                </div>
-                <div>
-                    <label>Tipo</label>
-                    <select v-model="novoCampo.tipo">
-                        <option disabled value="">Selecione</option>
-                        <option>Texto</option>
-                        <option>Número</option>
-                        <option>Área de Texto</option>
-                        <option>Lista</option>
-                    </select>
-                </div>
-                <div class="toggle-wrapper" style="grid-column: span 2">
-                    <label style="margin-right: 1rem;">Obrigatório</label>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span>Não</span>
-                        <label class="toggle-wrapper" style="margin: 0;">
-                            <input type="checkbox" v-model="novoCampo.obrigatorio" />
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <span>Sim</span>
+            <fieldset class=" margem">
+                <div class="grid-2">
+                    <div>
+                        <label>Nome</label>
+                        <input type="text" v-model="novoCampo.nome" />
+                    </div>
+                    <div>
+                        <label>Tipo</label>
+                        <select v-model="novoCampo.tipo">
+                            <option disabled value="">Selecione</option>
+                            <option>Texto</option>
+                            <option>Número</option>
+                            <option>Área de Texto</option>
+                            <option>Lista</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Obrigatório</label>
+                        <select>
+                            <option>Sim</option>
+                            <option>Não</option>
+                        </select>
                     </div>
                 </div>
-            </fieldset>
-            <fieldset>
+                <br>
                 <div>
                     <label>Descrição</label>
                     <textarea v-model="novoCampo.descricao"></textarea>
@@ -128,6 +126,17 @@ export default {
     },
 
     methods: {
+        irParaCamposDeLista(campoId, campoLabel) {
+            this.$router.push({
+                name: 'CamposView',
+                query: {
+                    campo_id: campoId,
+                    campo_nome: campoLabel,
+                    familia_id: this.filtro.familia_id
+                }
+            });
+        },
+
         async verificarCarregamento() {
             if (this.filtro.familia_id) {
                 await Promise.all([this.buscarCampos()]);

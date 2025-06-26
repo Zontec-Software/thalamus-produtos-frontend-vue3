@@ -14,7 +14,8 @@ import Gabarito from '@/views/Produtos/GabaritoView.vue';
 import ConfiguracaoProdutos from '@/views/Produtos/ConfiguracaoProdutos.vue';
 import ModaisProdutos from '@/views/Produtos/ModaisProdutos.vue';
 import AssociaçãodeCampos from '@/views/Produtos/AssociaçãodeCampos.vue';
-import CadastroDeCampos from '@/views/Produtos/CadastroDeCampos.vue';
+import CamposView from '@/views/Produtos/CamposView.vue';
+import CamposListar from '@/views/Produtos/CamposListar.vue';
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
   const buildMode = process.env.NODE_ENV;
@@ -187,8 +188,14 @@ const routes = [
   },
     {
     path: '/campos',
-    name: 'CamposdeTexto',
-    component: CadastroDeCampos,
+    name: 'CamposView',
+    component: CamposView,
+    beforeEnter: guardPermissaoRoute
+  },
+      {
+    path: '/camposListar',
+    name: 'CamposListar',
+    component: CamposListar,
     beforeEnter: guardPermissaoRoute
   },
 

@@ -19,13 +19,11 @@
         <nav class="nav-maior separador">
             <router-link to="/" active-class="ativo">Produtos</router-link>
             <router-link to="/aprovacao" active-class="ativo">Aprovação</router-link>
-            <!-- <router-link to="/ferramentas" active-class="ativo">Ferramentas</router-link> -->
             <router-link to="/parametrosTeste" active-class="ativo">Parametros de Teste</router-link>
             <router-link to="/gabarito" active-class="ativo">Gabaritos</router-link>
             <router-link to="/configurar" active-class="ativo">Campos por Família</router-link>
-            <router-link to="/campos" active-class="ativo">Cadastro de Campos</router-link>
-            <!-- <router-link to="/associar" active-class="ativo">Associação de Campos</router-link> -->
-            <!-- <router-link to="/servicos" active-class="ativo">Serviços</router-link> -->
+            <!-- <router-link to="/campos" active-class="ativo">Cadastro de Campos</router-link> -->
+            <router-link to="/camposListar" active-class="ativo">Campos Listar</router-link>
             <!-- <router-link v-if="permissoes.includes(97)" to="/produtos" active-class="ativo">Produtos em
                 Edição</router-link> -->
         </nav>

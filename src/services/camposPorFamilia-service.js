@@ -8,6 +8,11 @@ function listarCampos() {
      // "familia_id" : 5,
 }
 
+function listarSelectCampos() {
+    return api.get(`produto/campos/select/listar`).then(res => res.data);
+     // "familia_id" : 5,
+}
+
 
 function cadastrarValoresCampo(payload){
         return api.post(`campos/valores/cadastrar`,payload).then(res => res.data);
@@ -38,6 +43,8 @@ function gravarCampo(payload){
 
 }
 
+
+
 //Familia
 
 function listarFamilia(){
@@ -57,6 +64,7 @@ function sincronizarCamposFamilia(payload) {
 function listarCamposFamilia(payload) {
     return api.post(`familia/campos/listar`, payload).then(res => res.data);
      // "familia_id" : 5,
+     //"campo_id": 1
 }
 
 function listarValoresCampos(payload) {
@@ -73,5 +81,6 @@ export default {
     atualizarValoresCampo,
     deletarValoresCampos,
     listarCamposFamilia,
-    gravarCampo
+    gravarCampo,
+    listarSelectCampos
 };
