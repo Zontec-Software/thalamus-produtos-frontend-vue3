@@ -34,8 +34,8 @@
                     </thead>
                     <tbody class="alinha-centro" style="cursor: pointer">
                         <tr v-for="item in campos" :key="item.id">
-                            <td>{{ item.cod }}</td>
-                            <td>{{ item.nome }}</td>
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.label }}</td>
                             <td>{{ item.descricao }}</td>
                             <td>
                                 <v-menu>

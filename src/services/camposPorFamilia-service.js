@@ -9,7 +9,7 @@ function listarCampos() {
 }
 
 function listarSelectCampos() {
-    return api.get(`produto/campos/select/listar`).then(res => res.data);
+    return api.get(`produto/campos/listar/lista`).then(res => res.data);
      // "familia_id" : 5,
 }
 
@@ -39,8 +39,15 @@ function deletarValoresCampos(payload,id){
 }
 
 function gravarCampo(payload){
-            return api.post(`produto/campos/gravar/`,payload).then(res => res.data);
+            return api.post(`produto/campos/gravar`,payload).then(res => res.data);
+// {
+//     "label": "Cor", // seria o campo "Nome" do seu modal
+//     "tipo": "Lista", // Texto,Número,Data,Lista,MultiLista,AreaTexto
+//     "obrigatorio": true,
 
+//     //opcionais
+//     "descricao": "Cor do produto"
+// }
 }
 
 
