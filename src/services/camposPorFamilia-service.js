@@ -74,6 +74,13 @@ function listarCamposFamilia(payload) {
      //"campo_id": 1
 }
 
+function listarDadosdoCampo(payload){
+        return api.post(`familia/campos/buscar`, payload).then(res => res.data);
+          // "familia_id" : 5,
+     //"campo_id": 1
+
+}
+
 function listarValoresCampos(payload) {
     return api.post(`familia/campos/valores/listar`, payload).then(res => res.data);
      // "familia_id" : 5,
@@ -89,5 +96,6 @@ export default {
     deletarValoresCampos,
     listarCamposFamilia,
     gravarCampo,
-    listarSelectCampos
+    listarSelectCampos,
+    listarDadosdoCampo
 };

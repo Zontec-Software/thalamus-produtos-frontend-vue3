@@ -37,7 +37,7 @@
             <a @click="$emit('abrirModal', 'versaoProduto')">Versão Produto</a>
             <a @click="$emit('abrirModal', 'especificacao')">Especificação Técnica</a>
         </nav> -->
-        <nav class="nav-maior separador">
+        <!-- <nav class="nav-maior separador">
             <router-link to="/cadastro/unidadeMedida" active-class="ativo">Unidade Medida</router-link>
             <router-link to="/cadastro/fixacao" active-class="ativo">Fixação</router-link>
             <router-link to="/cadastro/linha" active-class="ativo">Linha</router-link>
@@ -48,7 +48,7 @@
             <router-link to="/cadastro/especificacao" active-class="ativo">Especificação </router-link>
             <router-link to="/cadastro/linhaDevice" active-class="ativo">Linha Device *</router-link>
             <router-link to="/cadastro/modeloDevice" active-class="ativo">Modelo Device *</router-link>
-        </nav>
+        </nav> -->
     </aside>
 </template>
 <script>
