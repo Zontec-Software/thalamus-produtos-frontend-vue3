@@ -15,10 +15,18 @@
             <div class="bloco margem">
                 <table class="tabela alinha-centro">
                     <thead>
-                        <tr></tr>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Descrição</th>
+                            <th>Obrigatório / Opcional</th>
+                            <th>Tipo de Lista</th>
+                        </tr>
                     </thead>
                     <tbody class="alinha-centro" style="cursor: pointer">
                         <tr v-for="item in campos" :key="item.id" @click="abrirDetalhes(item)">
+                            <td></td>
+                            <td></td>
+                            <td></td>
                             <td></td>
                         </tr>
                     </tbody>
