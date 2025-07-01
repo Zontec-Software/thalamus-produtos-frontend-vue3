@@ -32,8 +32,8 @@ function atualizarValoresCampo(payload,id){
 
 }
 
-function deletarValoresCampos(payload,id){
-        return api.delete(`campos/valores/atualizar/${id}`,payload).then(res => res.data);
+function deletarValoresCampos(payload){
+        return api.delete(`campos/valores/atualizar`,payload).then(res => res.data);
          // "ids" :[5,6]
 
 }
@@ -48,6 +48,23 @@ function gravarCampo(payload){
 //     //opcionais
 //     "descricao": "Cor do produto"
 // }
+}
+
+function atualizarCampo(id, payload){
+return api.patch(`produto/campos/atualizar/${id}`,payload).then(res => res.data);
+
+// {
+//   "label": "Cor do Produto"
+//   //"tipo": "Lista",
+//   //"descricao": "Campo que define a cor",
+//   //"obrigatorio": true
+// }
+}
+
+function excluirCampo(id){
+        return api.delete(`produto/campos/excluir/${id}`).then(res => res.data);
+
+
 }
 
 
@@ -75,7 +92,7 @@ function listarCamposFamilia(payload) {
 }
 
 function listarDadosdoCampo(payload){
-        return api.post(`familia/campos/buscar`, payload).then(res => res.data);
+        return api.post(`familia/campos/buscar/valores`, payload).then(res => res.data);
           // "familia_id" : 5,
      //"campo_id": 1
 
@@ -84,6 +101,38 @@ function listarDadosdoCampo(payload){
 function listarValoresCampos(payload) {
     return api.post(`familia/campos/valores/listar`, payload).then(res => res.data);
      // "familia_id" : 5,
+}
+
+function cadastrarValores(payload){
+        return api.post(`campos/valores/cadastrar`, payload).then(res => res.data);
+// {
+//     "campo_id" : 26,
+//    "familia_id" : 5,
+//     "valores": [
+//         "Preto",
+//         "Branco",
+//         "Marrom"
+//     ]
+// }
+}
+
+function atualizarValor(id,payload){
+        return api.put(`campos/valores/atualizar/${id}`, payload).then(res => res.data);
+//  {
+//     "valor": "Preto 2"
+// }
+}
+
+function excluirValores(payload) {
+    return api.delete(`campos/valores/excluir`, { data: payload }).then(res => res.data);
+
+
+// {
+//     "ids": [
+//         1,
+//         3
+//     ]
+// }
 }
 
 export default {
@@ -97,5 +146,10 @@ export default {
     listarCamposFamilia,
     gravarCampo,
     listarSelectCampos,
-    listarDadosdoCampo
+    listarDadosdoCampo,
+    cadastrarValores,
+    atualizarValor,
+    excluirValores, 
+    atualizarCampo,
+    excluirCampo
 };
