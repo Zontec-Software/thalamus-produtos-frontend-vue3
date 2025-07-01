@@ -8,9 +8,9 @@
         ${produto_original.editadoPor ?? '??'}` }} </strong>
     </div>
     <div>
-      <div class="submit m-b">
+      <!-- <div class="submit m-b">
         <button v-if="isTemplate" @click="enviarAprovacao()">Enviar para Aprovação</button>
-      </div>
+      </div> -->
       <div class="grid-4  container">
         <div class="bloco2 margem col-3">
           <div class="grid-4">
