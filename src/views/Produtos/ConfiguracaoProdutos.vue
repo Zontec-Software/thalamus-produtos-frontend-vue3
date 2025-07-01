@@ -22,13 +22,14 @@
             </div>
             <br />
             <div class="checkbox-grid">
-                <label v-for="campo in listaCampos" :key="campo.id" class="toggle-wrapper "
-                    @click="irParaCamposDeLista(campo.id, campo.label)">
-                    <span>{{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span></span>
+                <div v-for="campo in listaCampos" :key="campo.id" class="toggle-wrapper">
+                    <span @click="irParaCamposDeLista(campo.id, campo.label)" style="cursor: pointer;"> {{ campo.label
+                        }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                    </span>
                     <input type="checkbox" :disabled="campo.obrigatorio"
                         :checked="camposSelecionados.includes(campo.id)" @change="toggleCampo(campo.id)" />
-                    <span class="toggle-slider"></span>
-                </label>
+                    <span class="toggle-slider" @click.stop="!campo.obrigatorio && toggleCampo(campo.id)"></span>
+                </div>
             </div>
         </div>
         <br />
