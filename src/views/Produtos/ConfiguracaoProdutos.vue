@@ -16,10 +16,9 @@
             </div>
         </div>
         <div class="bloco2 margem" v-if="nomeFamiliaSelecionada">
-            <div style="display: flex; justify-content: space-between;" class="alinha-v">
+            <div class="cabecalho-campos-lista">
                 <h3>Campos de Lista para {{ nomeFamiliaSelecionada }}</h3>
-                <button class="acao-secundaria direita " @click="showModal = true">Novo Campo</button>
-                <br>
+                <button class="acao-secundaria" @click="showModal = true">Novo Campo</button>
             </div>
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio && !c.omie)"
@@ -30,12 +29,15 @@
                     <span class="toggle-slider" @click.stop="toggleCampo(campo.id)"></span>
                 </div>
             </div>
-            <h3>Campos para: {{ nomeFamiliaSelecionada }}</h3>
+            <br>
+            <div class="cabecalho-campos-lista">
+                <h3>Campos para: {{ nomeFamiliaSelecionada }}</h3>
+            </div>
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos.filter(c => !['Lista', 'Multilista'].includes(c.tipo))" :key="campo.id"
                     class="toggle-wrapper">
                     <span v-if="!campo.obrigatorio && campo.tipo !== 'Texto'" style="cursor: pointer;"> {{ campo.label
-                    }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                        }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
                     </span>
                     <span v-else> {{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
                         <!-- <span v-if="campo.omie"> (OMIE)</span> -->
@@ -341,6 +343,13 @@ export default {
 };
 </script>
 <style scoped>
+.cabecalho-campos-lista {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
 .toggle-wrapper.destaque-lista {
     background-color: #e7f3ff !important;
     border: 2px solid #2196f3;
@@ -366,7 +375,16 @@ export default {
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #ddd;
+    gap: 8px;
 }
+
+.toggle-wrapper span:first-child {
+    flex: 1;
+    word-break: break-word;
+    white-space: normal;
+}
+
+
 
 .toggle-wrapper input {
     display: none;
