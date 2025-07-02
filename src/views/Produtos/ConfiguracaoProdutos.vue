@@ -10,21 +10,35 @@
                 <label for="familia">Selecione a Família:</label>
                 <select v-model="filtro.familia_id" @change="verificarCarregamento">
                     <option disabled value="">Selecione</option>
-                    <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
+                    <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome.toUpperCase() }}
+                    </option>
                 </select>
             </div>
         </div>
-        <br>
         <div class="bloco2 margem" v-if="nomeFamiliaSelecionada">
-            <div class="alinha-v" style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Campos para: {{ nomeFamiliaSelecionada }}</h3>
-                <button class="acao-secundaria" @click="showModal = true">Novo Campo</button>
+            <div style="display: flex; justify-content: space-between;" class="alinha-v">
+                <h3>Campos de Lista para {{ nomeFamiliaSelecionada }}</h3>
+                <button class="acao-secundaria direita " @click="showModal = true">Novo Campo</button>
+                <br>
             </div>
-            <br />
             <div class="checkbox-grid">
-                <div v-for="campo in listaCampos" :key="campo.id" class="toggle-wrapper">
-                    <span @click="irParaCamposDeLista(campo.id, campo.label)" style="cursor: pointer;"> {{ campo.label
-                        }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio && !c.omie)"
+                    :key="campo.id" class="toggle-wrapper destaque-lista">
+                    <span @click="abrirModalCampo(campo)" style="cursor: pointer;">{{ campo.label }}</span>
+                    <input type="checkbox" :checked="camposSelecionados.includes(campo.id)"
+                        @change="toggleCampo(campo.id)" />
+                    <span class="toggle-slider" @click.stop="toggleCampo(campo.id)"></span>
+                </div>
+            </div>
+            <h3>Campos para: {{ nomeFamiliaSelecionada }}</h3>
+            <div class="checkbox-grid">
+                <div v-for="campo in listaCampos.filter(c => !['Lista', 'Multilista'].includes(c.tipo))" :key="campo.id"
+                    class="toggle-wrapper">
+                    <span v-if="!campo.obrigatorio && campo.tipo !== 'Texto'" style="cursor: pointer;"> {{ campo.label
+                    }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                    </span>
+                    <span v-else> {{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                        <!-- <span v-if="campo.omie"> (OMIE)</span> -->
                     </span>
                     <input type="checkbox" :disabled="campo.obrigatorio"
                         :checked="camposSelecionados.includes(campo.id)" @change="toggleCampo(campo.id)" />
@@ -37,6 +51,53 @@
             <button @click="salvarConfiguracao"> Salvar Configuração </button>
         </div>
     </div>
+    <!-- MODAL DE VALORES DO CAMPO -->
+    <div class="modal-mask" v-if="modalCampo.aberto" @click="modalCampo.aberto = false">
+        <div class="jm margem" style="min-width: 40vw" @click.stop>
+            <h3 class="alinha-centro">Valores do Campo: {{ modalCampo.nome }}</h3>
+            <h4 class="alinha-centro">Familia: {{ nomeFamiliaSelecionada }}</h4>
+            <table class="tabela margem alinha-centro">
+                <thead>
+                    <tr>
+                        <th>Valor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="valor in modalCampo.dados" :key="valor.id">
+                        <td v-if="modalCampo.editandoId !== valor.id">{{ valor.valor }}</td>
+                        <td v-else>
+                            <input v-model="modalCampo.valorEdicao" />
+                        </td>
+                        <td>
+                            <a style="transform: scale(0.8);" @click="editarValor(valor)"
+                                title="Clique para editar valor" class="icone-editar"></a>
+                            <button v-if="modalCampo.editandoId === valor.id"
+                                @click="salvarValorEditado">Salvar</button>
+                            <button v-if="modalCampo.editandoId === valor.id"
+                                @click="cancelarEdicaoValor">Cancelar</button>
+                            <a @click="excluirValorCampo(valor.id)" title="Clique para excluir valor" style="color:red;"
+                                class="icone-lixeira"></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <fieldset>
+                <div>
+                    <label>Adicionar Novo(s) Valor(es)</label>
+                    <div v-for="(v, i) in modalCampo.novosValores" :key="i" class="margem">
+                        <input type="text" v-model="modalCampo.novosValores[i]" />
+                    </div>
+                </div>
+                <button class="acao-secundaria" @click="adicionarNovoValor">+ Adicionar outro</button>
+            </fieldset>
+            <div class="direita margem">
+                <button class="acao-secundaria" @click="modalCampo.aberto = false">Fechar</button>
+                <button @click="cadastrarValoresCampo">Salvar</button>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
     <!-- MODAL -->
     <div class="modal-mask" v-if="showModal" @click="showModal = false">
         <div class="jm margem" style="min-width: 30vw" @click.stop>
@@ -109,7 +170,17 @@ export default {
                 tipo: '',
                 descricao: '',
                 obrigatorio: false,
-            }
+            },
+            modalCampo: {
+                aberto: false,
+                id: null,
+                nome: '',
+                dados: [],
+                novosValores: [''],
+                editandoId: null,
+                valorEdicao: ''
+            },
+
         };
     },
 
@@ -121,15 +192,54 @@ export default {
     },
 
     methods: {
-        irParaCamposDeLista(campoId, campoLabel) {
-            this.$router.push({
-                name: 'CamposView',
-                query: {
-                    campo_id: campoId,
-                    campo_nome: campoLabel,
-                    familia_id: this.filtro.familia_id
-                }
+        async abrirModalCampo(campo) {
+            this.modalCampo.id = campo.id;
+            this.modalCampo.nome = campo.label;
+            this.modalCampo.aberto = true;
+            this.modalCampo.novosValores = [''];
+            this.modalCampo.editandoId = null;
+            await this.buscarValoresDoCampo();
+        },
+        async buscarValoresDoCampo() {
+            const payload = {
+                campo_id: this.modalCampo.id,
+                familia_id: this.filtro.familia_id
+            };
+            this.modalCampo.dados = await associacaoService.listarDadosdoCampo(payload);
+        },
+        adicionarNovoValor() {
+            this.modalCampo.novosValores.push('');
+        },
+        async cadastrarValoresCampo() {
+            const valores = this.modalCampo.novosValores.map(v => v.trim()).filter(v => v);
+            if (!valores.length) return;
+            const payload = {
+                campo_id: this.modalCampo.id,
+                familia_id: this.filtro.familia_id,
+                valores
+            };
+            await associacaoService.cadastrarValores(payload);
+            this.modalCampo.novosValores = [''];
+            await this.buscarValoresDoCampo();
+        },
+        editarValor(dado) {
+            this.modalCampo.editandoId = dado.id;
+            this.modalCampo.valorEdicao = dado.valor;
+        },
+        cancelarEdicaoValor() {
+            this.modalCampo.editandoId = null;
+            this.modalCampo.valorEdicao = '';
+        },
+        async salvarValorEditado() {
+            await associacaoService.atualizarValor(this.modalCampo.editandoId, {
+                valor: this.modalCampo.valorEdicao.trim()
             });
+            this.cancelarEdicaoValor();
+            await this.buscarValoresDoCampo();
+        },
+        async excluirValorCampo(id) {
+            await associacaoService.excluirValores({ ids: [id] });
+            await this.buscarValoresDoCampo();
         },
 
         async verificarCarregamento() {
@@ -231,6 +341,12 @@ export default {
 };
 </script>
 <style scoped>
+.toggle-wrapper.destaque-lista {
+    background-color: #e7f3ff !important;
+    border: 2px solid #2196f3;
+}
+
+
 .campos-config {
     margin-top: 1rem;
 }
