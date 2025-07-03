@@ -21,12 +21,15 @@
                 <button class="acao-secundaria" @click="showModal = true">Novo Campo</button>
             </div>
             <div class="checkbox-grid">
-                <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio && !c.omie)"
+                <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio)"
                     :key="campo.id" class="toggle-wrapper destaque-lista">
-                    <span @click="abrirModalCampo(campo)" style="cursor: pointer;">{{ campo.label }}</span>
+                    <span @click="!campo.omie && abrirModalCampo(campo)"
+                        :style="{ cursor: campo.omie ? 'not-allowed' : 'pointer', color: campo.omie ? '#999' : '' }"> {{
+                            campo.label }} <span v-if="campo.omie"></span>
+                    </span>
                     <input type="checkbox" :checked="camposSelecionados.includes(campo.id)"
-                        @change="toggleCampo(campo.id)" />
-                    <span class="toggle-slider" @click.stop="toggleCampo(campo.id)"></span>
+                        @change="toggleCampo(campo.id)" :disabled="campo.omie" />
+                    <span class="toggle-slider" @click.stop="!campo.omie && toggleCampo(campo.id)"></span>
                 </div>
             </div>
             <br>
@@ -36,15 +39,14 @@
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos.filter(c => !['Lista', 'Multilista'].includes(c.tipo))" :key="campo.id"
                     class="toggle-wrapper">
-                    <span v-if="!campo.obrigatorio && campo.tipo !== 'Texto'" style="cursor: pointer;"> {{ campo.label
-                        }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                    <span
+                        :style="{ color: campo.disabled ? '#999' : '', cursor: campo.disabled ? 'default' : 'pointer' }">
+                        {{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                        <span v-if="campo.omie"></span>
                     </span>
-                    <span v-else> {{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
-                        <!-- <span v-if="campo.omie"> (OMIE)</span> -->
-                    </span>
-                    <input type="checkbox" :disabled="campo.obrigatorio"
-                        :checked="camposSelecionados.includes(campo.id)" @change="toggleCampo(campo.id)" />
-                    <span class="toggle-slider" @click.stop="!campo.obrigatorio && toggleCampo(campo.id)"></span>
+                    <input type="checkbox" :checked="camposSelecionados.includes(campo.id)" :disabled="campo.disabled"
+                        @change="toggleCampo(campo.id)" />
+                    <span class="toggle-slider" @click.stop="!campo.disabled && toggleCampo(campo.id)"></span>
                 </div>
             </div>
         </div>
@@ -262,31 +264,39 @@ export default {
                 const camposMarcadosIds = camposDaFamilia.map(c => c.id);
 
                 this.listaCampos = todosCampos.map(campo => {
-                    const correspondente = camposDaFamilia.find(f => f.id === campo.id);
+                    const jaMarcado = camposMarcadosIds.includes(campo.id);
+                    const isOmie = campo.omie === 1 || campo.omie === true;
+                    const isObrigatorio = campo.obrigatorio === true;
+
                     return {
                         ...campo,
-                        obrigatorio: correspondente?.obrigatorio || false,
-                        marcado: camposMarcadosIds.includes(campo.id)
+                        marcado: jaMarcado || isOmie || isObrigatorio,
+                        disabled: isOmie || isObrigatorio
                     };
                 });
 
                 this.camposSelecionados = this.listaCampos
-                    .filter(c => !c.obrigatorio && c.marcado)
+                    .filter(c => c.marcado)
                     .map(c => c.id);
 
             } catch (e) {
-                toaster.error("Erro ao buscar campos")
+                toaster.error("Erro ao buscar campos");
                 console.error("Erro ao buscar campos", e);
             }
         },
 
+
         toggleCampo(id) {
+            const campo = this.listaCampos.find(c => c.id === id);
+            if (!campo || campo.disabled) return;
+
             if (this.camposSelecionados.includes(id)) {
                 this.camposSelecionados = this.camposSelecionados.filter(campoId => campoId !== id);
             } else {
                 this.camposSelecionados.push(id);
             }
         },
+
 
         async salvarConfiguracao() {
             try {
