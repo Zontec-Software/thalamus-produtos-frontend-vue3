@@ -34,11 +34,20 @@
             </div>
             <br>
             <div class="cabecalho-campos-lista">
-                <h3>Campos para: {{ nomeFamiliaSelecionada }}</h3>
+                <h3>Outros Campos para {{ nomeFamiliaSelecionada }}</h3>
             </div>
             <div class="checkbox-grid">
-                <div v-for="campo in listaCampos.filter(c => !['Lista', 'Multilista'].includes(c.tipo))" :key="campo.id"
-                    class="toggle-wrapper">
+                <div v-for="campo in listaCampos
+                    .filter(c => !['Lista', 'Multilista'].includes(c.tipo))
+                    .sort((a, b) => {
+                        const ordem = campo => {
+                            if (campo.omie && campo.obrigatorio) return 1;
+                            if (campo.omie && !campo.obrigatorio) return 2;
+                            if (!campo.omie && campo.obrigatorio) return 3;
+                            return 4;
+                        };
+                        return ordem(a) - ordem(b);
+                    })" :key="campo.id" class="toggle-wrapper">
                     <span
                         :style="{ color: campo.disabled ? '#999' : '', cursor: campo.disabled ? 'default' : 'pointer' }">
                         {{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
@@ -131,6 +140,13 @@
                         <select v-model="novoCampo.obrigatorio">
                             <option :value="true">Sim</option>
                             <option :value="false">Não</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Campo Fiscal</label>
+                        <select>
+                            <option>Sim</option>
+                            <option>Não</option>
                         </select>
                     </div>
                 </div>
