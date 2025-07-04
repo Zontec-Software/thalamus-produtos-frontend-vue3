@@ -509,7 +509,7 @@ const funções = {
     },
 
     async adicionarServico(payload) {
-      
+
         try {
             const response = await api.post('/setor-servico/adicionar', payload);
             return response.data;
@@ -521,7 +521,7 @@ const funções = {
     },
 
     async atualizarServico(id, payload) {
-    
+
         try {
             const response = await api.patch(`/setor-servico/atualizar/${id}`, payload);
             return response.data;
@@ -582,7 +582,7 @@ const funções = {
         }
     },
 
-     async removerGabarito(id) {
+    async removerGabarito(id) {
         try {
             const response = await api.delete(`setor-servico/gabarito/remover/${id}`);
             return response.data;
@@ -603,7 +603,7 @@ const funções = {
     },
 
     async atualizarInsumo(id, payload) {
-    
+
         try {
             const response = await api.patch(`/setor-servico/insumo/atualizar/${id}`, payload);
             return response.data;
@@ -613,8 +613,8 @@ const funções = {
         }
     },
 
-       async atualizarGabarito(id, payload) {
-        
+    async atualizarGabarito(id, payload) {
+
         try {
             const response = await api.patch(`/setor-servico/gabarito/atualizar/${id}`, payload);
             return response.data;
@@ -632,10 +632,20 @@ const funções = {
             console.error(error);
             throw error;
         }
-    }, 
+    },
 
-      //ANEXOS
-    async gravarAnexo(payload, id_setor_servico){
+    async reordenarServicos(id, ordem) {
+        try {
+            const response = await api.put(`setor-servico/${id}/ordem`, { ordem: ordem });
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    //ANEXOS
+    async gravarAnexo(payload, id_setor_servico) {
         try {
             const response = await api.post(`anexar/roteiro-servico/${id_setor_servico}`, payload)
             return response.data;
@@ -647,8 +657,8 @@ const funções = {
         }
     },
 
-    async deletarAnexo(id_setor_servico, anexo_id){
-          try {
+    async deletarAnexo(id_setor_servico, anexo_id) {
+        try {
             const response = await api.delete(`anexos/roteiro-servico/${id_setor_servico}/${anexo_id}`)
             return response.data;
 
@@ -658,8 +668,8 @@ const funções = {
         }
     },
 
-    async listarAnexo(roteiro_id){
-            try {
+    async listarAnexo(roteiro_id) {
+        try {
             const response = await api.get(`anexos/roteiro-servico/${roteiro_id}`)
             return response.data;
 
@@ -669,7 +679,7 @@ const funções = {
         }
     },
 
-     // async downloadAnexo(anexo_id){
+    // async downloadAnexo(anexo_id){
     //        try {
     //         const response = await api.get(`anexo/download/${anexo_id}`)
     //         return response.data;
@@ -681,21 +691,21 @@ const funções = {
     // }
 
     //ANEXO INSPEÇÃO
-async  gravarAnexoParametro(formData, servicoId) {
-  return api.post(`/roteiro/${servicoId}/parametro/anexo`, formData);
-},
+    async gravarAnexoParametro(formData, servicoId) {
+        return api.post(`/roteiro/${servicoId}/parametro/anexo`, formData);
+    },
 
-async  deletarAnexoParametro(servicoId, parametroId, anexoId) {
-  return api.delete(`/roteiro/${servicoId}/parametro/${parametroId}/anexo/${anexoId}`);
-},
+    async deletarAnexoParametro(servicoId, parametroId, anexoId) {
+        return api.delete(`/roteiro/${servicoId}/parametro/${parametroId}/anexo/${anexoId}`);
+    },
 
-async  atualizarParametro(servicoId, parametroId, payload) {
-  return api.put(`/roteiro/${servicoId}/parametro/${parametroId}`, payload);
-}
+    async atualizarParametro(servicoId, parametroId, payload) {
+        return api.put(`/roteiro/${servicoId}/parametro/${parametroId}`, payload);
+    }
 
 
 
-   
+
 
 }
 
