@@ -15,6 +15,7 @@
                 </select>
             </div>
         </div>
+        <br>
         <div class="bloco2 margem" v-if="nomeFamiliaSelecionada">
             <div class="cabecalho-campos-lista">
                 <h3>Campos de Lista para {{ nomeFamiliaSelecionada }}</h3>
@@ -23,17 +24,18 @@
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio)"
                     :key="campo.id" class="toggle-wrapper">
-                    <span @click="!campo.omie && abrirModalCampo(campo)"
-                        :style="{ cursor: campo.omie ? 'not-allowed' : 'pointer', color: campo.omie ? '#999' : '' }"><strong>{{
-                            campo.label }}</strong> <span v-if="campo.omie">(Obrigatório)</span> <a v-if="!campo.omie"
-                            style="transform: scale(0.8);" title="Clique para editar valores">✏️</a>
-                    </span>
-                    <div class="linha-labels">
-                        <span>Opções</span>
-                        <span>Habilitar</span>
+
+                    <i @click="!campo.omie && abrirModalCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
+                        title="Clique para editar valores"></i>
+
+                    <div @click="!campo.omie && abrirModalCampo(campo)" class="card-titulo"
+                        :class="{ 'obrigatorio': campo.omie }">
+                        <strong>{{ campo.label }}</strong><span v-if="campo.omie"> (Obrigatório)</span>
                     </div>
-                    <div>
-                        <div class="linha-conteudo">
+
+                    <div class="card-opções">
+                        <div class="alinha-centro">
+                            <label>Opções</label>
                             <v-menu>
                                 <template v-slot:activator="{ props }">
                                     <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
@@ -47,9 +49,18 @@
                                 </v-list>
                             </v-menu>
                         </div>
-                        <input type="checkbox" :checked="camposSelecionados.includes(campo.id)"
-                            @change="toggleCampo(campo.id)" :disabled="campo.omie" />
-                        <span class="toggle-slider" @click.stop="!campo.omie && toggleCampo(campo.id)"></span>
+                        <div class="alinha-centro">
+                            <label>Habilitar</label>
+                            <a v-if="!campo.omie" @click="toggleCampo(campo.id)"
+                                :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
+                                <span class="toggle direita"></span>
+                            </a>
+                            <span v-else>
+                                <a class="ativo">
+                                    <span class="toggle direita"></span>
+                                </a>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,15 +80,23 @@
                         };
                         return ordem(a) - ordem(b);
                     })" :key="campo.id" class="toggle-wrapper">
-                    <span
-                        :style="{ color: campo.disabled ? '#999' : '', cursor: campo.disabled ? 'default' : 'pointer' }">
-                        {{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
-                        <span v-if="campo.omie"></span><a v-if="!campo.obrigatorio" style="transform: scale(0.8);"
-                            title="Clique para editar valores" class="icone-editar"></a>
+
+                    <i class="bi-pencil-fill" v-if="!campo.obrigatorio" title="Clique para editar valores"></i>
+
+                    <div class="card-titulo" :class="{ 'desativado': campo.disabled }">
+                        {{ campo.label }}
+                        <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                    </div>
+
+                    <a v-if="!campo.disabled" @click="toggleCampo(campo.id)"
+                        :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
+                        <span class="toggle direita"></span>
+                    </a>
+                    <span v-else>
+                        <a class="ativo">
+                            <span class="toggle direita"></span>
+                        </a>
                     </span>
-                    <input type="checkbox" :checked="camposSelecionados.includes(campo.id)" :disabled="campo.disabled"
-                        @change="toggleCampo(campo.id)" />
-                    <span class="toggle-slider" @click.stop="!campo.disabled && toggleCampo(campo.id)"></span>
                 </div>
             </div>
         </div>
@@ -86,12 +105,15 @@
             <button @click="salvarConfiguracao"> Salvar Configuração </button>
         </div>
     </div>
+
     <!-- MODAL DE VALORES DO CAMPO -->
     <div class="modal-mask" v-if="modalCampo.aberto" @click="modalCampo.aberto = false">
-        <div class="jm margem modal-container" @click.stop>
+        <div class="jm margem" @click.stop style="min-width: 50vw;">
+
             <div class="modal-scroll-content">
                 <h3 class="alinha-centro">Valores do Campo: {{ modalCampo.nome }}</h3>
                 <h4 class="alinha-centro">Família: {{ nomeFamiliaSelecionada }}</h4>
+                <br>
                 <div class="tabela-scroll">
                     <table class="tabela margem alinha-centro">
                         <thead>
@@ -122,14 +144,16 @@
                 </div>
                 <fieldset>
                     <label>Adicionar Novo(s) Valor(es)</label>
-                    <div v-for="(v, i) in modalCampo.novosValores" :key="i" class="margem">
+                    <div v-for="(v, i) in modalCampo.novosValores" :key="i">
                         <input type="text" v-model="modalCampo.novosValores[i]" placeholder="Digite um valor" />
                     </div>
+                    <br>
                     <button class="acao-secundaria" @click="adicionarNovoValor">+ Adicionar outro</button>
                 </fieldset>
             </div>
-            <!-- Botões fixos -->
-            <div class="direita margem">
+
+
+            <div class="direita submit m-b">
                 <button class="acao-secundaria" @click="modalCampo.aberto = false">Fechar</button>
                 <button @click="cadastrarValoresCampo">Salvar</button>
             </div>
@@ -401,15 +425,6 @@ export default {
     margin-bottom: 1rem;
 }
 
-.toggle-wrapper.destaque-lista {
-    background-color: var(--cor-bg) !important;
-    border: 2px solid #2196f3;
-}
-
-
-.campos-config {
-    margin-top: 1rem;
-}
 
 .checkbox-grid {
     display: grid;
@@ -420,57 +435,49 @@ export default {
 
 .toggle-wrapper {
     display: flex;
-    align-items: center;
+    flex-flow: column;
     justify-content: space-between;
+    align-items: center;
     background: var(--cor-bg);
-
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #ddd;
     gap: 8px;
-}
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
 
-.toggle-wrapper span:first-child {
-    flex: 1;
-    word-break: break-word;
-    white-space: normal;
-}
+    .card-titulo {
+        width: 100%;
+        text-align: center;
+        cursor: pointer;
+    }
 
+    .card-opções {
+        display: flex;
+        width: 100%;
+        padding-inline: .5rem;
+        justify-content: space-between;
+    }
 
+    i {
+        position: absolute;
+        align-self: flex-end;
+    }
 
-.toggle-wrapper input {
-    display: none;
-}
+    i:hover {
+        transition: all 100ms linear;
+        font-size: 16px;
+        cursor: pointer;
+    }
 
-.toggle-slider {
-    width: 42px;
-    height: 22px;
-    background-color: var(--cor-bg);
-    border-radius: 34px;
-    position: relative;
-    transition: 0.3s;
-    cursor: pointer;
-}
+    .obrigatorio {
+        cursor: not-allowed !important;
+        color: #999;
+    }
 
-.toggle-slider::before {
-    content: "";
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    left: 2px;
-    top: 2px;
-    background-color: var(--cor-bg);
-    ;
-    border-radius: 50%;
-    transition: 0.3s;
-}
-
-.toggle-wrapper input:checked+.toggle-slider {
-    background-color: var(--cor-primaria);
-}
-
-.toggle-wrapper input:checked+.toggle-slider::before {
-    transform: translateX(20px);
+    .desativado {
+        color: #999;
+        cursor: default
+    }
 }
 
 .adicionarItem {
