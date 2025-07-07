@@ -22,14 +22,35 @@
             </div>
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio)"
-                    :key="campo.id" class="toggle-wrapper destaque-lista">
+                    :key="campo.id" class="toggle-wrapper">
                     <span @click="!campo.omie && abrirModalCampo(campo)"
-                        :style="{ cursor: campo.omie ? 'not-allowed' : 'pointer', color: campo.omie ? '#999' : '' }"> {{
-                            campo.label }} <span v-if="campo.omie"></span>
+                        :style="{ cursor: campo.omie ? 'not-allowed' : 'pointer', color: campo.omie ? '#999' : '' }"><strong>{{
+                            campo.label }}</strong> <span v-if="campo.omie">(Obrigatório)</span> <a v-if="!campo.omie"
+                            style="transform: scale(0.8);" title="Clique para editar valores">✏️</a>
                     </span>
-                    <input type="checkbox" :checked="camposSelecionados.includes(campo.id)"
-                        @change="toggleCampo(campo.id)" :disabled="campo.omie" />
-                    <span class="toggle-slider" @click.stop="!campo.omie && toggleCampo(campo.id)"></span>
+                    <div class="linha-labels">
+                        <span>Opções</span>
+                        <span>Habilitar</span>
+                    </div>
+                    <div>
+                        <div class="linha-conteudo">
+                            <v-menu>
+                                <template v-slot:activator="{ props }">
+                                    <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
+                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
+                                    </v-btn>
+                                </template>
+                                <v-list>
+                                    <v-list-item @click="editarCampo(item)">Editar</v-list-item>
+                                    <v-list-item style="color: red;"
+                                        @click="excluirCampo(item.id)">Excluir</v-list-item>
+                                </v-list>
+                            </v-menu>
+                        </div>
+                        <input type="checkbox" :checked="camposSelecionados.includes(campo.id)"
+                            @change="toggleCampo(campo.id)" :disabled="campo.omie" />
+                        <span class="toggle-slider" @click.stop="!campo.omie && toggleCampo(campo.id)"></span>
+                    </div>
                 </div>
             </div>
             <br>
@@ -51,7 +72,8 @@
                     <span
                         :style="{ color: campo.disabled ? '#999' : '', cursor: campo.disabled ? 'default' : 'pointer' }">
                         {{ campo.label }} <span v-if="campo.obrigatorio">(Obrigatório)</span>
-                        <span v-if="campo.omie"></span>
+                        <span v-if="campo.omie"></span><a v-if="!campo.obrigatorio" style="transform: scale(0.8);"
+                            title="Clique para editar valores" class="icone-editar"></a>
                     </span>
                     <input type="checkbox" :checked="camposSelecionados.includes(campo.id)" :disabled="campo.disabled"
                         @change="toggleCampo(campo.id)" />
@@ -66,44 +88,47 @@
     </div>
     <!-- MODAL DE VALORES DO CAMPO -->
     <div class="modal-mask" v-if="modalCampo.aberto" @click="modalCampo.aberto = false">
-        <div class="jm margem" style="min-width: 40vw" @click.stop>
-            <h3 class="alinha-centro">Valores do Campo: {{ modalCampo.nome }}</h3>
-            <h4 class="alinha-centro">Familia: {{ nomeFamiliaSelecionada }}</h4>
-            <table class="tabela margem alinha-centro">
-                <thead>
-                    <tr>
-                        <th>Valor</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="valor in modalCampo.dados" :key="valor.id">
-                        <td v-if="modalCampo.editandoId !== valor.id">{{ valor.valor }}</td>
-                        <td v-else>
-                            <input v-model="modalCampo.valorEdicao" />
-                        </td>
-                        <td>
-                            <a style="transform: scale(0.8);" @click="editarValor(valor)"
-                                title="Clique para editar valor" class="icone-editar"></a>
-                            <button v-if="modalCampo.editandoId === valor.id"
-                                @click="salvarValorEditado">Salvar</button>
-                            <button v-if="modalCampo.editandoId === valor.id"
-                                @click="cancelarEdicaoValor">Cancelar</button>
-                            <a @click="excluirValorCampo(valor.id)" title="Clique para excluir valor" style="color:red;"
-                                class="icone-lixeira"></a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <fieldset>
-                <div>
+        <div class="jm margem modal-container" @click.stop>
+            <div class="modal-scroll-content">
+                <h3 class="alinha-centro">Valores do Campo: {{ modalCampo.nome }}</h3>
+                <h4 class="alinha-centro">Família: {{ nomeFamiliaSelecionada }}</h4>
+                <div class="tabela-scroll">
+                    <table class="tabela margem alinha-centro">
+                        <thead>
+                            <tr>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="valor in modalCampo.dados" :key="valor.id">
+                                <td v-if="modalCampo.editandoId !== valor.id">{{ valor.valor }}</td>
+                                <td v-else>
+                                    <input v-model="modalCampo.valorEdicao" />
+                                </td>
+                                <td>
+                                    <a style="transform: scale(0.8);" @click="editarValor(valor)"
+                                        title="Clique para editar valor" class="icone-editar"></a>
+                                    <button v-if="modalCampo.editandoId === valor.id"
+                                        @click="salvarValorEditado">Salvar</button>
+                                    <button v-if="modalCampo.editandoId === valor.id"
+                                        @click="cancelarEdicaoValor">Cancelar</button>
+                                    <a @click="excluirValorCampo(valor.id)" title="Clique para excluir valor"
+                                        class="icone-lixeira" style="color:red;"></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <fieldset>
                     <label>Adicionar Novo(s) Valor(es)</label>
                     <div v-for="(v, i) in modalCampo.novosValores" :key="i" class="margem">
-                        <input type="text" v-model="modalCampo.novosValores[i]" />
+                        <input type="text" v-model="modalCampo.novosValores[i]" placeholder="Digite um valor" />
                     </div>
-                </div>
-                <button class="acao-secundaria" @click="adicionarNovoValor">+ Adicionar outro</button>
-            </fieldset>
+                    <button class="acao-secundaria" @click="adicionarNovoValor">+ Adicionar outro</button>
+                </fieldset>
+            </div>
+            <!-- Botões fixos -->
             <div class="direita margem">
                 <button class="acao-secundaria" @click="modalCampo.aberto = false">Fechar</button>
                 <button @click="cadastrarValoresCampo">Salvar</button>
@@ -377,7 +402,7 @@ export default {
 }
 
 .toggle-wrapper.destaque-lista {
-    background-color: #e7f3ff !important;
+    background-color: var(--cor-bg) !important;
     border: 2px solid #2196f3;
 }
 
@@ -397,7 +422,8 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #f9f9f9;
+    background: var(--cor-bg);
+
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #ddd;
@@ -419,7 +445,7 @@ export default {
 .toggle-slider {
     width: 42px;
     height: 22px;
-    background-color: #ccc;
+    background-color: var(--cor-bg);
     border-radius: 34px;
     position: relative;
     transition: 0.3s;
@@ -433,7 +459,8 @@ export default {
     height: 18px;
     left: 2px;
     top: 2px;
-    background-color: white;
+    background-color: var(--cor-bg);
+    ;
     border-radius: 50%;
     transition: 0.3s;
 }
@@ -450,5 +477,58 @@ export default {
     cursor: pointer;
     font-size: 16px;
     color: var(--cor-fonte-fraca);
+}
+
+.tabela-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.tabela-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-container {
+    max-height: 80vh;
+    min-width: 40vw;
+    display: flex;
+    flex-direction: column;
+    background: var(--cor-bg);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.modal-scroll-content {
+    overflow-y: auto;
+    padding: 1rem;
+    flex: 1;
+}
+
+.tabela-scroll {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.tabela-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tabela-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+fieldset {
+    margin-top: 1rem;
+}
+
+input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
 }
 </style>
