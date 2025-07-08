@@ -24,18 +24,15 @@
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio)"
                     :key="campo.id" class="toggle-wrapper">
-
-                    <i @click="!campo.omie && abrirModalCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
-                        title="Clique para editar valores"></i>
-
+                    <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
+                        title="Clique para editar campo"></i>
                     <div @click="!campo.omie && abrirModalCampo(campo)" class="card-titulo"
                         :class="{ 'obrigatorio': campo.omie }">
                         <strong>{{ campo.label }}</strong><span v-if="campo.omie"> (Obrigatório)</span>
                     </div>
-
                     <div class="card-opções">
                         <div class="alinha-centro">
-                            <label>Opções</label>
+                            <label>Ações</label>
                             <v-menu>
                                 <template v-slot:activator="{ props }">
                                     <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
@@ -43,14 +40,14 @@
                                     </v-btn>
                                 </template>
                                 <v-list>
-                                    <v-list-item @click="editarCampo(item)">Editar</v-list-item>
-                                    <v-list-item style="color: red;"
-                                        @click="excluirCampo(item.id)">Excluir</v-list-item>
+                                    <v-list-item @click="abrirModalCampo(campo)">Editar Opções</v-list-item>
+                                    <v-list-item style="color: red;" @click="confirmarExclusaoCampo(campo)">Excluir
+                                        Campo</v-list-item>
                                 </v-list>
                             </v-menu>
                         </div>
                         <div class="alinha-centro">
-                            <label>Habilitar</label>
+                            <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
                             <a v-if="!campo.omie" @click="toggleCampo(campo.id)"
                                 :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
                                 <span class="toggle direita"></span>
@@ -80,14 +77,11 @@
                         };
                         return ordem(a) - ordem(b);
                     })" :key="campo.id" class="toggle-wrapper">
-
-                    <i class="bi-pencil-fill" v-if="!campo.obrigatorio" title="Clique para editar valores"></i>
-
-                    <div class="card-titulo" :class="{ 'desativado': campo.disabled }">
-                        {{ campo.label }}
-                        <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                    <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
+                        title="Clique para editar campo"></i>
+                    <div class="card-titulo" :class="{ 'desativado': campo.disabled }"> {{ campo.label }} <span
+                            v-if="campo.obrigatorio">(Obrigatório)</span>
                     </div>
-
                     <a v-if="!campo.disabled" @click="toggleCampo(campo.id)"
                         :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
                         <span class="toggle direita"></span>
@@ -105,11 +99,9 @@
             <button @click="salvarConfiguracao"> Salvar Configuração </button>
         </div>
     </div>
-
     <!-- MODAL DE VALORES DO CAMPO -->
     <div class="modal-mask" v-if="modalCampo.aberto" @click="modalCampo.aberto = false">
         <div class="jm margem" @click.stop style="min-width: 50vw;">
-
             <div class="modal-scroll-content">
                 <h3 class="alinha-centro">Valores do Campo: {{ modalCampo.nome }}</h3>
                 <h4 class="alinha-centro">Família: {{ nomeFamiliaSelecionada }}</h4>
@@ -151,8 +143,6 @@
                     <button class="acao-secundaria" @click="adicionarNovoValor">+ Adicionar outro</button>
                 </fieldset>
             </div>
-
-
             <div class="direita submit m-b">
                 <button class="acao-secundaria" @click="modalCampo.aberto = false">Fechar</button>
                 <button @click="cadastrarValoresCampo">Salvar</button>
@@ -212,6 +202,72 @@
         </div>
     </div>
     <!-- END MODAL -->
+    <!-- MODAL DE EDIÇÃO -->
+    <div class="modal-mask" v-if="showModalEditarCampo" @click="cancelarEdicaoCampo">
+        <div class="jm margem" style="min-width: 30vw" @click.stop>
+            <div class="alinha-centro">
+                <h3>Editar Campo</h3>
+            </div>
+            <fieldset class=" margem">
+                <div class="grid-2">
+                    <div>
+                        <label>Nome</label>
+                        <input type="text" v-model="campoEdicao.label" />
+                    </div>
+                    <div>
+                        <label>Tipo</label>
+                        <select v-model="campoEdicao.tipo">
+                            <option disabled value="">Selecione</option>
+                            <option value="Texto">Texto</option>
+                            <option value="Número">Número</option>
+                            <option value="AreaTexto">Área de Texto</option>
+                            <option value="Data">Data</option>
+                            <option value="Lista">Lista</option>
+                            <option value="MultiLista">Multilista</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Obrigatório</label>
+                        <select v-model="campoEdicao.obrigatorio">
+                            <option :value="true">Sim</option>
+                            <option :value="false">Não</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Campo Fiscal</label>
+                        <select>
+                            <option>Sim</option>
+                            <option>Não</option>
+                        </select>
+                    </div>
+                </div>
+                <br />
+                <div>
+                    <label>Descrição</label>
+                    <textarea v-model="campoEdicao.descricao"></textarea>
+                </div>
+            </fieldset>
+            <div class="direita margem submit">
+                <button class="acao-secundaria" @click="cancelarEdicaoCampo">Cancelar</button>
+                <button @click="salvarEdicaoCampo">Salvar</button>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
+    <!-- MODAL CONFIRMAÇÃO DE EXCLUSÃO -->
+    <div class="modal-mask" v-if="modalConfirmacaoExclusao.visivel" @click="modalConfirmacaoExclusao.visivel = false">
+        <div class="jm margem" style="min-width: 30vw" @click.stop>
+            <div class="alinha-centro">
+                <h3>Confirmação de Exclusão</h3>
+            </div>
+            <p>Tem certeza que deseja excluir o campo "<strong>{{ modalConfirmacaoExclusao.campo?.label }}</strong>"?
+            </p>
+            <div class="direita margem submit">
+                <button class="acao-secundaria" @click="modalConfirmacaoExclusao.visivel = false">Cancelar</button>
+                <button style="color: red;" @click="excluirCampoConfirmado">Excluir</button>
+            </div>
+        </div>
+    </div>
 </template>
 <script>
 
@@ -249,6 +305,21 @@ export default {
                 editandoId: null,
                 valorEdicao: ''
             },
+            campoEditando: null,
+            campoEdicao: {
+                id: null,
+                label: '',
+                tipo: '',
+                descricao: '',
+                obrigatorio: false
+            },
+            showModalEditarCampo: false,
+            modalConfirmacaoExclusao: {
+                visivel: false,
+                campo: null
+            }
+
+
 
         };
     },
@@ -261,6 +332,65 @@ export default {
     },
 
     methods: {
+        confirmarExclusaoCampo(campo) {
+            this.modalConfirmacaoExclusao.campo = campo;
+            this.modalConfirmacaoExclusao.visivel = true;
+        },
+
+        async excluirCampoConfirmado() {
+            try {
+                const { id } = this.modalConfirmacaoExclusao.campo;
+                await associacaoService.excluirCampo({ id });
+                toaster.success("Campo excluído com sucesso!");
+                this.modalConfirmacaoExclusao = { visivel: false, campo: null };
+                await this.buscarCampos();
+            } catch (e) {
+                console.error("Erro ao excluir campo", e);
+                toaster.error("Erro ao excluir campo.");
+            }
+        },
+
+        editarCampo(campo) {
+            this.campoEdicao = { ...campo };
+            this.campoEditando = campo;
+            this.showModalEditarCampo = true;
+        },
+
+        cancelarEdicaoCampo() {
+            this.showModalEditarCampo = false;
+            this.campoEditando = null;
+            this.campoEdicao = {
+                id: null,
+                label: '',
+                tipo: '',
+                descricao: '',
+                obrigatorio: false
+            };
+        },
+
+        async salvarEdicaoCampo() {
+            try {
+                await associacaoService.atualizarCampo(this.campoEdicao.id, this.campoEdicao);
+                toaster.success("Campo atualizado com sucesso!");
+                this.cancelarEdicaoCampo();
+                await this.buscarCampos();
+            } catch (e) {
+                console.error("Erro ao editar campo", e);
+                toaster.error("Erro ao editar campo.");
+            }
+        },
+
+        async excluirCampo(id) {
+            try {
+                await associacaoService.excluirCampo({ id });
+                toaster.success("Campo excluído com sucesso!");
+                await this.buscarCampos();
+            } catch (e) {
+                console.error("Erro ao excluir campo", e);
+                toaster.error("Erro ao excluir campo.");
+            }
+        },
+
         async abrirModalCampo(campo) {
             this.modalCampo.id = campo.id;
             this.modalCampo.nome = campo.label;
