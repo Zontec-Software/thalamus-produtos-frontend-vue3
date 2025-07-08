@@ -106,6 +106,14 @@
                 <h3 class="alinha-centro">Valores do Campo: {{ modalCampo.nome }}</h3>
                 <h4 class="alinha-centro">Família: {{ nomeFamiliaSelecionada }}</h4>
                 <br>
+                <fieldset>
+                    <label>Adicionar Novo(s) Valor(es)</label>
+                    <div v-for="(v, i) in modalCampo.novosValores" :key="i">
+                        <input type="text" v-model="modalCampo.novosValores[i]" placeholder="Digite um valor" />
+                    </div>
+                    <br>
+                    <button class="acao-secundaria" @click="adicionarNovoValor">+ Adicionar outro</button>
+                </fieldset>
                 <div class="tabela-scroll">
                     <table class="tabela margem alinha-centro">
                         <thead>
@@ -134,14 +142,6 @@
                         </tbody>
                     </table>
                 </div>
-                <fieldset>
-                    <label>Adicionar Novo(s) Valor(es)</label>
-                    <div v-for="(v, i) in modalCampo.novosValores" :key="i">
-                        <input type="text" v-model="modalCampo.novosValores[i]" placeholder="Digite um valor" />
-                    </div>
-                    <br>
-                    <button class="acao-secundaria" @click="adicionarNovoValor">+ Adicionar outro</button>
-                </fieldset>
             </div>
             <div class="direita submit m-b">
                 <button class="acao-secundaria" @click="modalCampo.aberto = false">Fechar</button>
