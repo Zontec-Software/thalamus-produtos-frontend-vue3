@@ -14,122 +14,37 @@
       <div class="grid-4  container">
         <div class="bloco2 margem col-3">
           <div class="grid-4">
-            <div>
-              <label>Código do Produto</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cod" required
-                @input="atualizarPayLoad('cod', produto_original.cod)">
-            </div>
-            <div>
-              <label>Descrição</label>
-              <textarea :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.desc" required
-                @input="atualizarPayLoad('desc', produto_original.desc)"></textarea>
-              <!-- <span v-if="alteracoes.desc"> Alterado por {{ alteracoes.desc.usuario }} </span> -->
-            </div>
-            <div>
-              <label>Unidade <i title="Editar unidade" @click="abrirModalEditarCombo('und')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.und"
-                @change="atualizarPayLoad('und', produto_original.und)">
-                <option v-for="item in und" :key="item.id" :value="item.cod"> {{ item.nome }}</option>
-              </select>
-            </div>
             <div> <label>Família</label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.familia_id"
-                @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
-                <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
+              <select v-model="produto_original.familia_id"
+                @change="atualizarPayLoad('familia_id', produto_original.familia_id)"
+                :disabled="aguardandoAprovaçãoFiscal">
+                <option disabled value="">Selecione uma família</option>
+                <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome.toUpperCase() }}
+                </option>
               </select>
             </div>
-            <div>
-              <label>Tipo do Produto</label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.tipoProduto_id"
-                @change="atualizarPayLoad('tipoProduto_id', produto_original.tipoProduto_id)">
-                <option v-for="item in tipos" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+            <div v-for="campo in camposSelects" :key="campo.id">
+              <label>{{ campo.label }}</label>
+              <!-- Lista (Select) -->
+              <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
+                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+                </option>
               </select>
-            </div>
-            <div>
-              <label>Linha <i title="Editar Linhas" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('linha')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.linha_id"
-                @change="atualizarPayLoad('linha_id', produto_original.linha_id)">
-                <option v-for="item in linha" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+                </option>
               </select>
-            </div>
-            <div>
-              <label>Modelo <i title="Editar Modelos" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('modelo')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.modelo_id"
-                @change="atualizarPayLoad('modelo_id', produto_original.modelo_id)">
-                <option v-for="item in modelo" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
-              <label>Fixação <i title="Editar Fixações" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('fixacao')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.fixacao_id"
-                @change="atualizarPayLoad('fixacao_id', produto_original.fixacao_id)">
-                <option v-for="item in fixacao" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
-              <label>Tamanho <i title="Editar Tamanhos" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('tamanho')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.tamanho_id"
-                @change="atualizarPayLoad('tamanho_id', produto_original.tamanho_id)">
-                <option v-for="item in tamanho" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
-              <label>Linha Device </label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.linha_device"
-                @input="atualizarPayLoad('linha_device', produto_original.linha_device)">
-            </div>
-            <div>
-              <label>Modelo Device </label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.modelo_device"
-                @input="atualizarPayLoad('modelo_device', produto_original.modelo_device)">
-            </div>
-            <div>
-              <label>Status</label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.status"
-                @change="atualizarPayLoad('status', produto_original.status)">
-                <option value="1">Ativo</option>
-                <option value="0">Desativado</option>
-              </select>
-            </div>
-            <div>
-              <label>Cor <i title="Editar Cor" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('cor')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.cor_id"
-                @change="atualizarPayLoad('cor_id', produto_original.cor_id)">
-                <option v-for="item in cor" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
-              <label>Versão Produto <i title="Editar Versão Modelo" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('versaoModelo')"></i> </label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.versao_modelo_id"
-                @change="atualizarPayLoad('versao_modelo_id', produto_original.versao_modelo_id)">
-                <option v-for="item in versaoModelo" :key="item.id" :value="item.id"> {{ item.nome }} </option>
-              </select>
-            </div>
-            <div class="col-2">
-              <label>Especificação Técnica <i title="Editar Especificação" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('especificacao')"></i></label>
-              <div class="tags">
-                <a v-for="i, index in produto_original.especificacoes" :key="index">{{ i.nome }} <i class="bi-trash"
-                    title="Remover" @click.prevent="removerEspecificação(i)"></i></a>
-                <AutoCompleteRoteiro
-                  :BaseOpcoes="especificacoes.filter(item => !produto_original.especificacoes.includes(item))"
-                  @adicionarItem="adicionarEspecificação" />
-              </div>
             </div>
           </div>
           <br>
-          <div class="grid">
+          <!-- <div class="grid">
             <label>Observações </label>
             <QuillEditor theme="snow" @blur="atualizarPayLoad('observacoes', produto_original.observacoes)"
               :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes" content-type="html"
               style="height: 80px;" />
-          </div>
+          </div> -->
           <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
               @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
               <option v-for="item in especificacao" :key="item.id" :value="item.id"> {{ item.nome }} </option>
@@ -336,10 +251,10 @@ import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
 import { getPermissao } from '@/services/permissao-service';
-import { QuillEditor } from '@vueup/vue-quill'
+// import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
-import AutoCompleteRoteiro from '@/components/AutoComplete/AutoCompleteRoteiro.vue';
 import { urlFoto } from '@/services/api';
+import serviceCampos from '@/services/camposPorFamilia-service'
 
 
 const toaster = createToaster({
@@ -350,8 +265,7 @@ export default {
   name: "AlteracoesProduto",
   components: {
     ModalEditarCombo,
-    QuillEditor,
-    AutoCompleteRoteiro
+    // QuillEditor,
   },
   props: {
     produto_cod: {
@@ -369,19 +283,15 @@ export default {
     return {
       funcionalidades: [],
       aguardandoAprovaçãoFiscal: false,
-      produto_original: {},
+      produto_original: {
+        familia_id: null
+      },
+
       // produto_editado: {},
       alteracoes: {},
       familias: [],
       tipos: [],
-      fixacao: [],
-      linha: [],
-      modelo: [],
-      tamanho: [],
       ncm: [],
-      und: [],
-      cor: [],
-      versaoModelo: [],
       especificacoes: [],
       searchQueryNcm: "",
       filteredNcm: [],
@@ -397,14 +307,26 @@ export default {
       isLoading: true,
       showModalFotos: false,
       fotosProduto: [],
-      indiceAtual: 0
-
+      indiceAtual: 0,
+      camposSelects: [],
+      valoresSelects: {},
+      valoresSelecionados: {},
 
 
     };
   },
   setup() {
     return { urlFoto };
+  },
+  watch: {
+    'produto_original.familia_id': {
+      immediate: true,
+      handler(novaFamiliaId) {
+        if (novaFamiliaId) {
+          this.sincronizarCamposComBaseNaFamilia(novaFamiliaId);
+        }
+      }
+    }
   },
 
   computed: {
@@ -428,18 +350,14 @@ export default {
       await Promise.all([
         this.carregarAlteracoes(),
         this.carregarNcm(),
-        this.carregarTiposProduto(),
-        this.carregarFamilias(),
-        this.carregarLinhas(),
-        this.carregarModelos(),
-        this.carregarFixacao(),
-        this.carregarTamanho(),
-        this.carregarNcmPorId(),
-        this.carregarUnidades(),
-        this.carregarCores(),
-        this.carregarVersaoModelo(),
+        // this.carregarTiposProduto(),
         this.carregarEspecificacoes(),
-        this.carregarFotosProduto()
+        this.carregarFotosProduto(),
+        this.carregarFamilias()
+
+
+
+
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -448,6 +366,40 @@ export default {
     }
   },
   methods: {
+    async carregarFamilias() {
+      try {
+        const response = await serviceCampos.listarFamilia();
+        console.log("✅ Famílias carregadas:", response);
+        this.familias = response.sort((a, b) => a.nome.localeCompare(b.nome));
+      } catch (error) {
+        console.error("Erro ao carregar famílias:", error);
+      }
+    }
+    ,
+
+
+    async sincronizarCamposComBaseNaFamilia(familiaId) {
+      this.valoresSelecionados = {};
+
+      try {
+        const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
+        const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
+
+        this.camposSelects = campos.filter(c => ['Lista', 'MultiLista'].includes(c.tipo));
+        this.valoresSelects = valores;
+
+        this.camposSelects.forEach(campo => {
+          const valorAtual = this.produto_original[campo.chave];
+          if (valorAtual) {
+            this.valoresSelecionados[campo.id] = valorAtual;
+          }
+        });
+      } catch (error) {
+        console.error("Erro ao sincronizar campos da família:", error);
+      }
+    },
+
+
     formatarData(data) {
       if (!data) return "-";
       try {
@@ -519,16 +471,9 @@ export default {
     },
     atualizarSelect() {
       this.carregarNcm(),
-        this.carregarTiposProduto(),
+        // this.carregarTiposProduto(),
         this.carregarFamilias(),
-        this.carregarLinhas(),
-        this.carregarModelos(),
-        this.carregarFixacao(),
-        this.carregarTamanho(),
         this.carregarNcmPorId(),
-        this.carregarUnidades(),
-        this.carregarCores(),
-        this.carregarVersaoModelo(),
         this.carregarEspecificacoes()
     },
     async cadastrarOMIE() {
@@ -537,70 +482,7 @@ export default {
         toaster.success("Produto cadastrado com sucesso!");
       }
     },
-    abrirModalEditarCombo(itemEditado) {
-      switch (itemEditado) {
-        case 'und':
-          this.itemEditado = {
-            tipo: 'unidade',
-            url: 'unidade-medida',
-            combo: this.und
-          };
-          break;
-        case 'fixacao':
-          this.itemEditado = {
-            tipo: 'Fixação',
-            url: itemEditado,
-            combo: this.fixacao
-          };
-          break;
-        case 'linha':
-          this.itemEditado = {
-            tipo: 'Linha',
-            url: itemEditado,
-            combo: this.linha
-          };
-          break;
-        case 'modelo':
-          this.itemEditado = {
-            tipo: 'Modelo',
-            url: itemEditado,
-            combo: this.modelo
-          };
-          break;
-        case 'tamanho':
-          this.itemEditado = {
-            tipo: 'Tamanho',
-            url: 'tamanho-produto',
-            combo: this.tamanho
-          };
-          break;
-        case 'cor':
-          this.itemEditado = {
-            tipo: 'Cor',
-            url: 'produto/cor',
-            combo: this.cor
-          };
-          break;
-        case 'versaoModelo':
-          this.itemEditado = {
-            tipo: 'Versão Modelo',
-            url: 'produto/versao-modelo',
-            combo: this.versaoModelo
-          };
-          break;
-        case 'especificacao':
-          this.itemEditado = {
-            tipo: 'Especificação',
-            url: 'produto/especificacao',
-            combo: this.especificacoes
-          };
-          break;
 
-        default:
-          null
-      }
-      this.showModalEditarCombo = true
-    },
     async carregarEspecificacoes() {
       try {
         const response = await serviceProdutos.getEspecificacao();
@@ -652,88 +534,7 @@ export default {
       this.produto_original.ncm = ncm.codigo;
       this.listaAbertaNcm = false;
     },
-    async carregarVersaoModelo() {
-      try {
-        const response = await serviceProdutos.getVersaoModelo();
-        this.versaoModelo = response;
-      } catch (error) {
-        console.error("Erro ao carregar versão modelo de produtos:", error);
-      }
-    },
-    async carregarCores() {
-      try {
-        const response = await serviceProdutos.getCor();
-        this.cor = response;
-      } catch (error) {
-        console.error("Erro ao carregar cores de produtos:", error);
-      }
-    },
 
-    async carregarUnidades() {
-      try {
-        const response = await serviceProdutos.getUnidade();
-        this.und = response;
-      } catch (error) {
-        console.error("Erro ao carregar unidades de produtos:", error);
-      }
-    },
-    async carregarTamanho() {
-      try {
-        const response = await serviceProdutos.getTamanho();
-        this.tamanho = response;
-      } catch (error) {
-        console.error("Erro ao carregar tamanho de produtos:", error);
-      }
-    },
-    async carregarFixacao() {
-      try {
-        const response = await serviceProdutos.getFixacao();
-        this.fixacao = response;
-      } catch (error) {
-        console.error("Erro ao carregar fixacao de produtos:", error);
-      }
-    },
-    async carregarDevice() {
-      try {
-        const response = await serviceProdutos.getDevice();
-        this.device = response;
-      } catch (error) {
-        console.error("Erro ao carregar device de produtos:", error);
-      }
-    },
-    async carregarLinhas() {
-      try {
-        const response = await serviceProdutos.getLinha();
-        this.linha = response;
-      } catch (error) {
-        console.error("Erro ao carregar linha de produtos:", error);
-      }
-    },
-    async carregarModelos() {
-      try {
-        const response = await serviceProdutos.getModelo();
-        this.modelo = response;
-      } catch (error) {
-        console.error("Erro ao carregar modelo de produtos:", error);
-      }
-    },
-    async carregarFamilias() {
-      try {
-        const response = await serviceProdutos.listarFamilia();
-        this.familias = response;
-      } catch (error) {
-        console.error("Erro ao carregar famílias de produtos:", error);
-      }
-    },
-    async carregarTiposProduto() {
-      try {
-        const response = await serviceProdutos.getTipoProduto();
-        this.tipos = response;
-      } catch (error) {
-        console.error("Erro ao carregar tipos de produtos:", error);
-        toaster.error("Erro ao carregar tipos de produtos");
-      }
-    },
     mostrarBloco(bloco) {
       if (this.blocoVisivel === bloco) {
         this.blocoVisivel = null;
@@ -744,9 +545,12 @@ export default {
     salvarTemplate() {
       console.log("aqui")
     },
-    atualizarPayLoad(chave, valor) {
+    async atualizarPayLoad(chave, valor) {
       this.payLoad[chave] = valor;
+
+
     },
+
     async salvarProduto() {
       try {
         this.payLoad.observacoes = this.produto_original.observacoes;
@@ -809,10 +613,16 @@ export default {
           console.error("Erro ao enviar para aprovação:", error);
           this.$router.back()
         });
-    }
-
+    },
   }
-};
+
+
+
+
+}
+
+
+
 </script>
 <style scoped>
 .lista-imagens {
