@@ -23,7 +23,7 @@
             </div>
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio)"
-                    :key="campo.id" class="toggle-wrapper">
+                    :key="campo.id" class="toggle-wrapper" :class="{ 'desativado-wrapper': campo.disabled }">
                     <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
                         title="Clique para editar campo"></i>
                     <div @click="!campo.omie && abrirModalCampo(campo)" class="card-titulo"
@@ -79,18 +79,21 @@
                     })" :key="campo.id" class="toggle-wrapper">
                     <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
                         title="Clique para editar campo"></i>
-                    <div class="card-titulo" :class="{ 'desativado': campo.disabled }"> {{ campo.label }} <span
-                            v-if="campo.obrigatorio">(Obrigatório)</span>
+                    <div class="card-titulo" :class="{ 'desativado': campo.disabled }"> <strong>{{ campo.label
+                            }}</strong> <span v-if="campo.obrigatorio">(Obrigatório)</span>
                     </div>
-                    <a v-if="!campo.disabled" @click="toggleCampo(campo.id)"
-                        :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
-                        <span class="toggle direita"></span>
-                    </a>
-                    <span v-else>
-                        <a class="ativo">
+                    <div class="alinha-centro">
+                        <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
+                        <a v-if="!campo.disabled" @click="toggleCampo(campo.id)"
+                            :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
                             <span class="toggle direita"></span>
                         </a>
-                    </span>
+                        <span v-else>
+                            <a class="ativo">
+                                <span class="toggle direita"></span>
+                            </a>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -101,19 +104,19 @@
     </div>
     <!-- MODAL DE VALORES DO CAMPO -->
     <div class="modal-mask" v-if="modalCampo.aberto" @click="modalCampo.aberto = false">
-        <div class="jm margem" @click.stop style="min-width: 50vw;">
-            <div class="modal-scroll-content">
+        <div class="jm margem modal-valores" @click.stop>
+            <div class="modal-scroll">
                 <h3 class="alinha-centro">Valores do Campo: {{ modalCampo.nome }}</h3>
-                <h4 class="alinha-centro">Família: {{ nomeFamiliaSelecionada }}</h4>
-                <br>
+                <h3 class="alinha-centro">Família: {{ nomeFamiliaSelecionada }}</h3>
                 <fieldset>
                     <label>Adicionar Novo(s) Valor(es)</label>
                     <div v-for="(v, i) in modalCampo.novosValores" :key="i">
                         <input type="text" v-model="modalCampo.novosValores[i]" placeholder="Digite um valor" />
                     </div>
-                    <br>
-                    <button class="acao-secundaria" @click="adicionarNovoValor">+ Adicionar outro</button>
+                    <br />
+                    <button class="acao-secundaria" @click="adicionarNovoValor">Adicionar outro</button>
                 </fieldset>
+                <br>
                 <div class="tabela-scroll">
                     <table class="tabela margem alinha-centro">
                         <thead>
@@ -143,7 +146,7 @@
                     </table>
                 </div>
             </div>
-            <div class="direita submit m-b">
+            <div class="direita margem submit">
                 <button class="acao-secundaria" @click="modalCampo.aberto = false">Fechar</button>
                 <button @click="cadastrarValoresCampo">Salvar</button>
             </div>
@@ -206,7 +209,7 @@
     <div class="modal-mask" v-if="showModalEditarCampo" @click="cancelarEdicaoCampo">
         <div class="jm margem" style="min-width: 30vw" @click.stop>
             <div class="alinha-centro">
-                <h3>Editar Campo</h3>
+                <h3>Editar Campo: {{ campoEdicao.label }}</h3>
             </div>
             <fieldset class=" margem">
                 <div class="grid-2">
@@ -565,7 +568,7 @@ export default {
 
 .toggle-wrapper {
     display: flex;
-    flex-flow: column;
+    flex-direction: column;
     justify-content: space-between;
     align-items: center;
     background: var(--cor-bg);
@@ -573,42 +576,50 @@ export default {
     border-radius: 8px;
     border: 1px solid #ddd;
     gap: 8px;
+    min-height: 160px;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
-
-    .card-titulo {
-        width: 100%;
-        text-align: center;
-        cursor: pointer;
-    }
-
-    .card-opções {
-        display: flex;
-        width: 100%;
-        padding-inline: .5rem;
-        justify-content: space-between;
-    }
-
-    i {
-        position: absolute;
-        align-self: flex-end;
-    }
-
-    i:hover {
-        transition: all 100ms linear;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    .obrigatorio {
-        cursor: not-allowed !important;
-        color: #999;
-    }
-
-    .desativado {
-        color: #999;
-        cursor: default
-    }
 }
+
+
+.toggle-wrapper .toggle.direita.ativo {
+    background-color: var(--toggle-cor-ativo, var(--cor-primaria));
+}
+
+
+.card-titulo {
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+}
+
+.card-opções {
+    display: flex;
+    width: 100%;
+    padding-inline: .5rem;
+    justify-content: space-between;
+}
+
+i {
+    position: absolute;
+    align-self: flex-end;
+}
+
+i:hover {
+    transition: all 100ms linear;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.obrigatorio {
+    cursor: not-allowed !important;
+    color: #999;
+}
+
+.desativado {
+    color: #999;
+    cursor: default
+}
+
 
 .adicionarItem {
     cursor: pointer;
@@ -667,5 +678,22 @@ fieldset {
 input[type="text"] {
     width: 100%;
     box-sizing: border-box;
+}
+
+.modal-valores {
+    max-height: 80vh;
+    overflow-y: auto;
+    min-width: 50vw;
+    padding: 1rem;
+    background: var(--cor-bg);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-scroll {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 1rem;
+    border-radius: 8px;
 }
 </style>
