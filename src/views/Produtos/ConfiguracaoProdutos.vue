@@ -80,7 +80,7 @@
                     <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
                         title="Clique para editar campo"></i>
                     <div class="card-titulo" :class="{ 'desativado': campo.disabled }"> <strong>{{ campo.label
-                            }}</strong> <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                    }}</strong> <span v-if="campo.obrigatorio">(Obrigatório)</span>
                     </div>
                     <div class="alinha-centro">
                         <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
@@ -267,7 +267,7 @@
             </p>
             <div class="direita margem submit">
                 <button class="acao-secundaria" @click="modalConfirmacaoExclusao.visivel = false">Cancelar</button>
-                <button style="color: red;" @click="excluirCampoConfirmado">Excluir</button>
+                <button @click="excluirCampoConfirmado">Excluir</button>
             </div>
         </div>
     </div>
@@ -343,7 +343,7 @@ export default {
         async excluirCampoConfirmado() {
             try {
                 const { id } = this.modalConfirmacaoExclusao.campo;
-                await associacaoService.excluirCampo({ id });
+                await associacaoService.excluirCampo(id);
                 toaster.success("Campo excluído com sucesso!");
                 this.modalConfirmacaoExclusao = { visivel: false, campo: null };
                 await this.buscarCampos();
