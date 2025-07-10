@@ -22,8 +22,11 @@
                 <button class="acao-secundaria" @click="showModal = true">Novo Campo</button>
             </div>
             <div class="checkbox-grid">
-                <div v-for="campo in listaCampos.filter(c => ['Lista', 'Multilista'].includes(c.tipo) && !c.obrigatorio)"
-                    :key="campo.id" class="toggle-wrapper" :class="{ 'desativado-wrapper': campo.disabled }">
+                <div v-for="campo in listaCampos.filter(c => {
+                    const excecoes = ['familia_id', 'tipoProduto_id'];
+                    return ['Lista', 'Multilista'].includes(c.tipo) &&
+                        (!c.obrigatorio || excecoes.includes(c.chave));
+                })" :key="campo.id" class="toggle-wrapper" :class="{ 'desativado-wrapper': campo.disabled }">
                     <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
                         title="Clique para editar campo"></i>
                     <div @click="!campo.omie && abrirModalCampo(campo)" class="card-titulo"
@@ -32,15 +35,15 @@
                     </div>
                     <div class="card-opções">
                         <div class="alinha-centro">
-                            <label>Ações</label>
-                            <v-menu>
+                            <label v-if="!campo.omie">Ações</label>
+                            <v-menu v-if="!campo.omie">
                                 <template v-slot:activator="{ props }">
                                     <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
                                         style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
                                     </v-btn>
                                 </template>
                                 <v-list>
-                                    <v-list-item @click="abrirModalCampo(campo)">Editar Opções</v-list-item>
+                                    <v-list-item @click="abrirModalCampo(campo)"> Editar Opções </v-list-item>
                                     <v-list-item style="color: red;" @click="confirmarExclusaoCampo(campo)">Excluir
                                         Campo</v-list-item>
                                 </v-list>
@@ -79,8 +82,9 @@
                     })" :key="campo.id" class="toggle-wrapper">
                     <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
                         title="Clique para editar campo"></i>
-                    <div class="card-titulo" :class="{ 'desativado': campo.disabled }"> <strong>{{ campo.label
-                    }}</strong> <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                    <div class="card-titulo" :class="{ 'obrigatorio': campo.omie }"
+                        @click="campo.omie ? null : abrirModalCampo(campo)">
+                        <strong>{{ campo.label }}</strong> <span v-if="campo.obrigatorio">(Obrigatório)</span>
                     </div>
                     <div class="alinha-centro">
                         <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
@@ -186,9 +190,9 @@
                     </div>
                     <div>
                         <label>Campo Fiscal</label>
-                        <select>
-                            <option>Sim</option>
-                            <option>Não</option>
+                        <select v-model="novoCampo.fiscal">
+                            <option :value="true">Sim</option>
+                            <option :value="false">Não</option>
                         </select>
                     </div>
                 </div>
@@ -238,9 +242,9 @@
                     </div>
                     <div>
                         <label>Campo Fiscal</label>
-                        <select>
-                            <option>Sim</option>
-                            <option>Não</option>
+                        <select v-model="campoEdicao.fiscal">
+                            <option :value="true">Sim</option>
+                            <option :value="false">Não</option>
                         </select>
                     </div>
                 </div>
@@ -298,6 +302,7 @@ export default {
                 tipo: '',
                 descricao: '',
                 obrigatorio: false,
+                fiscal: false
             },
             modalCampo: {
                 aberto: false,
@@ -314,7 +319,8 @@ export default {
                 label: '',
                 tipo: '',
                 descricao: '',
-                obrigatorio: false
+                obrigatorio: false,
+                fiscal: false
             },
             showModalEditarCampo: false,
             modalConfirmacaoExclusao: {
@@ -367,7 +373,8 @@ export default {
                 label: '',
                 tipo: '',
                 descricao: '',
-                obrigatorio: false
+                obrigatorio: false,
+                fiscal: false
             };
         },
 
@@ -378,7 +385,6 @@ export default {
                 this.cancelarEdicaoCampo();
                 await this.buscarCampos();
             } catch (e) {
-                console.error("Erro ao editar campo", e);
                 toaster.error("Erro ao editar campo.");
             }
         },
@@ -389,7 +395,6 @@ export default {
                 toaster.success("Campo excluído com sucesso!");
                 await this.buscarCampos();
             } catch (e) {
-                console.error("Erro ao excluir campo", e);
                 toaster.error("Erro ao excluir campo.");
             }
         },
@@ -479,7 +484,6 @@ export default {
 
             } catch (e) {
                 toaster.error("Erro ao buscar campos");
-                console.error("Erro ao buscar campos", e);
             }
         },
 
@@ -506,7 +510,6 @@ export default {
                 await associacaoService.sincronizarCamposFamilia(payload);
                 toaster.success('Configuração salva com sucesso!')
             } catch (e) {
-                console.error("Erro ao salvar configuração da família", e);
                 toaster.error('Erro ao salvar configuração.');
             }
         },
@@ -533,7 +536,6 @@ export default {
 
                 await this.buscarCampos();
             } catch (e) {
-                console.error("Erro ao gravar campo", e);
                 toaster.error("Erro ao criar campo.");
             }
         }

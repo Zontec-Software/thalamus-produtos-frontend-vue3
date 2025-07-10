@@ -24,7 +24,7 @@
                 </option>
               </select>
             </div>
-            <div v-for="campo in camposSelects.filter(c => c.tipo !== 'AreaTexto')" :key="campo.id">
+            <div v-for="campo in camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== 1)" :key="campo.id">
               <label>{{ campo.label }}</label>
               <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
                 @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
@@ -43,7 +43,7 @@
           </div>
           <br>
           <div class="grid">
-            <div v-for="campo in camposSelects.filter(c => c.tipo === 'AreaTexto')" :key="campo.id">
+            <div v-for="campo in camposSelects.filter(c => c.tipo === 'AreaTexto' && c.fiscal !== 1)" :key="campo.id">
               <label>{{ campo.label }}</label>
               <QuillEditor theme="snow" :readOnly="aguardandoAprovaçãoFiscal"
                 v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px;"
@@ -136,21 +136,32 @@
       </div>
       <div class="bloco2 container" v-if="blocoVisivel === 'fiscais'">
         <fieldset class="margem grid-4">
+          <div v-for="campo in camposSelects.filter(c => c.fiscal === 1)" :key="campo.id">
+            <label>{{ campo.label }}</label>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
+              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+              </option>
+            </select>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+              </option>
+            </select>
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
+              @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
+          </div>
           <div>
             <label>Origem da Mercadoria</label>
             <input :disabled="!isFinanceiro" type="text" v-model="produto_original.origem_mercadoria" required
               @input="atualizarPayLoad('origem_mercadoria', produto_original.origem_mercadoria)" />
-            <!-- <span v-if="alteracoes.peso"> Alterado por {{ alteracoes.peso.usuario }} </span> -->
           </div>
           <div>
             <label>Preço Tabelado (Pauta)</label>
             <input :disabled="!isFinanceiro" type="text" v-model="produto_original.id_preco_tabelado" required
               @input="atualizarPayLoad('id_preco_tabelado', produto_original.id_preco_tabelado)">
           </div>
-          <!-- <div>
-            <label>Número da FCI (Ficha de Conteúdo de Importação)</label>
-            <input :disabled="!isFinanceiro" type="text" >
-          </div> -->
           <div>
             <label>CEST (Código Especificador da Substituição Tributária)</label>
             <input :disabled="!isFinanceiro" type="text" v-model="produto_original.id_cest" required
