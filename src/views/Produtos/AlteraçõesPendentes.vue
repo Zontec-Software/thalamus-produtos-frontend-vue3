@@ -14,7 +14,8 @@
       <div class="grid-4  container">
         <div class="bloco2 margem col-3">
           <div class="grid-4">
-            <div> <label>Família</label>
+            <div>
+              <label>Família</label>
               <select v-model="produto_original.familia_id"
                 @change="atualizarPayLoad('familia_id', produto_original.familia_id)"
                 :disabled="aguardandoAprovaçãoFiscal">
@@ -23,9 +24,8 @@
                 </option>
               </select>
             </div>
-            <div v-for="campo in camposSelects" :key="campo.id">
+            <div v-for="campo in camposSelects.filter(c => c.tipo !== 'AreaTexto')" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <!-- Lista (Select) -->
               <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
                 @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
@@ -36,19 +36,20 @@
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
                 </option>
               </select>
+              <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
+                @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+                :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
             </div>
           </div>
           <br>
-          <!-- <div class="grid">
-            <label>Observações </label>
-            <QuillEditor theme="snow" @blur="atualizarPayLoad('observacoes', produto_original.observacoes)"
-              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes" content-type="html"
-              style="height: 80px;" />
-          </div> -->
-          <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
-              @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
-              <option v-for="item in especificacao" :key="item.id" :value="item.id"> {{ item.nome }} </option>
-            </select> -->
+          <div class="grid">
+            <div v-for="campo in camposSelects.filter(c => c.tipo === 'AreaTexto')" :key="campo.id">
+              <label>{{ campo.label }}</label>
+              <QuillEditor theme="snow" :readOnly="aguardandoAprovaçãoFiscal"
+                v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px;"
+                @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+            </div>
+          </div>
         </div>
         <!-- FOTOS -->
         <div class="bloco2 margem col-1 alinha-centro">
@@ -251,7 +252,7 @@ import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
 import { getPermissao } from '@/services/permissao-service';
-// import { QuillEditor } from '@vueup/vue-quill'
+import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { urlFoto } from '@/services/api';
 import serviceCampos from '@/services/camposPorFamilia-service'
@@ -265,7 +266,7 @@ export default {
   name: "AlteracoesProduto",
   components: {
     ModalEditarCombo,
-    // QuillEditor,
+    QuillEditor,
   },
   props: {
     produto_cod: {
@@ -385,7 +386,10 @@ export default {
         const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
         const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
 
-        this.camposSelects = campos.filter(c => ['Lista', 'MultiLista'].includes(c.tipo));
+        this.camposSelects = campos.map(campo => ({
+          ...campo,
+          componente: this.definirComponentePorTipo(campo.tipo)
+        }));
         this.valoresSelects = valores;
 
         this.camposSelects.forEach(campo => {
@@ -396,6 +400,19 @@ export default {
         });
       } catch (error) {
         console.error("Erro ao sincronizar campos da família:", error);
+      }
+    },
+    definirComponentePorTipo(tipo) {
+      switch (tipo) {
+        case 'Lista': return 'select';
+        case 'MultiLista': return 'multiselect';
+        case 'Texto':
+        case 'Número':
+        case 'Decimal':
+        case 'Data':
+        case 'AreaTexto':
+          return 'quill';
+        default: return 'input';
       }
     },
 
