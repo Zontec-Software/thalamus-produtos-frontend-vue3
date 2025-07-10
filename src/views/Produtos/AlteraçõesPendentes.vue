@@ -3,7 +3,7 @@
     <div></div>
   </div>
   <section v-else>
-    <div style="text-align: right;">
+    <div class="margem" style="text-align: right;">
       <strong> {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
         ${produto_original.editadoPor ?? '??'}` }} </strong>
     </div>
@@ -69,12 +69,17 @@
         </div>
         <!-- END FOTOS -->
       </div>
-      <div class="margem tags m-b" style="cursor: pointer;">
-        <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')">Informações
-          Adicionais</a>
-        <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')">Recomendações Fiscais</a>
+      <br>
+      <div class="grid-4 container">
+        <div class="bloco3 col-4">
+          <div class=" tags m-b" style="cursor: pointer;">
+            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')">Informações
+              Adicionais</a>
+            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')">Recomendações Fiscais</a>
+          </div>
+        </div>
       </div>
-      <div class="bloco2" v-if="blocoVisivel === 'informacoes'">
+      <div class="bloco2 container" v-if="blocoVisivel === 'informacoes'">
         <fieldset class="margem grid-4">
           <div :class="{ destaque: alteracoes.peso }">
             <label>Peso Líquido (Kg)</label>
@@ -129,7 +134,7 @@
           </div>
         </fieldset>
       </div>
-      <div class="bloco2" v-if="blocoVisivel === 'fiscais'">
+      <div class="bloco2 container" v-if="blocoVisivel === 'fiscais'">
         <fieldset class="margem grid-4">
           <div>
             <label>Origem da Mercadoria</label>
