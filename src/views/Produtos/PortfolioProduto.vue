@@ -24,7 +24,8 @@
           <label>Família:</label>
           <select v-model="filtroFamilia">
             <option value="">Todas</option>
-            <option v-for="(familia, index) in familiasProduto" :key="index" :value="familia">{{ familia }}</option>
+            <option v-for="(familia, index) in familiasProduto" :key="index" :value="familia">{{ familia.toUpperCase()
+              }}</option>
           </select>
         </div>
       </div>
