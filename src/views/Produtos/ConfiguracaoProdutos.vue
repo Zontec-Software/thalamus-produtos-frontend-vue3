@@ -82,8 +82,7 @@
                     })" :key="campo.id" class="toggle-wrapper">
                     <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
                         title="Clique para editar campo"></i>
-                    <div class="card-titulo" :class="{ 'obrigatorio': campo.omie }"
-                        @click="campo.omie ? null : abrirModalCampo(campo)">
+                    <div class="card-titulo" :class="{ 'obrigatorio': campo.omie }" @click="campo.omie">
                         <strong>{{ campo.label }}</strong> <span v-if="campo.obrigatorio">(Obrigatório)</span>
                     </div>
                     <div class="alinha-centro">
