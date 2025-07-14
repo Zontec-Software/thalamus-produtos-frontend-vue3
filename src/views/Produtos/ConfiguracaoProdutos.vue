@@ -23,15 +23,14 @@
             </div>
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos.filter(c => {
-                    const excecoes = ['familia_id', 'tipoProduto_id'];
-                    return ['Lista', 'Multilista'].includes(c.tipo) &&
-                        (!c.obrigatorio || excecoes.includes(c.chave));
+
+                    return ['Lista', 'Multilista'].includes(c.tipo)
+
                 })" :key="campo.id" class="toggle-wrapper" :class="{ 'desativado-wrapper': campo.disabled }">
                     <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
                         title="Clique para editar campo"></i>
-                    <div @click="!campo.omie && abrirModalCampo(campo)" class="card-titulo"
-                        :class="{ 'obrigatorio': campo.omie }">
-                        <strong>{{ campo.label }}</strong><span v-if="campo.omie"> (Obrigatório)</span>
+                    <div @click="!campo.omie" class="card-titulo" :class="{ 'obrigatorio': campo.omie }">
+                        <strong>{{ campo.label }}</strong><span v-if="campo.omie"> (OMIE) </span>
                     </div>
                     <div class="card-opções">
                         <div class="alinha-centro">
@@ -70,20 +69,42 @@
             </div>
             <div class="checkbox-grid">
                 <div v-for="campo in listaCampos
-                    .filter(c => !['Lista', 'Multilista'].includes(c.tipo))
+                    .filter(c => !['Lista', 'Multilista'].includes(c.tipo) && !c.fiscal)
                     .sort((a, b) => {
-                        const ordem = campo => {
-                            if (campo.omie && campo.obrigatorio) return 1;
-                            if (campo.omie && !campo.obrigatorio) return 2;
-                            if (!campo.omie && campo.obrigatorio) return 3;
-                            return 4;
-                        };
+                        const ordem = campo => (campo.omie || campo.obrigatorio) ? 1 : 2;
                         return ordem(a) - ordem(b);
                     })" :key="campo.id" class="toggle-wrapper">
                     <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
                         title="Clique para editar campo"></i>
-                    <div class="card-titulo" :class="{ 'obrigatorio': campo.omie }" @click="campo.omie">
-                        <strong>{{ campo.label }}</strong> <span v-if="campo.obrigatorio">(Obrigatório)</span>
+                    <div class="card-titulo" :class="{ 'obrigatorio': campo.omie }">
+                        <strong>{{ campo.label }}</strong>
+                        <span v-if="campo.obrigatorio"> (OMIE)</span>
+                    </div>
+                    <div class="alinha-centro">
+                        <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
+                        <a v-if="!campo.disabled" @click="toggleCampo(campo.id)"
+                            :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
+                            <span class="toggle direita"></span>
+                        </a>
+                        <span v-else>
+                            <a class="ativo">
+                                <span class="toggle direita"></span>
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="cabecalho-campos-lista">
+                <h3>Campos Fiscais para {{ nomeFamiliaSelecionada }}</h3>
+            </div>
+            <div class="checkbox-grid">
+                <div v-for="campo in listaCampos
+                    .filter(c => c.fiscal)" :key="campo.id" class="toggle-wrapper">
+                    <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
+                        title="Clique para editar campo"></i>
+                    <div class="card-titulo" :class="{ 'obrigatorio': campo.omie }">
+                        <strong>{{ campo.label }}</strong>
                     </div>
                     <div class="alinha-centro">
                         <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
@@ -190,8 +211,8 @@
                     <div>
                         <label>Campo Fiscal</label>
                         <select v-model="novoCampo.fiscal">
-                            <option :value="true">Sim</option>
-                            <option :value="false">Não</option>
+                            <option :value="1">Sim</option>
+                            <option :value="0">Não</option>
                         </select>
                     </div>
                 </div>
@@ -242,8 +263,8 @@
                     <div>
                         <label>Campo Fiscal</label>
                         <select v-model="campoEdicao.fiscal">
-                            <option :value="true">Sim</option>
-                            <option :value="false">Não</option>
+                            <option :value="1">Sim</option>
+                            <option :value="0">Não</option>
                         </select>
                     </div>
                 </div>
@@ -379,6 +400,24 @@ export default {
 
         async salvarEdicaoCampo() {
             try {
+                const nomeEditado = this.campoEdicao.label.trim().toLowerCase();
+
+                const nomeExistente = this.listaCampos.some(c =>
+                    c.id !== this.campoEdicao.id &&
+                    c.label.trim().toLowerCase() === nomeEditado
+                );
+
+                if (nomeExistente) {
+                    toaster.error("Já existe um campo com este nome.");
+                    return;
+                }
+
+                const camposOmie = ['tipo do produto', 'família', 'ncm', 'unidade', 'código do produto', 'descrição'];
+                if (camposOmie.includes(nomeEditado)) {
+                    toaster.error("Não é permitido editar para um nome de campo padrão do OMIE.");
+                    return;
+                }
+
                 await associacaoService.atualizarCampo(this.campoEdicao.id, this.campoEdicao);
                 toaster.success("Campo atualizado com sucesso!");
                 this.cancelarEdicaoCampo();
@@ -473,7 +512,7 @@ export default {
                     return {
                         ...campo,
                         marcado: jaMarcado || isOmie || isObrigatorio,
-                        disabled: isOmie || isObrigatorio
+                        disabled: isOmie
                     };
                 });
 
@@ -515,6 +554,18 @@ export default {
 
         async cadastrarCampos() {
             try {
+                const campoExiste = this.listaCampos.some(c => c.label.trim().toLowerCase() === this.novoCampo.nome.trim().toLowerCase());
+                if (campoExiste) {
+                    toaster.error("Já existe um campo com este nome.");
+                    return;
+                }
+
+                const camposOmie = ['Tipo do Produto', 'Família', 'NCM', 'Unidade', 'Código do Produto', 'Descrição'];
+                if (camposOmie.includes(this.novoCampo.nome.trim().toLowerCase())) {
+                    toaster.error("Não é permitido criar campos padrão do OMIE.");
+                    return;
+                }
+
                 if (!this.novoCampo.nome || !this.novoCampo.tipo) {
                     toaster.error("Preencha o nome e tipo do campo.");
                     return;
@@ -552,6 +603,13 @@ export default {
 };
 </script>
 <style scoped>
+.obrigatorio {
+    color: #999 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+
+}
+
 .cabecalho-campos-lista {
     display: flex;
     justify-content: space-between;
@@ -568,6 +626,7 @@ export default {
 }
 
 .toggle-wrapper {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -582,13 +641,14 @@ export default {
 }
 
 
+
 .toggle-wrapper .toggle.direita.ativo {
     background-color: var(--toggle-cor-ativo, var(--cor-primaria));
 }
 
 
 .card-titulo {
-    width: 100%;
+    width: 99%;
     text-align: center;
     cursor: pointer;
 }
