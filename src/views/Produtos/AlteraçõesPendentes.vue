@@ -27,18 +27,19 @@
             <div v-for="campo in camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== 1)" :key="campo.id">
               <label>{{ campo.label }}</label>
               <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
-                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option disabled value="">Selecione</option>
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
                 </option>
               </select>
               <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
                 </option>
               </select>
-              <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-                @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
-                :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
+              <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)"
+                v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
+                :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
           <br>
@@ -138,18 +139,18 @@
         <fieldset class="margem grid-4">
           <div v-for="campo in camposSelects.filter(c => c.fiscal === 1)" :key="campo.id">
             <label>{{ campo.label }}</label>
-            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
               @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
               </option>
             </select>
             <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
               </option>
             </select>
             <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-              @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+              :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
               :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
           <div>
@@ -330,6 +331,7 @@ export default {
       valoresSelecionados: {},
 
 
+
     };
   },
   setup() {
@@ -386,7 +388,6 @@ export default {
     async carregarFamilias() {
       try {
         const response = await serviceCampos.listarFamilia();
-        console.log("✅ Famílias carregadas:", response);
         this.familias = response.sort((a, b) => a.nome.localeCompare(b.nome));
       } catch (error) {
         console.error("Erro ao carregar famílias:", error);
@@ -413,7 +414,12 @@ export default {
           if (valorAtual) {
             this.valoresSelecionados[campo.id] = valorAtual;
           }
+
+
         });
+        this.camposSelects = this.camposSelects.filter(campo => campo.chave !== 'familia_id');
+
+
       } catch (error) {
         console.error("Erro ao sincronizar campos da família:", error);
       }
