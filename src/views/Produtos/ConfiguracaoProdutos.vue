@@ -648,7 +648,7 @@ export default {
 
 
 .card-titulo {
-    width: 99%;
+    width: 100%;
     text-align: center;
     cursor: pointer;
 }
