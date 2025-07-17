@@ -10,48 +10,48 @@
                 <label for="familia">Selecione a Família:</label>
                 <select v-model="filtro.familia_id" @change="verificarCarregamento">
                     <option disabled value="">Selecione</option>
-                    <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome.toUpperCase() }}
+                    <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome.toUpperCase() }}
                     </option>
                 </select>
             </div>
         </div>
-        <br />
+        <br>
         <div class="bloco2 margem" v-if="nomeFamiliaSelecionada">
             <div class="cabecalho-campos-lista">
                 <h3>Campos de Lista para {{ nomeFamiliaSelecionada }}</h3>
                 <button class="acao-secundaria" @click="showModal = true">Novo Campo</button>
             </div>
             <div class="checkbox-grid">
-                <div v-for="campo in listaCampos.primeira_parte" :key="campo.id" class="toggle-wrapper"
-                    :class="{ 'desativado-wrapper': campo.disabled }">
-                    <i v-if="campo.categoria === 'opcional_usuario_lista'" @click="editarCampo(campo)"
-                        class="bi-pencil-fill" title="Clique para editar campo"></i>
-                    <div class="card-titulo" :class="{ obrigatorio: campo.omie && campo.obrigatorio }">
-                        <span v-if="campo.obrigatorio && camposSelecionados.includes(campo.id)" class="obrigatorio-dot"
-                            title="Campo obrigatório"></span>
-                        <strong>{{ campo.label }}</strong>
-                        <br />
-                        <span v-if="campo.omie" class="chip">Omie</span>
+                <div v-for="campo in listaCampos.filter(c => {
+
+                    return ['Lista', 'Multilista'].includes(c.tipo)
+
+                })" :key="campo.id" class="toggle-wrapper" :class="{ 'desativado-wrapper': campo.disabled }">
+                    <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
+                        title="Clique para editar campo"></i>
+                    <div @click="!campo.omie" class="card-titulo" :class="{ 'obrigatorio': campo.omie }">
+                        <strong>{{ campo.label }}</strong><span v-if="campo.omie"> (OMIE) </span>
                     </div>
                     <div class="card-opções">
-                        <div v-if="!campo.omie && ['Lista', 'MultiLista'].includes(campo.tipo)">
-                            <label>Ações</label>
-                            <v-menu>
+                        <div class="alinha-centro">
+                            <label v-if="!campo.omie">Ações</label>
+                            <v-menu v-if="!campo.omie">
                                 <template v-slot:activator="{ props }">
-                                    <v-btn icon="mdi-dots-horizontal" v-bind="props" class="acao-secundaria"
-                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador)"></v-btn>
+                                    <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
+                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
+                                    </v-btn>
                                 </template>
                                 <v-list>
-                                    <v-list-item @click="abrirModalCampo(campo)">Editar Opções</v-list-item>
-                                    <v-list-item v-if="!campo.omie" style="color: red"
-                                        @click="confirmarExclusaoCampo(campo)"> Excluir Campo </v-list-item>
+                                    <v-list-item @click="abrirModalCampo(campo)"> Editar Opções </v-list-item>
+                                    <v-list-item style="color: red;" @click="confirmarExclusaoCampo(campo)">Excluir
+                                        Campo</v-list-item>
                                 </v-list>
                             </v-menu>
                         </div>
-                        <div style="margin-left: auto">
-                            <label :class="{ desativado: campo.disabled }">Habilitar</label>
-                            <a v-if="campo.habilitarToggle && !campo.disabled" @click="toggleCampo(campo.id)"
-                                :class="{ ativo: camposSelecionados.includes(campo.id) }">
+                        <div class="alinha-centro">
+                            <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
+                            <a v-if="!campo.omie" @click="toggleCampo(campo.id)"
+                                :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
                                 <span class="toggle direita"></span>
                             </a>
                             <span v-else>
@@ -63,38 +63,41 @@
                     </div>
                 </div>
             </div>
-            <br />
-            <h3>Outros Campos para {{ nomeFamiliaSelecionada }}</h3>
+            <br>
+            <div class="cabecalho-campos-lista">
+                <h3>Outros Campos para {{ nomeFamiliaSelecionada }}</h3>
+            </div>
             <div class="checkbox-grid">
-                <div v-for="campo in listaCampos.segunda_parte" :key="campo.id" class="toggle-wrapper"
-                    :class="{ 'desativado-wrapper': campo.disabled }">
-                    <i v-if="campo.categoria === 'opcional_usuario_outro'" @click="editarCampo(campo)"
-                        class="bi-pencil-fill" title="Clique para editar campo"></i>
-                    <div class="card-titulo" :class="{ obrigatorio: campo.omie && campo.obrigatorio }">
-                        <span v-if="campo.obrigatorio && camposSelecionados.includes(campo.id)" class="obrigatorio-dot"
-                            title="Campo obrigatório"></span>
+                <div v-for="campo in listaCampos
+                    .filter(c => !['Lista', 'Multilista'].includes(c.tipo) && !c.fiscal)
+                    .sort((a, b) => {
+                        const ordem = campo => (campo.omie || campo.obrigatorio) ? 1 : 2;
+                        return ordem(a) - ordem(b);
+                    })" :key="campo.id" class="toggle-wrapper">
+                    <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
+                        title="Clique para editar campo"></i>
+                    <div class="card-titulo" :class="{ 'obrigatorio': campo.omie }">
                         <strong>{{ campo.label }}</strong>
-                        <br />
-                        <span v-if="campo.omie" class="chip">Omie</span>
                     </div>
                     <div class="card-opções">
-                        <div v-if="campo.categoria === 'opcional_usuario_outro'">
-                            <label>Ações</label>
-                            <v-menu>
+                        <div class="alinha-centro">
+                            <label v-if="!campo.omie">Ações</label>
+                            <v-menu v-if="!campo.omie">
                                 <template v-slot:activator="{ props }">
-                                    <v-btn icon="mdi-dots-horizontal" v-bind="props" class="acao-secundaria"
-                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador)"></v-btn>
+                                    <v-btn icon="mdi-dots-horizontal" class="acao-secundaria" v-bind="props"
+                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador);">
+                                    </v-btn>
                                 </template>
                                 <v-list>
-                                    <v-list-item v-if="!campo.omie" style="color: red"
-                                        @click="confirmarExclusaoCampo(campo)"> Excluir Campo </v-list-item>
+                                    <v-list-item style="color: red;" @click="confirmarExclusaoCampo(campo)">Excluir
+                                        Campo</v-list-item>
                                 </v-list>
                             </v-menu>
                         </div>
-                        <div style="margin-left: auto">
-                            <label :class="{ desativado: campo.disabled }">Habilitar</label>
-                            <a v-if="campo.habilitarToggle && !campo.disabled" @click="toggleCampo(campo.id)"
-                                :class="{ ativo: camposSelecionados.includes(campo.id) }">
+                        <div class="alinha-centro">
+                            <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
+                            <a v-if="!campo.disabled" @click="toggleCampo(campo.id)"
+                                :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
                                 <span class="toggle direita"></span>
                             </a>
                             <span v-else>
@@ -106,57 +109,39 @@
                     </div>
                 </div>
             </div>
-            <br />
-            <h3>Campos Fiscais para {{ nomeFamiliaSelecionada }}</h3>
+            <br>
+            <div class="cabecalho-campos-lista">
+                <h3>Campos Fiscais para {{ nomeFamiliaSelecionada }}</h3>
+            </div>
             <div class="checkbox-grid">
-                <div v-for="campo in listaCampos.terceira_parte" :key="campo.id" class="toggle-wrapper"
-                    :class="{ 'desativado-wrapper': campo.disabled }">
-                    <i v-if="campo.categoria === 'opcional_usuario_fiscal'" @click="editarCampo(campo)"
-                        class="bi-pencil-fill" title="Clique para editar campo"></i>
-                    <div class="card-titulo"
-                        :class="{ obrigatorio: campo.omie && campo.obrigatorio, desativado: campo.disabled }">
-                        <span v-if="campo.obrigatorio && camposSelecionados.includes(campo.id)" class="obrigatorio-dot"
-                            title="Campo obrigatório"></span>
+                <div v-for="campo in listaCampos
+                    .filter(c => c.fiscal)" :key="campo.id" class="toggle-wrapper">
+                    <i @click="editarCampo(campo)" class="bi-pencil-fill" v-if="!campo.omie"
+                        title="Clique para editar campo"></i>
+                    <div class="card-titulo" :class="{ 'obrigatorio': campo.omie }">
                         <strong>{{ campo.label }}</strong>
-                        <br />
-                        <span v-if="campo.omie" class="chip">Omie</span>
                     </div>
-                    <div class="card-opções">
-                        <div v-if="!campo.omie">
-                            <label>Ações</label>
-                            <v-menu>
-                                <template v-slot:activator="{ props }">
-                                    <v-btn icon="mdi-dots-horizontal" v-bind="props" class="acao-secundaria"
-                                        style="width: 2rem; height: 2rem; border: 1px solid var(--cor-separador)"></v-btn>
-                                </template>
-                                <v-list>
-                                    <v-list-item v-if="['Lista', 'MultiLista'].includes(campo.tipo)"
-                                        @click="abrirModalCampo(campo)"> Editar Opções </v-list-item>
-                                    <v-list-item v-if="!campo.omie" style="color: red"
-                                        @click="confirmarExclusaoCampo(campo)"> Excluir Campo </v-list-item>
-                                </v-list>
-                            </v-menu>
-                        </div>
-                        <div style="margin-left: auto">
-                            <label :class="{ desativado: campo.disabled }">Habilitar</label>
-                            <a v-if="campo.habilitarToggle && !campo.disabled" @click="toggleCampo(campo.id)"
-                                :class="{ ativo: camposSelecionados.includes(campo.id) }">
+                    <div class="alinha-centro">
+                        <label :class="{ 'desativado': campo.disabled }">Habilitar</label>
+                        <a v-if="!campo.disabled" @click="toggleCampo(campo.id)"
+                            :class="{ 'ativo': camposSelecionados.includes(campo.id) }">
+                            <span class="toggle direita"></span>
+                        </a>
+                        <span v-else>
+                            <a class="ativo">
                                 <span class="toggle direita"></span>
                             </a>
-                            <span v-else>
-                                <a class="ativo">
-                                    <span class="toggle direita"></span>
-                                </a>
-                            </span>
-                        </div>
+                        </span>
                     </div>
                 </div>
-            </div>
-            <div class="direita margem submit">
-                <button @click="salvarConfiguracao">Salvar Configuração</button>
             </div>
         </div>
+        <br />
+        <div v-if="nomeFamiliaSelecionada" class="direita">
+            <button @click="salvarConfiguracao"> Salvar Configuração </button>
+        </div>
     </div>
+    <!-- MODAL DE VALORES DO CAMPO -->
     <div class="modal-mask" v-if="modalCampo.aberto" @click="modalCampo.aberto = false">
         <div class="jm margem modal-valores" @click.stop>
             <div class="modal-scroll">
@@ -170,7 +155,7 @@
                     <br />
                     <button class="acao-secundaria" @click="adicionarNovoValor">Adicionar outro</button>
                 </fieldset>
-                <br />
+                <br>
                 <div class="tabela-scroll">
                     <table class="tabela margem alinha-centro">
                         <thead>
@@ -186,14 +171,14 @@
                                     <input v-model="modalCampo.valorEdicao" />
                                 </td>
                                 <td>
-                                    <a style="transform: scale(0.8)" @click="editarValor(valor)"
+                                    <a style="transform: scale(0.8);" @click="editarValor(valor)"
                                         title="Clique para editar valor" class="icone-editar"></a>
                                     <button v-if="modalCampo.editandoId === valor.id"
                                         @click="salvarValorEditado">Salvar</button>
                                     <button v-if="modalCampo.editandoId === valor.id"
                                         @click="cancelarEdicaoValor">Cancelar</button>
                                     <a @click="excluirValorCampo(valor.id)" title="Clique para excluir valor"
-                                        class="icone-lixeira" style="color: red"></a>
+                                        class="icone-lixeira" style="color:red;"></a>
                                 </td>
                             </tr>
                         </tbody>
@@ -213,7 +198,7 @@
             <div class="alinha-centro">
                 <h3>Adicionar Campo</h3>
             </div>
-            <fieldset class="margem">
+            <fieldset class=" margem">
                 <div class="grid-2">
                     <div>
                         <label>Nome</label>
@@ -246,7 +231,7 @@
                         </select>
                     </div>
                 </div>
-                <br />
+                <br>
                 <div>
                     <label>Descrição</label>
                     <textarea v-model="novoCampo.descricao"></textarea>
@@ -265,7 +250,7 @@
             <div class="alinha-centro">
                 <h3>Editar Campo: {{ campoEdicao.label }}</h3>
             </div>
-            <fieldset class="margem">
+            <fieldset class=" margem">
                 <div class="grid-2">
                     <div>
                         <label>Nome</label>
@@ -317,7 +302,7 @@
             <div class="alinha-centro">
                 <h3>Confirmação de Exclusão</h3>
             </div>
-            <p> Tem certeza que deseja excluir o campo "<strong>{{ modalConfirmacaoExclusao.campo?.label }}</strong>"?
+            <p>Tem certeza que deseja excluir o campo "<strong>{{ modalConfirmacaoExclusao.campo?.label }}</strong>"?
             </p>
             <div class="direita margem submit">
                 <button class="acao-secundaria" @click="modalConfirmacaoExclusao.visivel = false">Cancelar</button>
@@ -327,7 +312,8 @@
     </div>
 </template>
 <script>
-import associacaoService from "@/services/camposPorFamilia-service";
+
+import associacaoService from '@/services/camposPorFamilia-service';
 import { createToaster } from "@meforma/vue-toaster";
 
 const toaster = createToaster({
@@ -335,55 +321,58 @@ const toaster = createToaster({
     duration: 6000,
 });
 export default {
-    name: "ConfigurarCamposPorTipo",
+    name: 'ConfigurarCamposPorTipo',
     data() {
         return {
-            tipoSelecionado: "",
+            tipoSelecionado: '',
             listaCampos: [],
             familias: [],
             camposSelecionados: [],
             filtro: {
-                familia_id: "",
+                familia_id: ''
             },
             showModal: false,
             novoCampo: {
-                nome: "",
-                tipo: "",
-                descricao: "",
+                nome: '',
+                tipo: '',
+                descricao: '',
                 obrigatorio: false,
-                fiscal: false,
+                fiscal: false
             },
             modalCampo: {
                 aberto: false,
                 id: null,
-                nome: "",
+                nome: '',
                 dados: [],
-                novosValores: [""],
+                novosValores: [''],
                 editandoId: null,
-                valorEdicao: "",
+                valorEdicao: ''
             },
             campoEditando: null,
             campoEdicao: {
                 id: null,
-                label: "",
-                tipo: "",
-                descricao: "",
+                label: '',
+                tipo: '',
+                descricao: '',
                 obrigatorio: false,
-                fiscal: false,
+                fiscal: false
             },
             showModalEditarCampo: false,
             modalConfirmacaoExclusao: {
                 visivel: false,
-                campo: null,
-            },
+                campo: null
+            }
+
+
+
         };
     },
 
     computed: {
         nomeFamiliaSelecionada() {
-            const familia = this.familias.find((f) => f.id === this.filtro.familia_id);
-            return familia ? familia.nome : "";
-        },
+            const familia = this.familias.find(f => f.id === this.filtro.familia_id);
+            return familia ? familia.nome : '';
+        }
     },
 
     methods: {
@@ -416,11 +405,11 @@ export default {
             this.campoEditando = null;
             this.campoEdicao = {
                 id: null,
-                label: "",
-                tipo: "",
-                descricao: "",
+                label: '',
+                tipo: '',
+                descricao: '',
                 obrigatorio: false,
-                fiscal: false,
+                fiscal: false
             };
         },
 
@@ -428,16 +417,17 @@ export default {
             try {
                 const nomeEditado = this.campoEdicao.label.trim().toLowerCase();
 
-                const todosCampos = [...this.listaCampos.primeira_parte, ...this.listaCampos.segunda_parte, ...this.listaCampos.terceira_parte];
-
-                const nomeExistente = todosCampos.some((c) => c.id !== this.campoEdicao.id && c.label.trim().toLowerCase() === nomeEditado);
+                const nomeExistente = this.listaCampos.some(c =>
+                    c.id !== this.campoEdicao.id &&
+                    c.label.trim().toLowerCase() === nomeEditado
+                );
 
                 if (nomeExistente) {
                     toaster.error("Já existe um campo com este nome.");
                     return;
                 }
 
-                const camposOmie = ["tipo do produto", "família", "ncm", "unidade", "código do produto", "descrição"];
+                const camposOmie = ['tipo do produto', 'família', 'ncm', 'unidade', 'código do produto', 'descrição'];
                 if (camposOmie.includes(nomeEditado)) {
                     toaster.error("Não é permitido editar para um nome de campo padrão do OMIE.");
                     return;
@@ -466,30 +456,30 @@ export default {
             this.modalCampo.id = campo.id;
             this.modalCampo.nome = campo.label;
             this.modalCampo.aberto = true;
-            this.modalCampo.novosValores = [""];
+            this.modalCampo.novosValores = [''];
             this.modalCampo.editandoId = null;
             await this.buscarValoresDoCampo();
         },
         async buscarValoresDoCampo() {
             const payload = {
                 campo_id: this.modalCampo.id,
-                familia_id: this.filtro.familia_id,
+                familia_id: this.filtro.familia_id
             };
             this.modalCampo.dados = await associacaoService.listarDadosdoCampo(payload);
         },
         adicionarNovoValor() {
-            this.modalCampo.novosValores.push("");
+            this.modalCampo.novosValores.push('');
         },
         async cadastrarValoresCampo() {
-            const valores = this.modalCampo.novosValores.map((v) => v.trim()).filter((v) => v);
+            const valores = this.modalCampo.novosValores.map(v => v.trim()).filter(v => v);
             if (!valores.length) return;
             const payload = {
                 campo_id: this.modalCampo.id,
                 familia_id: this.filtro.familia_id,
-                valores,
+                valores
             };
             await associacaoService.cadastrarValores(payload);
-            this.modalCampo.novosValores = [""];
+            this.modalCampo.novosValores = [''];
             await this.buscarValoresDoCampo();
         },
         editarValor(dado) {
@@ -498,11 +488,11 @@ export default {
         },
         cancelarEdicaoValor() {
             this.modalCampo.editandoId = null;
-            this.modalCampo.valorEdicao = "";
+            this.modalCampo.valorEdicao = '';
         },
         async salvarValorEditado() {
             await associacaoService.atualizarValor(this.modalCampo.editandoId, {
-                valor: this.modalCampo.valorEdicao.trim(),
+                valor: this.modalCampo.valorEdicao.trim()
             });
             this.cancelarEdicaoValor();
             await this.buscarValoresDoCampo();
@@ -521,82 +511,47 @@ export default {
         async buscarCampos() {
             try {
                 const payload = { familia_id: this.filtro.familia_id };
-                const dados = await associacaoService.listarCamposCompletos(payload);
 
-                this.listaCampos = {
-                    primeira_parte: [],
-                    segunda_parte: [],
-                    terceira_parte: [],
-                };
-                this.camposSelecionados = [];
+                const [todosCampos, camposDaFamilia] = await Promise.all([
+                    associacaoService.listarCampos(),
+                    associacaoService.listarCamposFamilia(payload)
+                ]);
 
-                const regras = {
-                    obrigatorio_omie_lista: { disabled: true, sempreAtivo: true },
-                    opcional_omie_lista: { habilitarToggle: true },
-                    opcional_usuario_lista: { habilitarToggle: true },
+                const camposMarcadosIds = camposDaFamilia.map(c => c.id);
 
-                    obrigatorio_omie_outro: { disabled: true, sempreAtivo: true },
-                    opcional_omie_outro: { habilitarToggle: true },
-                    opcional_usuario_outro: { habilitarToggle: true },
+                this.listaCampos = todosCampos.map(campo => {
+                    const jaMarcado = camposMarcadosIds.includes(campo.id);
+                    const isOmie = campo.omie === 1 || campo.omie === true;
+                    const isObrigatorio = campo.obrigatorio === true;
 
-                    opcional_usuario_fiscal: { habilitarToggle: true },
-                    obrigatorio_omie_fiscal: { disabled: true, sempreAtivo: true },
-                    opcional_omie_fiscal: { disabled: true, sempreAtivo: true }
-                };
-
-                const partes = ["primeira_parte", "segunda_parte", "terceira_parte"];
-
-                partes.forEach((parte) => {
-                    Object.entries(dados[parte]).forEach(([categoria, itens]) => {
-                        itens.forEach((campo) => {
-                            const rule = regras[categoria] || {};
-                            const isSelecionado = campo.associado || rule.sempreAtivo;
-
-                            if (
-                                parte === "terceira_parte" ||
-                                !(campo.fiscal && ["Lista", "MultiLista"].includes(campo.tipo))
-                            )
-
-                                if (isSelecionado) {
-                                    this.camposSelecionados.push(campo.id);
-                                }
-
-
-
-                            this.listaCampos[parte].push({
-                                ...campo,
-                                categoria,
-                                disabled: rule.disabled || false,
-                                habilitarToggle: rule.habilitarToggle || false,
-                                sempreAtivo: rule.sempreAtivo || false,
-                            });
-                        });
-                    });
+                    return {
+                        ...campo,
+                        marcado: jaMarcado || isOmie || isObrigatorio,
+                        disabled: isOmie
+                    };
                 });
+
+                this.camposSelecionados = this.listaCampos
+                    .filter(c => c.marcado)
+                    .map(c => c.id);
+
             } catch (e) {
                 toaster.error("Erro ao buscar campos");
             }
         },
+
+
         toggleCampo(id) {
-            let campoEncontrado = null;
-
-            ["primeira_parte", "segunda_parte", "terceira_parte"].some((parte) => {
-                const campo = this.listaCampos[parte].find((c) => c.id === id);
-                if (campo) {
-                    campoEncontrado = campo;
-                    return true;
-                }
-                return false;
-            });
-
-            if (!campoEncontrado || campoEncontrado.disabled) return;
+            const campo = this.listaCampos.find(c => c.id === id);
+            if (!campo || campo.disabled) return;
 
             if (this.camposSelecionados.includes(id)) {
-                this.camposSelecionados = this.camposSelecionados.filter((campoId) => campoId !== id);
+                this.camposSelecionados = this.camposSelecionados.filter(campoId => campoId !== id);
             } else {
                 this.camposSelecionados.push(id);
             }
         },
+
 
         async salvarConfiguracao() {
             try {
@@ -606,15 +561,25 @@ export default {
                 };
 
                 await associacaoService.sincronizarCamposFamilia(payload);
-                toaster.success("Configuração salva com sucesso!");
+                toaster.success('Configuração salva com sucesso!')
             } catch (e) {
-                toaster.error("Erro ao salvar configuração.");
+                toaster.error('Erro ao salvar configuração.');
             }
         },
 
         async cadastrarCampos() {
             try {
+                const campoExiste = this.listaCampos.some(c => c.label.trim().toLowerCase() === this.novoCampo.nome.trim().toLowerCase());
+                if (campoExiste) {
+                    toaster.error("Já existe um campo com este nome.");
+                    return;
+                }
 
+                const camposOmie = ['Tipo do Produto', 'Família', 'NCM', 'Unidade', 'Código do Produto', 'Descrição'];
+                if (camposOmie.includes(this.novoCampo.nome.trim().toLowerCase())) {
+                    toaster.error("Não é permitido criar campos padrão do OMIE.");
+                    return;
+                }
 
                 if (!this.novoCampo.nome || !this.novoCampo.tipo) {
                     toaster.error("Preencha o nome e tipo do campo.");
@@ -626,27 +591,20 @@ export default {
                     tipo: this.novoCampo.tipo,
                     descricao: this.novoCampo.descricao,
                     obrigatorio: this.novoCampo.obrigatorio,
-                    fiscal: this.novoCampo.fiscal,
                 };
 
                 await associacaoService.gravarCampo(payload);
                 toaster.success("Campo criado com sucesso!");
 
                 this.showModal = false;
-                this.novoCampo = { nome: "", tipo: "", descricao: "", obrigatorio: false, fiscal: false };
+                this.novoCampo = { nome: '', tipo: '', descricao: '', obrigatorio: false };
 
                 await this.buscarCampos();
             } catch (e) {
-                if (
-                    e?.response?.data?.errors?.label &&
-                    e.response.data.errors.label.includes("validation.unique")
-                ) {
-                    toaster.error("Já existe um campo com esse nome. Por favor, escolha outro nome.");
-                } else {
-                    toaster.error("Erro ao criar campo.");
-                }
+                toaster.error("Erro ao criar campo.");
             }
-        },
+        }
+
     },
     async mounted() {
         try {
@@ -655,16 +613,25 @@ export default {
         } catch (e) {
             console.error("Erro ao carregar tipos e famílias", e);
         }
-    },
+    }
+
 };
 </script>
 <style scoped>
+.obrigatorio {
+    color: #999 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+
+}
+
 .cabecalho-campos-lista {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
+
 
 .checkbox-grid {
     display: grid;
@@ -688,19 +655,23 @@ export default {
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
 }
 
+
+
 .toggle-wrapper .toggle.direita.ativo {
     background-color: var(--toggle-cor-ativo, var(--cor-primaria));
 }
 
+
 .card-titulo {
     width: 100%;
     text-align: center;
+    cursor: pointer;
 }
 
 .card-opções {
     display: flex;
     width: 100%;
-    padding-inline: 0.5rem;
+    padding-inline: .5rem;
     justify-content: space-between;
 }
 
@@ -722,8 +693,9 @@ i:hover {
 
 .desativado {
     color: #999;
-    cursor: default;
+    cursor: default
 }
+
 
 .adicionarItem {
     cursor: pointer;
@@ -799,14 +771,5 @@ input[type="text"] {
     overflow-y: auto;
     padding: 1rem;
     border-radius: 8px;
-}
-
-.obrigatorio-dot {
-    width: 8px;
-    height: 8px;
-    background-color: red;
-    border-radius: 50%;
-    vertical-align: middle;
-    float: left;
 }
 </style>

@@ -3,6 +3,10 @@ import { api } from "roboflex-thalamus-request-handler";
 
 
 //Campos
+function listarCamposCompletos(payload) {
+  return api.post(`familia/campos/v2/listar`, payload).then((res) => res.data);
+}
+
 function listarCampos() {
     return api.get(`produto/campos/listar`).then(res => res.data);
      // "familia_id" : 5,
@@ -151,5 +155,6 @@ export default {
     atualizarValor,
     excluirValores, 
     atualizarCampo,
-    excluirCampo
+    excluirCampo,
+    listarCamposCompletos
 };

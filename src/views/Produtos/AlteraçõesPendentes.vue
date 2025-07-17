@@ -153,53 +153,7 @@
               :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
               :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
-          <div>
-            <label>Origem da Mercadoria</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.origem_mercadoria" required
-              @input="atualizarPayLoad('origem_mercadoria', produto_original.origem_mercadoria)" />
-          </div>
-          <div>
-            <label>Preço Tabelado (Pauta)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.id_preco_tabelado" required
-              @input="atualizarPayLoad('id_preco_tabelado', produto_original.id_preco_tabelado)">
-          </div>
-          <div>
-            <label>CEST (Código Especificador da Substituição Tributária)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.id_cest" required
-              @input="atualizarPayLoad('id_cest', produto_original.id_cest)">
-          </div>
-          <div>
-            <label>Indicador de Produção em Escala Relevante</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.indicador_escala" required
-              @input="atualizarPayLoad('indicador_escala', produto_original.indicador_escala)">
-          </div>
-          <div>
-            <label>CNPJ Fabricante</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cnpj_fabricante" required
-              @input="atualizarPayLoad('cnpj_fabricante', produto_original.cnpj_fabricante)">
-          </div>
-          <div>
-            <label>Cupom Fiscal</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cupom_fiscal" required
-              @input="atualizarPayLoad('cupom_fiscal', produto_original.cupom_fiscal)">
-          </div>
-          <div>
-            <label>Market Place</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.market_place" required
-              @input="atualizarPayLoad('market_place', produto_original.market_place)">
-          </div>
-          <div>
-            <label>Preço Unitário</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.valor_unitario" required
-              @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
-            <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
-          </div>
-          <div>
-            <label>Código EAN (GTIN)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.ean" required
-              @change="atualizarPayLoad('ean', produto_original.ean)" />
-          </div>
-          <div>
+          <!-- <div>
             <label>NCM : {{ produto_original.ncm }}</label>
             <input :disabled="!isFinanceiro" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm" required
               @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
@@ -218,7 +172,7 @@
                     item.codigo }} {{ item.descricao }} </li>
               </ul>
             </div>
-          </div>
+          </div> -->
         </fieldset>
       </div>
       <div style="text-align: center;">
@@ -299,6 +253,15 @@ export default {
   },
   data() {
     return {
+      ordemCamposPrincipais: [
+        'tipoProduto_id',
+        'familia_id',
+        'cod',
+        'desc',
+        'und',
+        'ncm'
+      ],
+
       funcionalidades: [],
       aguardandoAprovaçãoFiscal: false,
       produto_original: {
@@ -370,7 +333,6 @@ export default {
         this.carregarAlteracoes(),
         this.carregarNcm(),
         // this.carregarTiposProduto(),
-        this.carregarEspecificacoes(),
         this.carregarFotosProduto(),
         this.carregarFamilias()
 
@@ -395,35 +357,57 @@ export default {
     }
     ,
 
-
     async sincronizarCamposComBaseNaFamilia(familiaId) {
       this.valoresSelecionados = {};
+      this.camposPrincipais = [];
+      this.camposOutros = [];
 
       try {
         const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
         const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
 
-        this.camposSelects = campos.map(campo => ({
+        const camposMapeados = campos.map(campo => ({
           ...campo,
           componente: this.definirComponentePorTipo(campo.tipo)
         }));
+
         this.valoresSelects = valores;
 
-        this.camposSelects.forEach(campo => {
+        camposMapeados.forEach(campo => {
           const valorAtual = this.produto_original[campo.chave];
-          if (valorAtual) {
+          if (valorAtual !== undefined && valorAtual !== null) {
             this.valoresSelecionados[campo.id] = valorAtual;
+            this.atualizarPayLoad(campo.chave, valorAtual);
           }
-
-
         });
-        this.camposSelects = this.camposSelects.filter(campo => campo.chave !== 'familia_id');
+
+        const camposSemFamilia = camposMapeados.filter(campo => campo.chave !== 'familia_id');
+
+        const ordemCamposPrincipais = [
+          'tipoProduto_id',
+          'cod',
+          'desc',
+          'und',
+          'ncm'
+        ];
+
+        this.camposPrincipais = ordemCamposPrincipais
+          .map(chave => camposSemFamilia.find(c => c.chave === chave))
+          .filter(Boolean);
+
+        this.camposOutros = camposSemFamilia.filter(
+          campo => !ordemCamposPrincipais.includes(campo.chave)
+        );
+
+        this.camposSelects = [...this.camposPrincipais, ...this.camposOutros];
 
 
       } catch (error) {
         console.error("Erro ao sincronizar campos da família:", error);
       }
     },
+
+
     definirComponentePorTipo(tipo) {
       switch (tipo) {
         case 'Lista': return 'select';
@@ -512,8 +496,7 @@ export default {
       this.carregarNcm(),
         // this.carregarTiposProduto(),
         this.carregarFamilias(),
-        this.carregarNcmPorId(),
-        this.carregarEspecificacoes()
+        this.carregarNcmPorId()
     },
     async cadastrarOMIE() {
       var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
@@ -522,22 +505,7 @@ export default {
       }
     },
 
-    async carregarEspecificacoes() {
-      try {
-        const response = await serviceProdutos.getEspecificacao();
-        this.especificacoes = response;
-        if (this.produto_original.especificacoes) {
-          const especificacoesIds = JSON.parse(this.produto_original.especificacoes);
-          this.produto_original.especificacoes = especificacoesIds.map(
-            id => this.especificacoes.find(obj => obj.id === id)
-          ).filter(e => e);
-        } else {
-          this.produto_original.especificacoes = [];
-        }
-      } catch (error) {
-        console.error("Erro ao carregar lista de especificações:", error);
-      }
-    },
+
     async carregarNcm() {
       try {
         const response = await serviceProdutos.getAllNcm();
