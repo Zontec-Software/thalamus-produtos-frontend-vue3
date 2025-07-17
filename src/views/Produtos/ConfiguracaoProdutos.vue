@@ -637,7 +637,14 @@ export default {
 
                 await this.buscarCampos();
             } catch (e) {
-                toaster.error("Erro ao criar campo.");
+                if (
+                    e?.response?.data?.errors?.label &&
+                    e.response.data.errors.label.includes("validation.unique")
+                ) {
+                    toaster.error("Já existe um campo com esse nome. Por favor, escolha outro nome.");
+                } else {
+                    toaster.error("Erro ao criar campo.");
+                }
             }
         },
     },
