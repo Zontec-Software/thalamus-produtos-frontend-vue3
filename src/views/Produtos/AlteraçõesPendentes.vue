@@ -292,8 +292,7 @@ export default {
       camposSelects: [],
       valoresSelects: {},
       valoresSelecionados: {},
-
-
+      valorCamposDinamicos: [],
 
     };
   },
@@ -335,10 +334,6 @@ export default {
         // this.carregarTiposProduto(),
         this.carregarFotosProduto(),
         this.carregarFamilias()
-
-
-
-
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -374,7 +369,9 @@ export default {
         this.valoresSelects = valores;
 
         camposMapeados.forEach(campo => {
-          const valorAtual = this.produto_original[campo.chave];
+          const valorAtual = this.produto_original[campo.chave] ?? 
+            this.valorCamposDinamicos.find(c => c.campo_id === campo.id)?.valores[0]?.valor_id ??
+            this.valorCamposDinamicos.find(c => c.campo_id === campo.id)?.valores[0]?.valor;
           if (valorAtual !== undefined && valorAtual !== null) {
             this.valoresSelecionados[campo.id] = valorAtual;
             this.atualizarPayLoad(campo.chave, valorAtual);
@@ -554,26 +551,45 @@ export default {
     },
     async atualizarPayLoad(chave, valor) {
       this.payLoad[chave] = valor;
-
-
     },
 
     async salvarProduto() {
       try {
-        this.payLoad.observacoes = this.produto_original.observacoes;
+        const payloadAtualizar = {};
+
+        // Campos OMIE
+        this.camposSelects
+          .filter(campo => campo.omie === 1)
+          .forEach(campo => {
+            payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
+          });
+
+        // Campos dinâmicos
+        payloadAtualizar.campos_dinamicos = this.camposSelects
+          .filter(campo => campo.omie !== 1)
+          .map(campo => {
+            const valor = this.valoresSelecionados[campo.id];
+            if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+              return {
+                campo_id: campo.id,
+                valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
+              };
+            }
+            return {
+              campo_id: campo.id,
+              valor: valor ?? null,
+            };
+          });
 
         if (this.isCadastro) {
-          await serviceProdutos.salvarNovoProduto(this.payLoad)
+          await serviceProdutos.salvarNovoProduto(this.payLoad);
           toaster.success("Produto enviado com sucesso!");
-        }
-
-        else {
-          await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
+        } else {
+          await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
           toaster.success("Produto salvo com sucesso!");
-
         }
       } catch (error) {
-        toaster.error("Erro ao salvar produto")
+        toaster.error("Erro ao salvar produto");
         console.error("Erro ao salvar produto:", error);
       }
     },
@@ -590,10 +606,10 @@ export default {
       try {
         const response = await serviceProdutos.carregarAlteracoesOriginalEditado(this.produto_cod);
         this.produto_original = response.produto_editado;
+        this.valorCamposDinamicos = response.campos_dinamicos;
 
         // this.produto_editado = response.produto_editado;
         this.em_edicao = response.em_edicao;
-
 
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
