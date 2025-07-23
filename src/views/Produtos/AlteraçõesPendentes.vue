@@ -4,7 +4,9 @@
   </div>
   <section v-else>
     <div class="margem" style="text-align: right;">
-      <strong> {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
+      <!-- <strong> {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
+        ${produto_original.editadoPor ?? '??'}` }} </strong> -->
+      <strong> {{ `Atualizado em: ${formatarData(produto_original.updated_at) ?? '?'} - por:
         ${produto_original.editadoPor ?? '??'}` }} </strong>
     </div>
     <div>
