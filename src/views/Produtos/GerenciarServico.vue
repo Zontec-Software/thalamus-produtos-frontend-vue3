@@ -133,12 +133,8 @@
 import serviceServicos from "@/services/serviceServicos";
 import serviceFerramentas from "@/services/serviceFerramentas";
 import serviceProdutos from "@/services/serviceProdutos";
-import { createToaster } from "@meforma/vue-toaster";
+import { useToast } from 'vue-toastification'
 
-const toaster = createToaster({
-  position: "top-right",
-  duration: 6000,
-});
 
 export default {
   data() {
@@ -165,6 +161,11 @@ export default {
       filteredMateriais: [],
       listaAbertaMaterial: false,
     };
+  },
+
+  setup() {
+    const toast = useToast();
+    return { toast };
   },
   methods: {
     abrirListaFerramenta() {
@@ -322,15 +323,15 @@ export default {
 
         if (this.modoCadastro) {
           await serviceServicos.cadastrar(servicoData);
-          toaster.success("Serviço cadastrado com sucesso!");
+          this.toast.success("Serviço cadastrado com sucesso!");
           this.$router.push({ name: "Servico" });
         } else {
           await serviceServicos.atualizar(servicoData);
-          toaster.success("Serviço atualizado com sucesso!");
+          this.toast.success("Serviço atualizado com sucesso!");
           this.$router.push({ name: "Servico" });
         }
       } catch (error) {
-        toaster.error("Erro ao salvar o serviço.");
+        this.toast.error("Erro ao salvar o serviço.");
         console.error("Erro ao cadastrar/atualizar serviço:", error);
       }
     },

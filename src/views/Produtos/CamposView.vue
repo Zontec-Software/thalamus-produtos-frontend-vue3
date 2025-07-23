@@ -114,13 +114,9 @@
 </template>
 <script>
 import listaService from '@/services/camposPorFamilia-service';
-// import { createToaster } from "@meforma/vue-toaster";
 
 
-// const toaster = createToaster({
-//     position: "top-right",
-//     duration: 6000,
-// });
+
 export default {
     data() {
         return {

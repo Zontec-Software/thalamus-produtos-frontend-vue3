@@ -2,7 +2,8 @@
     <section>
         <div class="titulo">
             <div class="margem container">
-                <div class="m-icone esquerda"><a @click="this.$router.back();" class="icone-voltar m-d" title="Voltar"></a>
+                <div class="m-icone esquerda"><a @click="this.$router.back();" class="icone-voltar m-d"
+                        title="Voltar"></a>
                 </div>
                 <h2>{{ modoCadastro ? "Cadastrar" : "Editar" }} Ferramentas</h2>
             </div>
@@ -23,20 +24,14 @@
                 </div>
             </div>
             <br>
-                <button @click="cadastrarFerramenta">Salvar</button>
+            <button @click="cadastrarFerramenta">Salvar</button>
             <button class="acao-secundaria" @click="this.$router.back()">Cancelar</button>
         </div>
     </section>
 </template>
-
 <script>
 import serviceFerramentas from '@/services/serviceFerramentas';
-import { createToaster } from "@meforma/vue-toaster";
-
-const toaster = createToaster({
-    position: "top-right",
-    duration: 6000,
-});
+import { useToast } from 'vue-toastification'
 
 export default {
     data() {
@@ -52,36 +47,41 @@ export default {
         }
     },
 
+
+    setup() {
+        const toast = useToast();
+        return { toast };
+    },
+
     methods: {
 
-        async obterFerramentaPorId(id){
+        async obterFerramentaPorId(id) {
             try {
-                 const response = await serviceFerramentas.obterPorId(id);
+                const response = await serviceFerramentas.obterPorId(id);
                 const ferramentaData = response.data;
                 this.ferramenta = {
                     id: ferramentaData.id,
                     codigo: ferramentaData.codigo,
-                    nome:ferramentaData.nome,
+                    nome: ferramentaData.nome,
                     descricao: ferramentaData.descricao
                 };
-                 this.modoCadastro = false;
+                this.modoCadastro = false;
 
-            
-                } catch (error) {
-                                console.log('Erro ao obter ferramenta:', error);
-                            }
-          },
 
-        async cadastrarFerramenta()
-          {
+            } catch (error) {
+                console.log('Erro ao obter ferramenta:', error);
+            }
+        },
+
+        async cadastrarFerramenta() {
             try {
                 if (this.modoCadastro) {
                     await serviceFerramentas.cadastrar(this.ferramenta);
-                    toaster.success('Ferramenta cadastrada com sucesso!');
-                     this.$router.push({ name: "Ferramentas" });
+                    this.toast.success('Ferramenta cadastrada com sucesso!');
+                    this.$router.push({ name: "Ferramentas" });
                 } else {
                     await serviceFerramentas.atualizar(this.ferramenta);
-                    toaster.success('Ferramenta atualizado com sucesso!');
+                    this.toast.success('Ferramenta atualizado com sucesso!');
                     this.$router.push({ name: "Ferramentas" });
 
                 }
@@ -89,13 +89,12 @@ export default {
                 console.log(error)
                 this.$router.push({ name: "Ferramentas" });
 
-                // toaster.error('Erro ao salvar ferramenta.');
             }
-          }
+        }
 
-    }, 
+    },
 
-      async created() {
+    async created() {
         const id = this.$route.params.id;
         if (id) {
             this.modoCadastro = false;

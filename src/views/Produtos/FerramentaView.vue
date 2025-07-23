@@ -64,12 +64,8 @@
 <script>
 import serviceFerramentas from '@/services/serviceFerramentas'
 import { api } from "roboflex-thalamus-request-handler";
-import { createToaster } from "@meforma/vue-toaster";
+import { useToast } from 'vue-toastification'
 
-const toaster = createToaster({
-    position: "top-right",
-    duration: 6000,
-});
 
 export default {
     data() {
@@ -81,6 +77,12 @@ export default {
             nomeToDelete: null,
         }
     },
+
+    setup() {
+        const toast = useToast();
+        return { toast };
+    },
+
 
     async mounted() {
         this.carregarFerramentas();
@@ -136,9 +138,9 @@ export default {
                 .then(response => {
                     if (response.status === 200 || response.status === 204) {
                         this.removerPessoa(id);
-                        toaster.success('Ferramenta excluída com sucesso');
+                        this.toast.success('Ferramenta excluída com sucesso');
                     } else {
-                        toaster.error('Falha ao excluir ferramenta');
+                        this.toast.error('Falha ao excluir ferramenta');
                     }
                 })
                 .catch(error => {

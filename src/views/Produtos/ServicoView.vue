@@ -60,13 +60,10 @@
 </template>
 <script>
 import serviceServicos from "@/services/serviceServicos";
-import { createToaster } from "@meforma/vue-toaster";
 import { api } from "roboflex-thalamus-request-handler";
+import { useToast } from 'vue-toastification'
 
-const toaster = createToaster({
-  position: "top-right",
-  duration: 6000,
-});
+
 
 export default {
   data() {
@@ -79,6 +76,10 @@ export default {
     };
   },
 
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
   computed: {
     filteredServicos() {
       if (!this.searchQuery) {
@@ -139,9 +140,9 @@ export default {
         .then(response => {
           if (response.status === 200 || response.status === 204) {
             this.removerPessoa(id);
-            toaster.success('Serviço excluído com sucesso');
+            this.toast.success('Serviço excluído com sucesso');
           } else {
-            toaster.error('Falha ao excluir serviço');
+            this.toast.error('Falha ao excluir serviço');
           }
         })
         .catch(error => {

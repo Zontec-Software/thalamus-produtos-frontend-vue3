@@ -107,14 +107,10 @@
 <script>
 import serviceAprovacao from '@/services/aprovacao-service'
 // import serviceProdutos from '@/services/serviceProdutos'
-import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
+import { useToast } from 'vue-toastification'
 
 
-const toaster = createToaster({
-    position: "top-right",
-    duration: 6000,
-});
 
 export default {
     name: 'AprovacaoView',
@@ -130,11 +126,16 @@ export default {
         };
     },
 
+    setup() {
+        const toast = useToast();
+        return { toast };
+    },
+
     async created() {
         const usuario = sso.getUsuarioLogado();
         if (!usuario || !usuario.id) {
             // console.error("Usuário não encontrado ou sem ID válido:", usuario);
-            toaster.error("Erro ao carregar o usuário logado.");
+            this.toast.error("Erro ao carregar o usuário logado.");
             return;
         }
         this.usuario_id = usuario.id;
@@ -173,11 +174,11 @@ export default {
                     this.produtosFiltrados = this.produtos;
                 } else {
                     console.error("Formato inesperado da resposta:", response);
-                    toaster.error("Resposta inválida recebida do servidor.");
+                    this.toast.error("Resposta inválida recebida do servidor.");
                 }
             } catch (error) {
                 console.error("Erro ao carregar produtos:", error);
-                toaster.error("Erro ao carregar produtos.");
+                this.toast.error("Erro ao carregar produtos.");
             }
         },
 
@@ -226,12 +227,12 @@ export default {
 
                 const response = await serviceAprovacao.aprovar(this.produtoSelecionado.codigo, alteracoes);
                 console.log("Aprovação bem-sucedida:", response);
-                toaster.success(`Produto ${this.produtoSelecionado.descricao} aprovado com sucesso!`);
+                this.toast.success(`Produto ${this.produtoSelecionado.descricao} aprovado com sucesso!`);
                 this.fecharModal();
                 this.carregarProdutos();
             } catch (error) {
                 console.error("Erro ao aprovar produto:", error);
-                toaster.error("Erro ao aprovar o produto.");
+                this.toast.error("Erro ao aprovar o produto.");
             }
         },
 
@@ -242,12 +243,12 @@ export default {
             try {
                 const response = await serviceAprovacao.reprovar(this.produtoSelecionado.codigo, this.usuario_id);
                 console.log("Reprovação bem-sucedida:", response);
-                toaster.success(`Produto ${this.produtoSelecionado.desc} reprovado com sucesso!`);
+                this.toast.success(`Produto ${this.produtoSelecionado.desc} reprovado com sucesso!`);
                 this.fecharModal();
                 this.carregarProdutos();
             } catch (error) {
                 // console.error("Erro ao reprovar produto:", error);
-                toaster.error("Erro ao reprovar o produto.");
+                this.toast.error("Erro ao reprovar o produto.");
             }
         },
         ordenarTabela(campo) {

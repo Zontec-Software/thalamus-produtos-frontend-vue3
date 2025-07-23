@@ -94,13 +94,10 @@
 <script>
 import gabaritoService from "@/services/serviceGabarito";
 import serviceProdutos from "@/services/serviceProdutos";
-import { createToaster } from "@meforma/vue-toaster";
 import { urlFoto } from '@/services/api';
+import { useToast } from 'vue-toastification'
 
-const toaster = createToaster({
-    position: "top-right",
-    duration: 6000,
-});
+
 
 export default {
     name: 'GabaritosView',
@@ -124,6 +121,11 @@ export default {
             caminhoFoto: urlFoto.caminhoFoto,
 
         };
+    },
+
+    setup() {
+        const toast = useToast();
+        return { toast };
     },
 
     computed: {
@@ -184,12 +186,12 @@ export default {
                     await gabaritoService.anexarArquivo(gabaritoId, this.gabaritoAtual.anexos);
                 }
 
-                toaster.success("Gabarito salvo com sucesso!");
+                this.toast.success("Gabarito salvo com sucesso!");
                 this.showModal = false;
                 await this.carregarGabaritos();
             } catch (error) {
                 console.error("Erro ao salvar gabarito:", error);
-                toaster.error("Erro ao salvar gabarito.");
+                this.toast.error("Erro ao salvar gabarito.");
             }
         },
 
@@ -283,11 +285,11 @@ export default {
             try {
                 await gabaritoService.excluir(id);
                 this.gabaritos = this.gabaritos.filter(g => g.id !== id);
-                toaster.success("Gabarito excluído com sucesso!");
+                this.toast.success("Gabarito excluído com sucesso!");
 
             } catch (e) {
                 console.error("Erro ao excluir gabarito:", e);
-                toaster.error("Não foi possível excluir o gabarito.");
+                this.toast.error("Não foi possível excluir o gabarito.");
             }
         },
         // async salvarGabarito() {
