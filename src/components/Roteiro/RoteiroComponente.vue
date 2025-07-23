@@ -32,9 +32,8 @@
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div style="display: flex; align-items: center;">
                                         <i class="bi-list drag-handle" style="cursor: grab; margin-right: 10px"></i>
-                                        <h4 @click="toggleExpandir(servico)" style="cursor: pointer;">
-                                            - {{ servico.descricao }}
-                                        </h4>
+                                        <h4 @click="toggleExpandir(servico)" style="cursor: pointer;"> - {{
+                                            servico.descricao }} </h4>
                                     </div>
                                     <div>
                                         <span @click="toggleExpandir(servico)">
@@ -75,8 +74,7 @@
                                                 <div class="conteudo-item"> <span>{{ ferramenta.produto.cod }} - {{
                                                     ferramenta.produto.desc }}</span>
                                                     <span class="descricao-item">Descrição: {{ ferramenta.produto.desc
-                                                        || ''
-                                                        }}</span>
+                                                        || '' }}</span>
                                                 </div>
                                                 <i class="bi-x-circle"
                                                     @click="removerFerramenta(servico, ferramenta.id)"></i>
@@ -93,8 +91,7 @@
                                             <li v-for="insumo in servico.insumos" :key="insumo.id">
                                                 <div class="conteudo-item">
                                                     <span>{{ insumo.produto.cod ?? '' }} - {{ insumo.produto.descricao
-                                                        ??
-                                                        insumo.produto.desc }} (Qtd: {{ insumo.qtd }})</span>
+                                                        ?? insumo.produto.desc }} (Qtd: {{ insumo.qtd }})</span>
                                                 </div>
                                                 <i class="bi-x-circle" @click="removerInsumo(servico, insumo.id)"></i>
                                             </li>
@@ -111,11 +108,9 @@
                                             <li v-for="gabarito in servico.gabaritos" :key="gabarito.id">
                                                 <div class="conteudo-item">
                                                     <span>{{ gabarito.gabarito.codigo }} - {{ gabarito.gabarito.nome
-                                                        }}</span>
+                                                    }}</span>
                                                     <span class="descricao-item">Descrição: {{
-                                                        gabarito?.gabarito?.descricao
-                                                        ||
-                                                        '' }} </span>
+                                                        gabarito?.gabarito?.descricao || '' }} </span>
                                                 </div>
                                                 <i class="bi-x-circle"
                                                     @click="removerGabarito(servico, gabarito.id)"></i>
@@ -131,11 +126,9 @@
                                             <li v-for="parametro in servico.parametros" :key="parametro.id">
                                                 <div class="conteudo-item">
                                                     <span> {{ parametro?.parametro?.codigo }} - {{
-                                                        parametro?.parametro?.nome }}
-                                                    </span>
+                                                        parametro?.parametro?.nome }} </span>
                                                     <span class="descricao-item">Descrição: {{
-                                                        parametro?.parametro?.descricao
-                                                        || '' }} </span>
+                                                        parametro?.parametro?.descricao || '' }} </span>
                                                 </div>
                                                 <i class="bi-x-circle"
                                                     @click="removerParametro(servico, parametro.id)"></i>
@@ -260,14 +253,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                                }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -296,7 +289,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.descricao }} </option>
+                                }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -432,15 +425,12 @@ import AutoCompleteRoteiro from '../AutoComplete/AutoCompleteRoteiro.vue';
 import gabaritoService from '@/services/serviceGabarito';
 import { baseCodigoServico } from '@/services/serviceRoteiro2.0';
 import { urlFoto } from '@/services/api';
-import { createToaster } from "@meforma/vue-toaster";
 import { RecycleScroller } from 'vue-virtual-scroller'
 import { ref, computed, onMounted } from 'vue'
+import { useToast } from 'vue-toastification'
 
 
-const toaster = createToaster({
-    position: "top-right",
-    duration: 6000,
-});
+
 
 export default {
     components: {
@@ -484,12 +474,14 @@ export default {
             carregarFerramentas();
             gabaritos.value = await gabaritoService.listar();
         });
+        const toast = useToast();
 
 
         return {
             search,
             filteredOptions,
-            filteredGabaritos
+            filteredGabaritos,
+            toast
         }
     },
     data() {
@@ -560,7 +552,7 @@ export default {
             try {
                 await serviceRoteiro.deletarAnexoInspecao(this.servicoAtual.id, anexoId);
                 this.servicoAtual.anexos_inspecao = this.servicoAtual.anexos_inspecao.filter(a => a.id !== anexoId);
-                toaster.success("Anexo de inspeção removido!");
+                this.toast.success("Anexo de inspeção removido!");
             } catch (error) {
                 console.error("Erro ao deletar anexo de inspeção:", error);
             }
@@ -604,7 +596,7 @@ export default {
             try {
                 await serviceRoteiro.deletarAnexo(this.servicoAtual.id, anexoId);
                 this.servicoAtual.anexos = this.servicoAtual.anexos.filter(a => a.id !== anexoId);
-                toaster.success("Anexo excluído com sucesso!");
+                this.toast.success("Anexo excluído com sucesso!");
             } catch (error) {
                 console.error("Erro ao deletar anexo:", error);
             }
@@ -802,7 +794,7 @@ export default {
 
                 const existe = this.servicoAtual.gabaritos.find(g => g.gabarito?.id === gabarito.id);
                 if (existe) {
-                    toaster.warning("Gabarito já adicionado.");
+                    this.toast.warning("Gabarito já adicionado.");
                     return;
                 }
 

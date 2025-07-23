@@ -328,12 +328,9 @@
 </template>
 <script>
 import associacaoService from "@/services/camposPorFamilia-service";
-import { createToaster } from "@meforma/vue-toaster";
+import { useToast } from 'vue-toastification'
 
-const toaster = createToaster({
-    position: "top-right",
-    duration: 6000,
-});
+
 export default {
     name: "ConfigurarCamposPorTipo",
     data() {
@@ -386,6 +383,11 @@ export default {
         },
     },
 
+    setup() {
+        const toast = useToast();
+        return { toast };
+    },
+
     methods: {
         confirmarExclusaoCampo(campo) {
             this.modalConfirmacaoExclusao.campo = campo;
@@ -396,12 +398,12 @@ export default {
             try {
                 const { id } = this.modalConfirmacaoExclusao.campo;
                 await associacaoService.excluirCampo(id);
-                toaster.success("Campo excluído com sucesso!");
+                this.toast.success("Campo excluído com sucesso!");
                 this.modalConfirmacaoExclusao = { visivel: false, campo: null };
                 await this.buscarCampos();
             } catch (e) {
                 console.error("Erro ao excluir campo", e);
-                toaster.error("Erro ao excluir campo.");
+                this.toast.error("Erro ao excluir campo.");
             }
         },
 
@@ -433,32 +435,32 @@ export default {
                 const nomeExistente = todosCampos.some((c) => c.id !== this.campoEdicao.id && c.label.trim().toLowerCase() === nomeEditado);
 
                 if (nomeExistente) {
-                    toaster.error("Já existe um campo com este nome.");
+                    this.toast.error("Já existe um campo com este nome.");
                     return;
                 }
 
                 const camposOmie = ["tipo do produto", "família", "ncm", "unidade", "código do produto", "descrição"];
                 if (camposOmie.includes(nomeEditado)) {
-                    toaster.error("Não é permitido editar para um nome de campo padrão do OMIE.");
+                    this.toast.error("Não é permitido editar para um nome de campo padrão do OMIE.");
                     return;
                 }
 
                 await associacaoService.atualizarCampo(this.campoEdicao.id, this.campoEdicao);
-                toaster.success("Campo atualizado com sucesso!");
+                this.toast.success("Campo atualizado com sucesso!");
                 this.cancelarEdicaoCampo();
                 await this.buscarCampos();
             } catch (e) {
-                toaster.error("Erro ao editar campo.");
+                this.toast.error("Erro ao editar campo.");
             }
         },
 
         async excluirCampo(id) {
             try {
                 await associacaoService.excluirCampo({ id });
-                toaster.success("Campo excluído com sucesso!");
+                this.toast.success("Campo excluído com sucesso!");
                 await this.buscarCampos();
             } catch (e) {
-                toaster.error("Erro ao excluir campo.");
+                this.toast.error("Erro ao excluir campo.");
             }
         },
 
@@ -574,7 +576,7 @@ export default {
                     });
                 });
             } catch (e) {
-                toaster.error("Erro ao buscar campos");
+                this.toast.error("Erro ao buscar campos");
             }
         },
         toggleCampo(id) {
@@ -606,9 +608,9 @@ export default {
                 };
 
                 await associacaoService.sincronizarCamposFamilia(payload);
-                toaster.success("Configuração salva com sucesso!");
+                this.toast.success("Configuração salva com sucesso!");
             } catch (e) {
-                toaster.error("Erro ao salvar configuração.");
+                this.toast.error("Erro ao salvar configuração.");
             }
         },
 
@@ -617,7 +619,7 @@ export default {
 
 
                 if (!this.novoCampo.nome || !this.novoCampo.tipo) {
-                    toaster.error("Preencha o nome e tipo do campo.");
+                    this.toast.error("Preencha o nome e tipo do campo.");
                     return;
                 }
 
@@ -630,7 +632,7 @@ export default {
                 };
 
                 await associacaoService.gravarCampo(payload);
-                toaster.success("Campo criado com sucesso!");
+                this.toast.success("Campo criado com sucesso!");
 
                 this.showModal = false;
                 this.novoCampo = { nome: "", tipo: "", descricao: "", obrigatorio: false, fiscal: false };
@@ -641,9 +643,9 @@ export default {
                     e?.response?.data?.errors?.label &&
                     e.response.data.errors.label.includes("validation.unique")
                 ) {
-                    toaster.error("Já existe um campo com esse nome. Por favor, escolha outro nome.");
+                    this.toast.error("Já existe um campo com esse nome. Por favor, escolha outro nome.");
                 } else {
-                    toaster.error("Erro ao criar campo.");
+                    this.toast.error("Erro ao criar campo.");
                 }
             }
         },

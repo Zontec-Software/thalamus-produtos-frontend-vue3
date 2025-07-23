@@ -219,7 +219,6 @@
 <script>
 import serviceProdutos from '@/services/serviceProdutos';
 import serviceAprovacao from '@/services/aprovacao-service'
-import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
 import { getPermissao } from '@/services/permissao-service';
@@ -227,12 +226,10 @@ import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { urlFoto } from '@/services/api';
 import serviceCampos from '@/services/camposPorFamilia-service'
+import { useToast } from 'vue-toastification'
 
 
-const toaster = createToaster({
-  position: "top-right",
-  duration: 6000,
-});
+
 export default {
   name: "AlteracoesProduto",
   components: {
@@ -292,13 +289,13 @@ export default {
       camposSelects: [],
       valoresSelects: {},
       valoresSelecionados: {},
-
-
+      valorCamposDinamicos: [],
 
     };
   },
   setup() {
-    return { urlFoto };
+    const toast = useToast();
+    return { urlFoto, toast };
   },
   watch: {
     'produto_original.familia_id': {
@@ -335,10 +332,6 @@ export default {
         // this.carregarTiposProduto(),
         this.carregarFotosProduto(),
         this.carregarFamilias()
-
-
-
-
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -374,7 +367,9 @@ export default {
         this.valoresSelects = valores;
 
         camposMapeados.forEach(campo => {
-          const valorAtual = this.produto_original[campo.chave];
+          const valorAtual = this.produto_original[campo.chave] ??
+            this.valorCamposDinamicos.find(c => c.campo_id === campo.id)?.valores[0]?.valor_id ??
+            this.valorCamposDinamicos.find(c => c.campo_id === campo.id)?.valores[0]?.valor;
           if (valorAtual !== undefined && valorAtual !== null) {
             this.valoresSelecionados[campo.id] = valorAtual;
             this.atualizarPayLoad(campo.chave, valorAtual);
@@ -453,7 +448,7 @@ export default {
       if (!file) return;
 
       if (this.fotosProduto.length >= 4) {
-        toaster.error("Você pode adicionar no máximo 4 fotos.");
+        this.toast.error("Você pode adicionar no máximo 4 fotos.");
         return;
       }
 
@@ -462,10 +457,10 @@ export default {
 
       try {
         await serviceProdutos.gravarAnexo(formData, this.produto_cod);
-        toaster.success("Foto adicionada com sucesso!");
+        this.toast.success("Foto adicionada com sucesso!");
         await this.carregarFotosProduto();
       } catch (error) {
-        toaster.error("Erro ao adicionar foto.");
+        this.toast.error("Erro ao adicionar foto.");
         console.error(error);
       }
     },
@@ -474,10 +469,10 @@ export default {
       const foto = this.fotosProduto[index];
       try {
         await serviceProdutos.deletarAnexo(this.produto_cod, foto.id);
-        toaster.success("Foto removida com sucesso!");
+        this.toast.success("Foto removida com sucesso!");
         await this.carregarFotosProduto();
       } catch (error) {
-        toaster.error("Erro ao remover foto.");
+        this.toast.error("Erro ao remover foto.");
         console.error(error);
       }
     },
@@ -501,7 +496,7 @@ export default {
     async cadastrarOMIE() {
       var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
       if (response) {
-        toaster.success("Produto cadastrado com sucesso!");
+        this.toast.success("Produto cadastrado com sucesso!");
       }
     },
 
@@ -554,35 +549,54 @@ export default {
     },
     async atualizarPayLoad(chave, valor) {
       this.payLoad[chave] = valor;
-
-
     },
 
     async salvarProduto() {
       try {
-        this.payLoad.observacoes = this.produto_original.observacoes;
+        const payloadAtualizar = {};
+
+        // Campos OMIE
+        this.camposSelects
+          .filter(campo => campo.omie === 1)
+          .forEach(campo => {
+            payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
+          });
+
+        // Campos dinâmicos
+        payloadAtualizar.campos_dinamicos = this.camposSelects
+          .filter(campo => campo.omie !== 1)
+          .map(campo => {
+            const valor = this.valoresSelecionados[campo.id];
+            if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+              return {
+                campo_id: campo.id,
+                valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
+              };
+            }
+            return {
+              campo_id: campo.id,
+              valor: valor ?? null,
+            };
+          });
 
         if (this.isCadastro) {
-          await serviceProdutos.salvarNovoProduto(this.payLoad)
-          toaster.success("Produto enviado com sucesso!");
-        }
-
-        else {
-          await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
-          toaster.success("Produto salvo com sucesso!");
-
+          await serviceProdutos.salvarNovoProduto(this.payLoad);
+          this.toast.success("Produto enviado com sucesso!");
+        } else {
+          await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
+          this.toast.success("Produto salvo com sucesso!");
         }
       } catch (error) {
-        toaster.error("Erro ao salvar produto")
+        this.toast.error("Erro ao salvar produto");
         console.error("Erro ao salvar produto:", error);
       }
     },
     async finalizarCadastro() {
       try {
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
-        toaster.success("Produto finalizado com sucesso!");
+        this.toast.success("Produto finalizado com sucesso!");
       } catch (error) {
-        toaster.error("Erro ao finalizar produto")
+        this.toast.error("Erro ao finalizar produto")
         console.error("Erro ao salvar produto:", error);
       }
     },
@@ -590,10 +604,10 @@ export default {
       try {
         const response = await serviceProdutos.carregarAlteracoesOriginalEditado(this.produto_cod);
         this.produto_original = response.produto_editado;
+        this.valorCamposDinamicos = response.campos_dinamicos;
 
         // this.produto_editado = response.produto_editado;
         this.em_edicao = response.em_edicao;
-
 
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
@@ -605,18 +619,18 @@ export default {
       const { usuario_id } = this.payLoad;
 
       if (!produto_cod || !usuario_id) {
-        toaster.error("Produto ou usuário não informado.");
+        this.toast.error("Produto ou usuário não informado.");
         return;
       }
 
       serviceAprovacao.enviarParaAprovacao(produto_cod, usuario_id)
         .then(() => {
-          toaster.success("Produto enviado para aprovação com sucesso!");
+          this.toast.success("Produto enviado para aprovação com sucesso!");
           this.$router.back()
 
         })
         .catch((error) => {
-          toaster.error("Erro ao enviar produto para aprovação.");
+          this.toast.error("Erro ao enviar produto para aprovação.");
           console.error("Erro ao enviar para aprovação:", error);
           this.$router.back()
         });

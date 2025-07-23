@@ -2,6 +2,8 @@ import router from './router'
 import 'vuetify/styles'
 import "@/assets/css/thalamus.css"
 import axios from 'axios';
+import Toast from 'vue-toastification'
+import 'vue-toastification/dist/index.css'
 import { createApp } from 'vue'
 
 // Vuetify
@@ -25,4 +27,6 @@ const app = createApp(App)
 app.config.globalProperties.$moduleName = 'Produtos'
 app.use(router)
 app.use(vuetify)
+app.use(Toast)
+
 app.mount('#app')
