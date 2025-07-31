@@ -22,8 +22,8 @@
           <i class="fa-solid fa-caret-up" id="setaCimaFamiliaProduto" style="display: none"></i>
           <i class="fa-solid fa-caret-down" id="setaBaixoFamiliaProduto" style="display: none"></i>
         </th>
-        <th>Ações</th>
-        <th style="text-align: center;">Revisão</th>
+        <th v-if="exibirAcoes">Ações</th>
+        <th v-if="exibirAcoes" style="text-align: center;">Revisão</th>
       </tr>
       <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
         @click="abrirDetalhes(item.id)">
@@ -31,13 +31,19 @@
         <td> {{ item.desc }} </td>
         <td> {{ item.tipo?.nome ?? "-" }} </td>
         <td> {{ item.familia_produto?.familia_nome ?? "-" }} </td>
-        <td @click.stop>
+        <td @click.stop v-if="exibirAcoes">
           <div>
             <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
                 class="fa-regular fa-copy"></i></span>
           </div>
         </td>
-        <td style="text-align: center;" @click.stop>
+        <td v-if="exibirAcoes" @click.stop>
+          <div>
+            <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
+                class="fa-regular fa-copy"></i></span>
+          </div>
+        </td>
+        <td v-if="exibirAcoes" style="text-align: center;" @click.stop>
           <select @change="atualizarStatus(item.produto_cod, item.status_produto)" v-model="item.status_produto"
             style="text-align: center; width: fit-content;">
             <option :value="null" hidden>Não realizada</option>
@@ -62,7 +68,12 @@ export default {
     searchQuery: { required: true },
     filtro: { type: String, default: "" },
     filtroTipo: { type: String, default: "" },
-    filtroFamilia: { type: String, default: "" }
+    filtroFamilia: { type: String, default: "" },
+    useModal: {
+      type: Boolean,
+      default: false
+    },
+    exibirAcoes: { type: Boolean, default: true }
   },
   data() {
     return {
@@ -135,8 +146,13 @@ export default {
       this.$router.push({ name: "template", params: { id } });
 
     },
+
     abrirDetalhes(id) {
-      this.$router.push({ name: "cadastroProduto", params: { id } });
+      if (this.useModal) {
+        this.$emit("abrir-detalhes", id);
+      } else {
+        this.$router.push({ name: "cadastroProduto", params: { id } });
+      }
     },
 
     ordernarTabela(itemReferencia) {

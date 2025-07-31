@@ -25,7 +25,7 @@
           <select v-model="filtroFamilia">
             <option value="">Todas</option>
             <option v-for="(familia, index) in familiasProduto" :key="index" :value="familia">{{ familia.toUpperCase()
-              }}</option>
+            }}</option>
           </select>
         </div>
       </div>
@@ -71,8 +71,6 @@ export default {
     return {
       tiposProduto: [
 
-        // "Produto em Processo",
-        // "Produto Acabado",
 
       ],
       searchQuery: "",

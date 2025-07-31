@@ -1,7 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { sso } from "roboflex-thalamus-sso-lib";
 import { getPermissao } from "../services/permissao-service";
-import PortfolioProduto from '@/views/Produtos/PortfolioProduto.vue';
+import Produtos from '@/views/Produtos/Produtos.vue';
+import Portfolio from '@/views/Produtos/PortfolioView.vue';
 import CadastroProduto from '@/views/Produtos/CadastroProduto.vue'
 import TemplateView from '@/views/Produtos/TemplateView.vue'
 import Aprovacao from "@/views/Produtos/AprovacaoView.vue"
@@ -70,7 +71,13 @@ const routes = [
   {
     path: '/',
     name: 'portfolioView',
-    component: PortfolioProduto,
+    component: Produtos,
+    beforeEnter: guardPermissaoRoute
+  },
+    {
+    path: '/portfolio',
+    name: 'Portfolio',
+    component: Portfolio,
     beforeEnter: guardPermissaoRoute
   },
   {
