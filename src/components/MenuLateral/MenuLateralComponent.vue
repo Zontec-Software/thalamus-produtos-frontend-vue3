@@ -18,6 +18,7 @@
 107 Montagem | Separar Materiais -->
         <nav class="nav-maior separador">
             <router-link to="/" active-class="ativo">Produtos</router-link>
+            <router-link to="/portfolio" active-class="ativo">Portfólio de Produtos</router-link>
             <router-link to="/aprovacao" active-class="ativo">Aprovação</router-link>
             <router-link to="/parametrosTeste" active-class="ativo">Parametros de Teste</router-link>
             <router-link to="/gabarito" active-class="ativo">Gabaritos</router-link>

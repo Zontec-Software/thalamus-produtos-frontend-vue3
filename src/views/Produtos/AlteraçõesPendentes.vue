@@ -331,7 +331,7 @@ export default {
       await Promise.all([
         this.carregarAlteracoes(),
         this.carregarNcm(),
-        // this.carregarTiposProduto(),
+        this.carregarTiposProduto(),
         this.carregarFotosProduto(),
         this.carregarFamilias()
       ]);
@@ -349,8 +349,7 @@ export default {
       } catch (error) {
         console.error("Erro ao carregar famílias:", error);
       }
-    }
-    ,
+    },
 
     async sincronizarCamposComBaseNaFamilia(familiaId) {
       this.valoresSelecionados = {};
@@ -360,26 +359,33 @@ export default {
       try {
         const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
         const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
+        const campoTipo = campos.find(c => c.chave === 'tipoProduto_id');
+
+        if (campoTipo && this.tipos && this.tipos.length) {
+          valores[campoTipo.id] = this.tipos.map(t => ({
+            id: t.id,
+            valor: t.nome
+          }));
+        }
+        this.valoresSelects = valores;
 
         const camposMapeados = campos.map(campo => ({
           ...campo,
           componente: this.definirComponentePorTipo(campo.tipo)
         }));
 
-        this.valoresSelects = valores;
-
         camposMapeados.forEach(campo => {
-          const valorAtual = this.produto_original[campo.chave] ??
-            this.valorCamposDinamicos.find(c => c.campo_id === campo.id)?.valores[0]?.valor_id ??
-            this.valorCamposDinamicos.find(c => c.campo_id === campo.id)?.valores[0]?.valor;
-          if (valorAtual !== undefined && valorAtual !== null) {
+          const valorAtual =
+            this.produto_original[campo.chave] ??
+            this.valorCamposDinamicos.find(d => d.campo_id === campo.id)?.valores[0]?.valor_id ??
+            this.valorCamposDinamicos.find(d => d.campo_id === campo.id)?.valores[0]?.valor;
+          if (valorAtual != null) {
             this.valoresSelecionados[campo.id] = valorAtual;
             this.atualizarPayLoad(campo.chave, valorAtual);
           }
         });
 
-        const camposSemFamilia = camposMapeados.filter(campo => campo.chave !== 'familia_id');
-
+        const camposSemFamilia = camposMapeados.filter(c => c.chave !== 'familia_id');
         const ordemCamposPrincipais = [
           'tipoProduto_id',
           'cod',
@@ -387,22 +393,20 @@ export default {
           'und',
           'ncm'
         ];
-
         this.camposPrincipais = ordemCamposPrincipais
           .map(chave => camposSemFamilia.find(c => c.chave === chave))
           .filter(Boolean);
-
         this.camposOutros = camposSemFamilia.filter(
-          campo => !ordemCamposPrincipais.includes(campo.chave)
+          c => !ordemCamposPrincipais.includes(c.chave)
         );
 
         this.camposSelects = [...this.camposPrincipais, ...this.camposOutros];
-
 
       } catch (error) {
         console.error("Erro ao sincronizar campos da família:", error);
       }
     },
+
 
 
     definirComponentePorTipo(tipo) {
@@ -491,7 +495,7 @@ export default {
     },
     atualizarSelect() {
       this.carregarNcm(),
-        // this.carregarTiposProduto(),
+        this.carregarTiposProduto(),
         this.carregarFamilias(),
         this.carregarNcmPorId()
     },
@@ -557,14 +561,12 @@ export default {
       try {
         const payloadAtualizar = {};
 
-        // Campos OMIE
         this.camposSelects
           .filter(campo => campo.omie === 1)
           .forEach(campo => {
             payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
           });
 
-        // Campos dinâmicos
         payloadAtualizar.campos_dinamicos = this.camposSelects
           .filter(campo => campo.omie !== 1)
           .map(campo => {
@@ -636,6 +638,15 @@ export default {
           console.error("Erro ao enviar para aprovação:", error);
           this.$router.back()
         });
+    },
+
+    async carregarTiposProduto() {
+      try {
+        const lista = await serviceProdutos.getTipoProduto();
+        this.tipos = (lista || []).sort((a, b) => a.nome.localeCompare(b.nome));
+      } catch (error) {
+        console.error("Erro ao carregar Tipos de Produto:", error);
+      }
     },
   }
 
