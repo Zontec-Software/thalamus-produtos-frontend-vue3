@@ -37,12 +37,6 @@
                 class="fa-regular fa-copy"></i></span>
           </div>
         </td>
-        <td v-if="exibirAcoes" @click.stop>
-          <div>
-            <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
-                class="fa-regular fa-copy"></i></span>
-          </div>
-        </td>
         <td v-if="exibirAcoes" style="text-align: center;" @click.stop>
           <select @change="atualizarStatus(item.produto_cod, item.status_produto)" v-model="item.status_produto"
             style="text-align: center; width: fit-content;">
