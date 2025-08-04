@@ -26,7 +26,9 @@
                 </option>
               </select>
             </div>
-            <div v-for="campo in camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== 1)" :key="campo.id">
+            <div
+              v-for="campo in camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== true && c.adicional !== true)"
+              :key="campo.id">
               <label>{{ campo.label }}</label>
               <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
                 :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
@@ -46,7 +48,9 @@
           </div>
           <br>
           <div class="grid">
-            <div v-for="campo in camposSelects.filter(c => c.tipo === 'AreaTexto' && c.fiscal !== 1)" :key="campo.id">
+            <div
+              v-for="campo in camposSelects.filter(c => c.tipo === 'AreaTexto' && c.fiscal !== true && c.adicional !== true)"
+              :key="campo.id">
               <label>{{ campo.label }}</label>
               <QuillEditor theme="snow" :readOnly="aguardandoAprovaçãoFiscal"
                 v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px;"
@@ -84,62 +88,27 @@
       </div>
       <div class="bloco2 container" v-if="blocoVisivel === 'informacoes'">
         <fieldset class="margem grid-4">
-          <div :class="{ destaque: alteracoes.peso }">
-            <label>Peso Líquido (Kg)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.peso_liq"
-              @input="atualizarPayLoad('peso_liq', produto_original.peso_liq)" />
-            <!-- <span v-if="alteracoes.peso"> Alterado por {{ alteracoes.peso.usuario }} </span> -->
-          </div>
-          <div>
-            <label>Peso Bruto (Kg)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.peso_bruto"
-              @input="atualizarPayLoad('peso_bruto', produto_original.peso_bruto)" />
-          </div>
-          <div>
-            <label>Altura (cm)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.altura"
-              @input="atualizarPayLoad('altura', produto_original.altura)" />
-          </div>
-          <div>
-            <label>Largura (cm)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.largura"
-              @input="atualizarPayLoad('largura', produto_original.largura)" />
-          </div>
-          <div>
-            <label>Profundidade (cm)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.profundidade"
-              @input="atualizarPayLoad('profundidade', produto_original.profundidade)" />
-          </div>
-          <div>
-            <label>Dias de Crossdocking</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.dias_crossdocking"
-              @input="atualizarPayLoad('dias_crossdocking', produto_original.dias_crossdocking)" />
-          </div>
-          <div>
-            <label>Lead Time de Ressuprimento</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.lead_time"
-              @input="atualizarPayLoad('lead_time', produto_original.lead_time)" />
-          </div>
-          <div>
-            <label>Marca</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.marca"
-              @input="atualizarPayLoad('marca', produto_original.marca)" />
-          </div>
-          <div>
-            <label>Modelo</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.modelo"
-              @input="atualizarPayLoad('modelo', produto_original.modelo)" />
-          </div>
-          <div>
-            <label>Dias de Garantia</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.dias_garantia"
-              @input="atualizarPayLoad('dias_garantia', produto_original.dias_garantia)" />
+          <div v-for="campo in camposSelects.filter(c => c.adicional === true)" :key="campo.id">
+            <label>{{ campo.label }}</label>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+              </option>
+            </select>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+              </option>
+            </select>
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
+              :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
           </div>
         </fieldset>
       </div>
       <div class="bloco2 container" v-if="blocoVisivel === 'fiscais'">
         <fieldset class="margem grid-4">
-          <div v-for="campo in camposSelects.filter(c => c.fiscal === 1)" :key="campo.id">
+          <div v-for="campo in camposSelects.filter(c => c.fiscal === true && c.adicional !== true)" :key="campo.id">
             <label>{{ campo.label }}</label>
             <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
               @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">

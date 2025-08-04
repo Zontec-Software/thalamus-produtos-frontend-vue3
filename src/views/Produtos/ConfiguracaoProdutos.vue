@@ -191,15 +191,15 @@
                     <div>
                         <label>Campo Fiscal</label>
                         <select v-model="novoCampo.fiscal">
-                            <option :value="1">Sim</option>
-                            <option :value="0">Não</option>
+                            <option :value="true">Sim</option>
+                            <option :value="false">Não</option>
                         </select>
                     </div>
                     <div>
                         <label>Campo Adicional</label>
                         <select v-model="novoCampo.adicional">
-                            <option :value="1">Sim</option>
-                            <option :value="0">Não</option>
+                            <option :value="true">Sim</option>
+                            <option :value="false">Não</option>
                         </select>
                     </div>
                 </div>
@@ -250,15 +250,15 @@
                     <div>
                         <label>Campo Fiscal</label>
                         <select v-model="campoEdicao.fiscal">
-                            <option :value="1">Sim</option>
-                            <option :value="0">Não</option>
+                            <option :value="true">Sim</option>
+                            <option :value="false">Não</option>
                         </select>
                     </div>
                     <div>
                         <label>Campo Adicional</label>
                         <select v-model="campoEdicao.adicional">
-                            <option :value="1">Sim</option>
-                            <option :value="0">Não</option>
+                            <option :value="true">Sim</option>
+                            <option :value="false">Não</option>
                         </select>
                     </div>
                 </div>
