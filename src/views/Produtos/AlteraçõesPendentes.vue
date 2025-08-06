@@ -396,10 +396,14 @@ export default {
     formatarData(data) {
       if (!data) return "-";
       try {
-        const [dataParte, horaParte] = data.split('T');
+        // const [dataParte, horaParte] = data.split('T');
+        const [dataParte] = data.split('T');
+
         const [ano, mes, dia] = dataParte.split('-');
-        const [hora, minuto] = horaParte.split(':');
-        return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+        // const [hora, minuto] = horaParte.split(':');
+        // return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+        return `${dia}/${mes}/${ano} `;
+
       } catch {
         return "-";
       }
