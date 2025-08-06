@@ -8,19 +8,21 @@
             <a class="icone-pesquisa" title="Pesquise"></a>
           </div>
         </div>
-        <h2>Serviços</h2>
+        <h2>Codificação Serviços</h2>
       </div>
     </div>
     <div class="margem container">
       <div class="submit m-b">
-        <button @click="adicionarServico">Cadastrar Serviços</button>
+        <button @click="adicionarServico">Cadastrar Codificação</button>
       </div>
       <div class="bloco margem">
         <table class="tabela alinha-centro">
           <thead>
             <tr>
               <th style="cursor: pointer">Código</th>
-              <th style="cursor: pointer">Descrição</th>
+              <th style="cursor: pointer">Verbo</th>
+              <th style="cursor: pointer">Objeto</th>
+              <th style="cursor: pointer">Local</th>
               <th></th>
             </tr>
           </thead>
@@ -59,7 +61,6 @@
   </section>
 </template>
 <script>
-import serviceServicos from "@/services/serviceServicos";
 import { api } from "roboflex-thalamus-request-handler";
 import { useToast } from 'vue-toastification'
 
@@ -81,17 +82,7 @@ export default {
     return { toast };
   },
   computed: {
-    filteredServicos() {
-      if (!this.searchQuery) {
-        return this.servicos;
-      }
-      return this.servicos.filter(
-        (servico) =>
-          servico.codigo.includes(this.searchQuery) ||
-          (servico.descricao &&
-            servico.descricao.toLowerCase().includes(this.searchQuery.toLowerCase()))
-      );
-    },
+
   },
 
   mounted() {
@@ -100,12 +91,7 @@ export default {
 
   methods: {
     async carregarServicos() {
-      try {
-        const response = await serviceServicos.getAllServicos();
-        this.servicos = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar serviços:", error);
-      }
+
     },
 
     abrirDetalhes(item) {
@@ -116,6 +102,7 @@ export default {
     },
 
     adicionarServico() {
+      console.log('aqui')
       this.$router.push({ name: "AdicionarServico" });
     },
     removerPessoa(id) {

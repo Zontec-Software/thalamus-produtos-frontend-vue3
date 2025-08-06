@@ -336,6 +336,14 @@ export default {
             valor: t.nome
           }));
         }
+        const campoStatus = campos.find(c => c.chave === 'status');
+        if (campoStatus) {
+          valores[campoStatus.id] = [
+            { id: 1, valor: 'Ativo' },
+            { id: 0, valor: 'Inativo' }
+          ];
+        }
+
         this.valoresSelects = valores;
 
         const camposMapeados = campos.map(campo => ({
