@@ -8,7 +8,7 @@
             <a class="icone-pesquisa" title="Pesquise"></a>
           </div>
         </div>
-        <h2>Verbo</h2>
+        <h2>Codificação de Serviços</h2>
       </div>
     </div>
     <div class="container margem">
@@ -18,11 +18,17 @@
         <a @click="aba = 3, salvarAba(3)" :class="aba == 3 ? 'ativo' : ''">Local</a>
       </div>
     </div>
+    <div v-if="aba == 3" class="container margem">
+      <LocalComponent></LocalComponent>
+    </div>
+    <div v-if="aba == 2" class="container margem">
+      <ObjetoComponent></ObjetoComponent>
+    </div>
     <div v-if="aba == 1" class="container margem">
-      <div class="submit m-b">
-        <button @click="adicionarVerbo">Cadastrar</button>
-      </div>
       <div class="bloco margem">
+        <div class="alinha-direita">
+          <button class="acao-secundaria" @click="adicionarVerbo">Cadastrar</button>
+        </div>
         <table class="tabela alinha-centro">
           <thead>
             <tr>
@@ -69,13 +75,13 @@
 import { api } from "roboflex-thalamus-request-handler";
 import { useToast } from 'vue-toastification'
 import serviceCodificacoes from '@/services/codificacoesService'
-// import LocalComponent from "@/components/Codificacao/LocalComponent.vue";
-// import ObjetoComponent from "@/components/Codificacao/ObjetoComponent.vue";
+import LocalComponent from "@/components/Codificacao/LocalComponent.vue";
+import ObjetoComponent from "@/components/Codificacao/ObjetoComponent.vue";
 
 export default {
   components: {
-    // LocalComponent,
-    // ObjetoComponent
+    LocalComponent,
+    ObjetoComponent
   },
 
   data() {
