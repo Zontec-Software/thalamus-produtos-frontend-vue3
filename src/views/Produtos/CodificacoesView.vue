@@ -79,16 +79,33 @@
           <h3>Cadastrar Verbo</h3>
           <br />
           <label for="nomeVerbo">Nome do verbo</label>
-          <input id="nomeVerbo" type="text" v-model.trim="novoVerbo.nome" @keyup.enter="salvarNovoVerbo" />
+          <input id="nomeVerbo" type="text" v-model.trim="novoVerbo.nome" @keyup.enter="salvarVerbo" />
           <div class="modal-footer">
             <br />
-            <button type="button" @click="salvarNovoVerbo">Salvar</button> &nbsp;&nbsp; <button type="button"
+            <button type="button" @click="salvarVerbo">Salvar</button> &nbsp;&nbsp; <button type="button"
               @click="fecharModal" class="acao-secundaria">Cancelar</button>
           </div>
         </div>
       </div>
     </div>
     <!-- END MODAL ADICIONAR -->
+    <!-- MODAL EDITAR -->
+    <div class="modal-mask" v-if="showEditModal" @click="fecharModalFora">
+      <div class="modal-container" style="height: min-content; width: 50rem;">
+        <div class="modal-body">
+          <h3>Editar Verbo</h3>
+          <br />
+          <label for="nomeVerboEdit">Nome do verbo</label>
+          <input id="nomeVerboEdit" type="text" v-model.trim="verboEdit.nome" @keyup.enter="salvarEdicao" />
+          <div class="modal-footer">
+            <br />
+            <button type="button" @click="salvarEdicao">Salvar</button> &nbsp;&nbsp; <button type="button"
+              @click="fecharModal" class="acao-secundaria">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- END MODAL EDITAR -->
   </section>
 </template>
 <script>
@@ -109,9 +126,11 @@ export default {
       searchQuery: "",
       showDeleteModal: false,
       showAddModal: false,
+      showEditModal: false,
       idToDelete: null,
       nomeToDelete: null,
       novoVerbo: { nome: "" },
+      verboEdit: { id: null, nome: "" },
       aba: null,
       verbos: [],
       carregando: false
@@ -151,13 +170,6 @@ export default {
       this.verbos = await serviceCodificacoes.getAllVerbos();
     },
 
-    adicionarServico() {
-      console.log('aqui')
-      this.$router.push({ name: "AdicionarServico" });
-    },
-    removerPessoa(id) {
-      this.servicos = this.servicos.filter((item) => item.id !== id);
-    },
     fecharModalFora(event) {
       if (event.target.classList.contains("modal-mask")) {
         this.fecharModal();
@@ -186,9 +198,11 @@ export default {
     fecharModal() {
       this.showDeleteModal = false;
       this.showAddModal = false;
+      this.showEditModal = false;
       this.idToDelete = null;
       this.nomeToDelete = null;
       this.novoVerbo = { nome: "" };
+      this.verboEdit = { id: null, nome: "" }
     },
 
     abrirModalAdicionar() {
@@ -196,24 +210,43 @@ export default {
       this.showAddModal = true;
     },
 
-    async salvarNovoVerbo() {
+    async salvarVerbo() {
       if (!this.novoVerbo.nome?.trim()) {
         this.toast.warning('Informe o nome do verbo');
         return;
       }
       try {
         const payload = { nome: this.novoVerbo.nome.trim() };
-        const criado = await serviceCodificacoes.cadastrarVerbo(payload);
-        if (criado?.id) {
-          this.verbos.unshift(criado);
-        } else {
-          await this.carregarVerbos();
-        }
+        await serviceCodificacoes.cadastrarVerbo(payload);
         this.toast.success('Verbo cadastrado com sucesso');
         this.fecharModal();
       } catch (e) {
         console.error(e);
         this.toast.error('Falha ao cadastrar verbo');
+      }
+    },
+
+    editarVerbo(item) {
+      this.verboEdit = { id: item.id, nome: item.nome ?? "" };
+      this.showEditModal = true;
+    },
+
+    async salvarEdicao() {
+      if (!this.verboEdit.nome?.trim()) {
+        this.toast.warning('Informe o nome do verbo');
+        return;
+      }
+      try {
+        const payload = { id: this.verboEdit.id, nome: this.verboEdit.nome.trim() };
+        await serviceCodificacoes.atualizarVerbo(payload);
+        const idx = this.verbos.findIndex(v => v.id === payload.id);
+        if (idx !== -1) this.$set ? this.$set(this.verbos, idx, { ...this.verbos[idx], nome: payload.nome })
+          : (this.verbos[idx] = { ...this.verbos[idx], nome: payload.nome });
+        this.toast.success('Verbo atualizado com sucesso');
+        this.fecharModal();
+      } catch (e) {
+        console.error(e);
+        this.toast.error('Falha ao atualizar verbo');
       }
     },
   },
