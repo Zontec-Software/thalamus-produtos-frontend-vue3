@@ -336,6 +336,14 @@ export default {
             valor: t.nome
           }));
         }
+        const campoStatus = campos.find(c => c.chave === 'status');
+        if (campoStatus) {
+          valores[campoStatus.id] = [
+            { id: 1, valor: 'Ativo' },
+            { id: 0, valor: 'Inativo' }
+          ];
+        }
+
         this.valoresSelects = valores;
 
         const camposMapeados = campos.map(campo => ({
@@ -396,10 +404,14 @@ export default {
     formatarData(data) {
       if (!data) return "-";
       try {
-        const [dataParte, horaParte] = data.split('T');
+        // const [dataParte, horaParte] = data.split('T');
+        const [dataParte] = data.split('T');
+
         const [ano, mes, dia] = dataParte.split('-');
-        const [hora, minuto] = horaParte.split(':');
-        return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+        // const [hora, minuto] = horaParte.split(':');
+        // return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+        return `${dia}/${mes}/${ano} `;
+
       } catch {
         return "-";
       }

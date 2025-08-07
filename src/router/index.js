@@ -6,8 +6,8 @@ import Portfolio from '@/views/Produtos/PortfolioView.vue';
 import CadastroProduto from '@/views/Produtos/CadastroProduto.vue'
 import TemplateView from '@/views/Produtos/TemplateView.vue'
 import Aprovacao from "@/views/Produtos/AprovacaoView.vue"
-import Servico from "@/views/Produtos/ServicoView.vue"
-import GerenciarServico from "@/views/Produtos/GerenciarServico.vue"
+import Codificacoes from "@/views/Produtos/CodificacoesView.vue"
+// import GerenciarCodificacoes from "@/views/Produtos/GerenciarCodificacoes.vue"
 import Ferramenta from "@/views/Produtos/FerramentaView.vue"
 import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue"
 import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
@@ -102,32 +102,12 @@ const routes = [
     beforeEnter: guardPermissaoRoute
   },
   {
-    path: '/servicos',
-    name: 'Servico',
-    component: Servico,
+    path: '/codificacoes',
+    name: 'Codificacao',
+    component: Codificacoes,
     beforeEnter: guardPermissaoRoute
   },
-  {
-    path: '/servicos/novo',
-    name: 'AdicionarServico',
-    component: GerenciarServico,
-    props: true,
-    beforeEnter: guardPermissaoRoute,
-  },
-  {
-    path: '/servicos/editar/:id',
-    name: 'EditarServico',
-    component: GerenciarServico,
-    props: true,
-    beforeEnter: guardPermissaoRoute
-  },
-  {
-    path: '/servicos/excluir',
-    name: 'ExcluirServico',
-    component: GerenciarServico,
-    props: true,
-    beforeEnter: guardPermissaoRoute
-  },
+
   {
     path: '/ferramentas',
     name: 'Ferramentas',

@@ -1,5 +1,11 @@
 <template>
     <div class="container margem" v-if="roteiro">
+        <div class="margem" style="text-align: right;">
+            <strong style=" font-size: 0.9rem;"> {{ `Criado em: ${formatarData(roteiro.created_at) ?? '?'} ` }}
+            </strong><br>
+            <strong style=" font-size: 0.9rem;"> {{ ` Atualizado em: ${formatarData(roteiro.updated_at) ?? '?'} - por: `
+                }} </strong>
+        </div>
         <div class="bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Adicionar bloco</h3>
@@ -108,7 +114,7 @@
                                             <li v-for="gabarito in servico.gabaritos" :key="gabarito.id">
                                                 <div class="conteudo-item">
                                                     <span>{{ gabarito.gabarito.codigo }} - {{ gabarito.gabarito.nome
-                                                    }}</span>
+                                                        }}</span>
                                                     <span class="descricao-item">Descrição: {{
                                                         gabarito?.gabarito?.descricao || '' }} </span>
                                                 </div>
@@ -253,14 +259,14 @@
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
                             <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                                }} - {{ item.nome }}</option>
+                            }} - {{ item.nome }}</option>
                         </select>
                     </div>
                     <div>
@@ -289,7 +295,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.descricao }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -535,6 +541,17 @@ export default {
 
     },
     methods: {
+        formatarData(data) {
+            if (!data) return "-";
+            try {
+                const [dataParte] = data.split('T');
+                const [ano, mes, dia] = dataParte.split('-');
+
+                return `${dia}/${mes}/${ano} `;
+            } catch {
+                return "-";
+            }
+        },
         abrirModalAnexosInspecao(servico) {
             this.servicoAtual = servico;
             this.modalAnexosInspecao = true;
