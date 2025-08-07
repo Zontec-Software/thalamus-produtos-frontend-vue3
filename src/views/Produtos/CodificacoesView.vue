@@ -8,12 +8,19 @@
             <a class="icone-pesquisa" title="Pesquise"></a>
           </div>
         </div>
-        <h2>Codificação Serviços</h2>
+        <h2>Verbo</h2>
       </div>
     </div>
-    <div class="margem container">
+    <div class="container margem">
+      <div class="abas" style="cursor: pointer;">
+        <a @click="aba = 1, salvarAba(1)" :class="aba == 1 ? 'ativo' : ''">Verbo</a>
+        <a @click="aba = 2, salvarAba(2)" :class="aba == 2 ? 'ativo' : ''">Objeto</a>
+        <a @click="aba = 3, salvarAba(3)" :class="aba == 3 ? 'ativo' : ''">Local</a>
+      </div>
+    </div>
+    <div v-if="aba == 1" class="container margem">
       <div class="submit m-b">
-        <button @click="adicionarServico">Cadastrar Codificação</button>
+        <button @click="adicionarVerbo">Cadastrar</button>
       </div>
       <div class="bloco margem">
         <table class="tabela alinha-centro">
@@ -21,19 +28,17 @@
             <tr>
               <th style="cursor: pointer">Código</th>
               <th style="cursor: pointer">Verbo</th>
-              <th style="cursor: pointer">Objeto</th>
-              <th style="cursor: pointer">Local</th>
               <th></th>
             </tr>
           </thead>
           <tbody class="alinha-centro" style="cursor: pointer">
-            <tr v-for="item in filteredServicos" :key="item.id" @click="abrirDetalhes(item)">
-              <td>{{ item.codigo }}</td>
-              <td>{{ item.descricao }}</td>
+            <tr v-for="item in verbos" :key="item.id" @click="abrirDetalhes(item)">
+              <td>{{ item.id }}</td>
+              <td>{{ item.nome }}</td>
               <td style="display: flex; justify-content: center">
                 <div style="display: flex">
                   <div>
-                    <a @click="abrirModalExcluir(item)" title="Clique para excluir serviço" class="icone-lixeira"></a>
+                    <a @click="abrirModalExcluir(item)" title="Clique para excluir verbo" class="icone-lixeira"></a>
                   </div>
                 </div>
               </td>
@@ -63,17 +68,25 @@
 <script>
 import { api } from "roboflex-thalamus-request-handler";
 import { useToast } from 'vue-toastification'
-
-
+import serviceCodificacoes from '@/services/codificacoesService'
+// import LocalComponent from "@/components/Codificacao/LocalComponent.vue";
+// import ObjetoComponent from "@/components/Codificacao/ObjetoComponent.vue";
 
 export default {
+  components: {
+    // LocalComponent,
+    // ObjetoComponent
+  },
+
   data() {
     return {
-      servicos: [],
+
       searchQuery: "",
       showDeleteModal: false,
       idToDelete: null,
       nomeToDelete: null,
+      aba: null,
+      verbos: ''
     };
   },
 
@@ -86,20 +99,22 @@ export default {
   },
 
   mounted() {
-    this.carregarServicos();
+    this.carregarVerbos();
   },
 
+  async created() {
+
+    this.aba = localStorage.getItem('abaCodificacao') ?? 1
+  },
   methods: {
-    async carregarServicos() {
-
+    salvarAba(id) {
+      localStorage.setItem('abaCodificacao', id)
+    },
+    async carregarVerbos() {
+      this.verbos = await serviceCodificacoes.getAllVerbos();
     },
 
-    abrirDetalhes(item) {
-      this.$router.push({
-        name: "EditarServico",
-        params: { id: item.id },
-      });
-    },
+
 
     adicionarServico() {
       console.log('aqui')
@@ -123,7 +138,7 @@ export default {
     confirmarExclusao() {
       const id = this.idToDelete;
 
-      api.delete(`servico/excluir/${id}`)
+      api.delete(`verbo/excluir/${id}`)
         .then(response => {
           if (response.status === 200 || response.status === 204) {
             this.removerPessoa(id);
@@ -147,3 +162,26 @@ export default {
   },
 };
 </script>
+<style>
+.abas {
+  display: flex;
+  height: 2.5rem;
+  margin-left: 1.5rem;
+  align-items: end;
+
+  a {
+    padding: .5em 1em;
+    border-radius: 12px 12px 0 0;
+    border: 1px solid var(--cor-separador);
+    border-bottom: none;
+    align-content: center;
+  }
+
+  .ativo {
+    background-color: var(--cor-primaria);
+    color: var(--cor-bg);
+    height: 2.0rem;
+    transition: all 400ms ease-in-out;
+  }
+}
+</style>
