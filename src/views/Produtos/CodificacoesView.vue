@@ -2,12 +2,6 @@
   <section>
     <div class="titulo">
       <div class="margem container">
-        <div class="m-icone direita">
-          <div class="pesquisa">
-            <input type="text" placeholder="Pesquise aqui" v-model="searchQuery" />
-            <a class="icone-pesquisa" title="Pesquise"></a>
-          </div>
-        </div>
         <h2>Codificação de Serviços</h2>
       </div>
     </div>
@@ -17,32 +11,41 @@
         <a @click="aba = 2, salvarAba(2)" :class="aba == 2 ? 'ativo' : ''">Objeto</a>
         <a @click="aba = 3, salvarAba(3)" :class="aba == 3 ? 'ativo' : ''">Local</a>
       </div>
-    </div>
-    <div v-if="aba == 3" class="container margem">
-      <LocalComponent></LocalComponent>
-    </div>
-    <div v-if="aba == 2" class="container margem">
-      <ObjetoComponent></ObjetoComponent>
-    </div>
-    <div v-if="aba == 1" class="container margem">
-      <div class="bloco margem">
-        <div class="alinha-direita">
-          <button class="acao-secundaria" @click="adicionarVerbo">Cadastrar</button>
+      <div v-if="aba == 3" class="bloco margem">
+        <LocalComponent></LocalComponent>
+      </div>
+      <div v-if="aba == 2" class="bloco margem">
+        <ObjetoComponent></ObjetoComponent>
+      </div>
+      <div class="bloco margem" v-if="aba == 1">
+        <div class="m-icone direita">
+          <div class="pesquisa">
+            <input type="text" placeholder="Pesquise aqui" v-model="searchQuery" />
+            <a class="icone-pesquisa" title="Pesquise"></a>
+          </div>
         </div>
+        <div class="alinha-esquerda">
+          <button class="acao-secundaria" @click="abrirModalAdicionar">Cadastrar</button>
+        </div>
+        <br>
         <table class="tabela alinha-centro">
           <thead>
             <tr>
-              <th style="cursor: pointer">Código</th>
-              <th style="cursor: pointer">Verbo</th>
+              <th>Código</th>
+              <th>Verbo</th>
               <th></th>
             </tr>
           </thead>
           <tbody class="alinha-centro" style="cursor: pointer">
-            <tr v-for="item in verbos" :key="item.id" @click="abrirDetalhes(item)">
+            <tr v-for="item in verbosFiltrados" :key="item.id">
               <td>{{ item.id }}</td>
               <td>{{ item.nome }}</td>
               <td style="display: flex; justify-content: center">
                 <div style="display: flex">
+                  <div>
+                    <a style="transform: scale(0.8)" @click="editarVerbo(item)" title="Clique para editar o verbo"
+                      class="icone-editar"></a>
+                  </div>
                   <div>
                     <a @click="abrirModalExcluir(item)" title="Clique para excluir verbo" class="icone-lixeira"></a>
                   </div>
@@ -57,22 +60,38 @@
     <div class="modal-mask" v-if="showDeleteModal" @click="fecharModalFora">
       <div class="modal-container" style="height: min-content; width: 50rem;">
         <div style="display: flex; justify-content: center"></div>
-        <br>
+        <br />
         <div class="modal-body">
           <span>Confirma a exclusão de: <strong>{{ nomeToDelete }}</strong>?</span>
           <div class="modal-footer">
-            <br><br>
-            <button type="button" @click="confirmarExclusao">Confirmar</button>&nbsp;&nbsp; <button type="button"
+            <br /><br />
+            <button type="button" @click="confirmarExclusao">Confirmar</button> &nbsp;&nbsp; <button type="button"
               @click="fecharModal" class="acao-secundaria">Cancelar</button>
           </div>
         </div>
       </div>
     </div>
     <!-- END MODAL EXCLUIR -->
+    <!-- MODAL ADICIONAR -->
+    <div class="modal-mask" v-if="showAddModal" @click="fecharModalFora">
+      <div class="modal-container" style="height: min-content; width: 50rem;">
+        <div class="modal-body">
+          <h3>Cadastrar Verbo</h3>
+          <br />
+          <label for="nomeVerbo">Nome do verbo</label>
+          <input id="nomeVerbo" type="text" v-model.trim="novoVerbo.nome" @keyup.enter="salvarNovoVerbo" />
+          <div class="modal-footer">
+            <br />
+            <button type="button" @click="salvarNovoVerbo">Salvar</button> &nbsp;&nbsp; <button type="button"
+              @click="fecharModal" class="acao-secundaria">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- END MODAL ADICIONAR -->
   </section>
 </template>
 <script>
-import { api } from "roboflex-thalamus-request-handler";
 import { useToast } from 'vue-toastification'
 import serviceCodificacoes from '@/services/codificacoesService'
 import LocalComponent from "@/components/Codificacao/LocalComponent.vue";
@@ -89,10 +108,13 @@ export default {
 
       searchQuery: "",
       showDeleteModal: false,
+      showAddModal: false,
       idToDelete: null,
       nomeToDelete: null,
+      novoVerbo: { nome: "" },
       aba: null,
-      verbos: ''
+      verbos: [],
+      carregando: false
     };
   },
 
@@ -101,26 +123,33 @@ export default {
     return { toast };
   },
   computed: {
-
+    verbosFiltrados() {
+      const q = (this.searchQuery || "").toLowerCase();
+      if (!q) return this.verbos;
+      return this.verbos.filter(v =>
+        String(v.id).includes(q) || (v.nome || "").toLowerCase().includes(q)
+      );
+    }
   },
 
-  mounted() {
+  async mounted() {
+    this.aba = Number(localStorage.getItem('abaCodificacao')) || 1;
     this.carregarVerbos();
   },
+
 
   async created() {
 
     this.aba = localStorage.getItem('abaCodificacao') ?? 1
   },
   methods: {
+
     salvarAba(id) {
       localStorage.setItem('abaCodificacao', id)
     },
     async carregarVerbos() {
       this.verbos = await serviceCodificacoes.getAllVerbos();
     },
-
-
 
     adicionarServico() {
       console.log('aqui')
@@ -137,33 +166,55 @@ export default {
 
     abrirModalExcluir(item) {
       this.idToDelete = item.id;
-      this.nomeToDelete = item.descricao;
+      this.nomeToDelete = item.nome;
       this.showDeleteModal = true;
     },
 
-    confirmarExclusao() {
-      const id = this.idToDelete;
-
-      api.delete(`verbo/excluir/${id}`)
-        .then(response => {
-          if (response.status === 200 || response.status === 204) {
-            this.removerPessoa(id);
-            this.toast.success('Serviço excluído com sucesso');
-          } else {
-            this.toast.error('Falha ao excluir serviço');
-          }
-        })
-        .catch(error => {
-          console.error('Erro ao excluir na API:', error);
-        });
-
-      this.fecharModal();
+    async confirmarExclusao() {
+      try {
+        await serviceCodificacoes.deletarVerbo(this.idToDelete);
+        this.toast.success('Verbo excluído com sucesso');
+        this.verbos = this.verbos.filter(v => v.id !== this.idToDelete);
+      } catch (e) {
+        console.error(e);
+        this.toast.error('Falha ao excluir verbo');
+      } finally {
+        this.fecharModal();
+      }
     },
 
     fecharModal() {
       this.showDeleteModal = false;
+      this.showAddModal = false;
       this.idToDelete = null;
       this.nomeToDelete = null;
+      this.novoVerbo = { nome: "" };
+    },
+
+    abrirModalAdicionar() {
+      this.novoVerbo = { nome: "" };
+      this.showAddModal = true;
+    },
+
+    async salvarNovoVerbo() {
+      if (!this.novoVerbo.nome?.trim()) {
+        this.toast.warning('Informe o nome do verbo');
+        return;
+      }
+      try {
+        const payload = { nome: this.novoVerbo.nome.trim() };
+        const criado = await serviceCodificacoes.cadastrarVerbo(payload);
+        if (criado?.id) {
+          this.verbos.unshift(criado);
+        } else {
+          await this.carregarVerbos();
+        }
+        this.toast.success('Verbo cadastrado com sucesso');
+        this.fecharModal();
+      } catch (e) {
+        console.error(e);
+        this.toast.error('Falha ao cadastrar verbo');
+      }
     },
   },
 };

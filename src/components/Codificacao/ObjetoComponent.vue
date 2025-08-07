@@ -1,6 +1,12 @@
 <template>
-    <div class="bloco margem">
-        <div class="alinha-direita">
+    <div>
+        <div class="m-icone direita">
+            <div class="pesquisa">
+                <input type="text" placeholder="Pesquise aqui" v-model="searchQuery" />
+                <a class="icone-pesquisa" title="Pesquise"></a>
+            </div>
+        </div>
+        <div class="alinha-esquerda">
             <button class="acao-secundaria" @click="adicionarObjeto">Cadastrar</button>
         </div>
         <br>
@@ -19,7 +25,7 @@
                     <td style="display: flex; justify-content: center">
                         <div style="display: flex">
                             <div>
-                                <a @click="abrirModalExcluir(item)" title="Clique para excluir verbo"
+                                <a @click="abrirModalExcluir(item)" title="Clique para excluir objeto"
                                     class="icone-lixeira"></a>
                             </div>
                         </div>

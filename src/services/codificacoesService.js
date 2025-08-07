@@ -30,9 +30,10 @@ async function getAllLocais() {
     }
 }
 
+
 function cadastrarVerbo(verbo){
     return new Promise((resolve, reject) => {
-        return api.post(`verbo/gravar`, verbo)
+        return api.post(`verbos/gravar`, verbo)
         .then(response => resolve(response))
         .catch(error => reject(error));
     });
@@ -40,7 +41,7 @@ function cadastrarVerbo(verbo){
 
 function cadastrarObjeto(objeto){
     return new Promise((resolve, reject) => {
-        return api.post(`objeto/gravar`, objeto)
+        return api.post(`objetos/gravar`, objeto)
         .then(response => resolve(response))
         .catch(error => reject(error));
     });
@@ -56,7 +57,7 @@ function cadastrarLocal(local){
 
 function atualizarVerbo(verbo){
     return new Promise((resolve, reject) => {
-        return api.put(`verbo/atualizar/${verbo.id}`, verbo)
+        return api.put(`verbos/atualizar/${verbo.id}`, verbo)
         .then(response => resolve(response))
         .catch(error => reject(error));
     });
@@ -64,7 +65,7 @@ function atualizarVerbo(verbo){
 
 function atualizarObjeto(objeto){
     return new Promise((resolve, reject) => {
-        return api.put(`objeto/atualizar/${objeto.id}`, objeto)
+        return api.put(`objetos/atualizar/${objeto.id}`, objeto)
         .then(response => resolve(response))
         .catch(error => reject(error));
     });
@@ -79,14 +80,14 @@ function atualizarLocal(local){
 }
 function deletarVerbo(id){
     return new Promise((resolve, reject) => {
-        return api.delete(`verbo/excluir/${id}`)
+        return api.delete(`verbos/excluir/${id}`)
         .then(response => resolve(response))
         .catch(error => reject(error));
     });
 }
 function deletarObjeto(id){
     return new Promise((resolve, reject) => {
-        return api.delete(`objeto/excluir/${id}`)
+        return api.delete(`objetos/excluir/${id}`)
         .then(response => resolve(response))
         .catch(error => reject(error));
     });
