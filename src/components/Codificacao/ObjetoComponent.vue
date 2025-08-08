@@ -186,6 +186,7 @@ export default {
         async salvarEdicao() {
             if (!this.objetoEdit.nome?.trim()) {
                 this.toast.warning('Informe o nome do objeto');
+                //teste
                 return;
             }
             try {
