@@ -30,7 +30,14 @@
               v-for="campo in camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== true && c.adicional !== true)"
               :key="campo.id">
               <label>{{ campo.label }}</label>
-              <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
+              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'"
+                v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option disabled value="">Selecione</option>
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id"
+                  :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id"> {{ opcao.valor }} </option>
+              </select>
+              <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
                 :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
@@ -328,14 +335,15 @@ export default {
       try {
         const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
         const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
-        const campoTipo = campos.find(c => c.chave === 'tipoProduto_id');
 
+        const campoTipo = campos.find(c => c.chave === 'tipoProduto_id');
         if (campoTipo && this.tipos && this.tipos.length) {
           valores[campoTipo.id] = this.tipos.map(t => ({
             id: t.id,
             valor: t.nome
           }));
         }
+
         const campoStatus = campos.find(c => c.chave === 'status');
         if (campoStatus) {
           valores[campoStatus.id] = [
@@ -343,6 +351,17 @@ export default {
             { id: 0, valor: 'Inativo' }
           ];
         }
+
+        const camposSN = ['cupom_fiscal', 'market_place', 'indicador_escala'];
+        camposSN.forEach(chave => {
+          const campo = campos.find(c => c.chave === chave && c.fiscal === true);
+          if (campo) {
+            valores[campo.id] = [
+              { id: 'S', valor: 'Sim' },
+              { id: 'N', valor: 'Não' }
+            ];
+          }
+        });
 
         this.valoresSelects = valores;
 
@@ -352,14 +371,21 @@ export default {
         }));
 
         camposMapeados.forEach(campo => {
-          const valorAtual =
+          let valorAtual =
             this.produto_original[campo.chave] ??
             this.valorCamposDinamicos.find(d => d.campo_id === campo.id)?.valores[0]?.valor_id ??
             this.valorCamposDinamicos.find(d => d.campo_id === campo.id)?.valores[0]?.valor;
-          if (valorAtual != null) {
-            this.valoresSelecionados[campo.id] = valorAtual;
-            this.atualizarPayLoad(campo.chave, valorAtual);
+
+          if (campo.chave === 'status') {
+            valorAtual = typeof valorAtual === 'string' ? Number(valorAtual) : valorAtual;
           }
+
+          if (camposSN.includes(campo.chave)) {
+            valorAtual = valorAtual || 'N';
+          }
+
+          this.valoresSelecionados[campo.id] = valorAtual;
+          this.atualizarPayLoad(campo.chave, valorAtual);
         });
 
         const camposSemFamilia = camposMapeados.filter(c => c.chave !== 'familia_id');
@@ -383,8 +409,6 @@ export default {
         console.error("Erro ao sincronizar campos da família:", error);
       }
     },
-
-
 
     definirComponentePorTipo(tipo) {
       switch (tipo) {
