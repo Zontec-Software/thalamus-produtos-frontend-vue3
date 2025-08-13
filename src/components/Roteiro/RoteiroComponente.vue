@@ -4,7 +4,7 @@
             <strong style=" font-size: 0.9rem;"> {{ `Criado em: ${formatarData(roteiro.created_at) ?? '?'} ` }}
             </strong><br>
             <strong style=" font-size: 0.9rem;"> {{ ` Atualizado em: ${formatarData(roteiro.updated_at) ?? '?'} - por: `
-                }} </strong>
+            }} </strong>
         </div>
         <div class="bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -114,7 +114,7 @@
                                             <li v-for="gabarito in servico.gabaritos" :key="gabarito.id">
                                                 <div class="conteudo-item">
                                                     <span>{{ gabarito.gabarito.codigo }} - {{ gabarito.gabarito.nome
-                                                        }}</span>
+                                                    }}</span>
                                                     <span class="descricao-item">Descrição: {{
                                                         gabarito?.gabarito?.descricao || '' }} </span>
                                                 </div>
@@ -253,27 +253,30 @@
                 <fieldset class="grid-2">
                     <div>
                         <label>Código do serviço</label>
-                        <input type="number" readonly v-model="novoServico.cod">
+                        <input type="text" readonly v-model="novoServico.cod">
                     </div>
                     <div>
                         <label>Verbo</label>
                         <select v-model="novoServico.ação" @change="montarCodServico">
-                            <option v-for="item, index in baseCodigoServico.ações" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                            <option :value="null" disabled selected hidden>Selecione</option>
+                            <option v-for="v in verbos" :key="`v-${v.id}`" :value="v"> {{ pad2(v.id) }} - {{ v.nome }}
+                            </option>
                         </select>
                     </div>
                     <div>
                         <label>Objeto</label>
                         <select v-model="novoServico.item" @change="montarCodServico">
-                            <option v-for="item, index in baseCodigoServico.Itens" :key="index" :value="item">{{ item.id
-                            }} - {{ item.nome }}</option>
+                            <option :value="null" disabled selected hidden>Selecione</option>
+                            <option v-for="o in objetos" :key="`o-${o.id}`" :value="o"> {{ pad2(o.id) }} - {{ o.nome }}
+                            </option>
                         </select>
                     </div>
                     <div>
                         <label>Local</label>
                         <select v-model="novoServico.local" @change="montarCodServico">
-                            <option v-for="item, index in baseCodigoServico.Locais" :key="index" :value="item">{{
-                                item.id }} - {{ item.nome }}</option>
+                            <option :value="null" disabled selected hidden>Selecione</option>
+                            <option v-for="l in locais" :key="`l-${l.id}`" :value="l"> {{ pad2(l.id) }} - {{ l.nome }}
+                            </option>
                         </select>
                     </div>
                 </fieldset>
@@ -295,7 +298,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                            }} - {{ material.descricao }} </option>
+                                }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -434,6 +437,7 @@ import { urlFoto } from '@/services/api';
 import { RecycleScroller } from 'vue-virtual-scroller'
 import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
+import serviceCodificacao from '@/services/codificacoesService'
 
 
 
@@ -511,11 +515,12 @@ export default {
             parametros: [],
             insumos: [],
             novoServico: {
-                cod: '000000',
+                cod: '00',
                 desc: null,
-                ação: { id: '00' },
-                item: { id: '00' },
-                local: { id: '00' }
+                ação: null,
+                item: null,
+                local: null,
+                codificacao_id: null
             },
             servicoAtual: null,
             novoMaterial: null,
@@ -527,10 +532,9 @@ export default {
             gabaritos: [],
             modalAnexosInspecao: false,
             anexosSelecionadosInspecao: [],
-
-
-
-
+            verbos: [],
+            objetos: [],
+            locais: [],
         }
     },
     async mounted() {
@@ -538,9 +542,25 @@ export default {
         this.setores = await serviceRoteiro.getSetoresRoteiro();
         this.parametros = await serviceParametros.buscarPametros();
         this.insumos = await serviceInsumos.getInsumos();
+        await this.carregarVerbosObjetosLocais();
 
     },
     methods: {
+        pad2(v) {
+            if (v === null || v === undefined) return '00'; const n = String(v).trim();
+            return n.length === 1 ? `0${n}` : n;
+        },
+
+        async carregarVerbosObjetosLocais() {
+            const [verbos, objetos, locais] = await Promise.all([
+                serviceCodificacao.getAllVerbos(),
+                serviceCodificacao.getAllObjetos(),
+                serviceCodificacao.getAllLocais()
+            ]);
+            this.verbos = (verbos || []).map(v => ({ id: v.id, nome: v.nome ?? v.descricao ?? v.name ?? '—' }));
+            this.objetos = (objetos || []).map(o => ({ id: o.id, nome: o.nome ?? o.descricao ?? o.name ?? '—' }));
+            this.locais = (locais || []).map(l => ({ id: l.id, nome: l.nome ?? l.descricao ?? l.name ?? '—' }));
+        },
         formatarData(data) {
             if (!data) return "-";
             try {
@@ -595,11 +615,6 @@ export default {
             this.modalGabarito = true;
             this.searchGabarito = '';
         },
-
-
-
-
-
 
         selecionarArquivos(event) {
             this.anexosSelecionados = Array.from(event.target.files);
@@ -658,7 +673,6 @@ export default {
             }
         },
 
-
         async criarBlocoSetor() {
             if (this.setorSelecionado) {
                 await serviceRoteiro.adicionarSetor(this.roteiro.id, this.setorSelecionado.id);
@@ -669,11 +683,23 @@ export default {
         abrirModalServico(bloco) {
             this.idSetorNovoServico = bloco.id;
             this.modalAdicionarServico = true;
-            this.novoServico = { cod: '000000', desc: null, ação: { id: '00' }, item: { id: '00' }, local: { id: '00' } };
+            this.novoServico = { cod: '00', desc: null, ação: null, item: null, local: null, codificacao_id: null };
         },
         montarCodServico() {
-            this.novoServico.cod = `${this.novoServico.ação?.id ?? ''}${this.novoServico.item?.id ?? ''}${this.novoServico.local?.id ?? ''}`;
-            this.novoServico.desc = `${this.novoServico.ação?.nome ?? ''} ${this.novoServico.item?.nome ?? ''} ${this.novoServico.local?.nome ?? ''}`.trim();
+            const v = this.novoServico.ação?.id ?? null;
+            const o = this.novoServico.item?.id ?? null;
+            const l = this.novoServico.local?.id ?? null;
+            if (!v || !o || !l) {
+                this.novoServico.cod = '00';
+                this.novoServico.codificacao_id = null;
+            } else {
+                const code = `${this.pad2(v)}${this.pad2(o)}${this.pad2(l)}`;
+                this.novoServico.cod = code;
+                this.novoServico.codificacao_id = code;
+            }
+
+            const desc = `${this.novoServico.ação?.nome ?? ''} ${this.novoServico.item?.nome ?? ''} ${this.novoServico.local?.nome ?? ''}`.trim();
+            this.novoServico.desc = desc || null;
         },
         alterarOrdemSetor(idSetor, index) {
             serviceRoteiro.reordenarSetores(idSetor, (index + 1))
@@ -686,6 +712,7 @@ export default {
                 rot_setor_id: this.idSetorNovoServico,
                 codigo_servico: this.novoServico.cod,
                 descricao: this.novoServico.desc,
+                codificacao_id: this.novoServico.codificacao_id ?? null
             }
 
             await serviceRoteiro.adicionarServico(payload);
