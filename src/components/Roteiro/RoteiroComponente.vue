@@ -257,7 +257,7 @@
                     </div>
                     <div>
                         <label>Verbo</label>
-                        <select v-model="novoServico.ação" @change="montarCodServico">
+                        <select v-model="novoServico.verbo" @change="montarCodServico">
                             <option :value="null" disabled selected hidden>Selecione</option>
                             <option v-for="v in verbos" :key="`v-${v.id}`" :value="v"> {{ pad2(v.id) }} - {{ v.nome }}
                             </option>
@@ -265,7 +265,7 @@
                     </div>
                     <div>
                         <label>Objeto</label>
-                        <select v-model="novoServico.item" @change="montarCodServico">
+                        <select v-model="novoServico.objeto" @change="montarCodServico">
                             <option :value="null" disabled selected hidden>Selecione</option>
                             <option v-for="o in objetos" :key="`o-${o.id}`" :value="o"> {{ pad2(o.id) }} - {{ o.nome }}
                             </option>
@@ -439,9 +439,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import serviceCodificacao from '@/services/codificacoesService'
 
-
-
-
 export default {
     components: {
         draggable,
@@ -517,10 +514,9 @@ export default {
             novoServico: {
                 cod: '00',
                 desc: null,
-                ação: null,
-                item: null,
+                verbo: null,
+                objeto: null,
                 local: null,
-                codificacao_id: null
             },
             servicoAtual: null,
             novoMaterial: null,
@@ -683,37 +679,43 @@ export default {
         abrirModalServico(bloco) {
             this.idSetorNovoServico = bloco.id;
             this.modalAdicionarServico = true;
-            this.novoServico = { cod: '00', desc: null, ação: null, item: null, local: null, codificacao_id: null };
+            this.novoServico = { cod: '00', desc: null, verbo: null, objeto: null, local: null, codificacao_id: null };
         },
-        montarCodServico() {
-            const v = this.novoServico.ação?.id ?? null;
-            const o = this.novoServico.item?.id ?? null;
-            const l = this.novoServico.local?.id ?? null;
-            if (!v || !o || !l) {
-                this.novoServico.cod = '00';
-                this.novoServico.codificacao_id = null;
-            } else {
-                const code = `${this.pad2(v)}${this.pad2(o)}${this.pad2(l)}`;
-                this.novoServico.cod = code;
-                this.novoServico.codificacao_id = code;
-            }
 
-            const desc = `${this.novoServico.ação?.nome ?? ''} ${this.novoServico.item?.nome ?? ''} ${this.novoServico.local?.nome ?? ''}`.trim();
-            this.novoServico.desc = desc || null;
-        },
+
         alterarOrdemSetor(idSetor, index) {
             serviceRoteiro.reordenarSetores(idSetor, (index + 1))
         },
         alterarOrdemServico(idServico, index) {
             serviceRoteiro.reordenarServicos(idServico, (index + 1))
         },
+        montarCodServico() {
+            const v = this.novoServico.verbo?.id ?? null;
+            const o = this.novoServico.objeto?.id ?? null;
+            const l = this.novoServico.local?.id ?? null;
+
+            this.novoServico.verbo_id = v;
+            this.novoServico.objeto_id = o;
+            this.novoServico.local_id = l;
+
+            if (!v || !o || !l) {
+                this.novoServico.cod = '00';
+            } else {
+                this.novoServico.cod = `${this.pad2(v)}${this.pad2(o)}${this.pad2(l)}`;
+            }
+
+            const desc = `${this.novoServico.verbo?.nome ?? ''} ${this.novoServico.objeto?.nome ?? ''} ${this.novoServico.local?.nome ?? ''}`.trim();
+            this.novoServico.desc = desc || null;
+        },
         async adicionarServico() {
-            var payload = {
+            const payload = {
                 rot_setor_id: this.idSetorNovoServico,
                 codigo_servico: this.novoServico.cod,
                 descricao: this.novoServico.desc,
-                codificacao_id: this.novoServico.codificacao_id ?? null
-            }
+                verbo_id: this.novoServico.verbo_id,
+                objeto_id: this.novoServico.objeto_id,
+                local_id: this.novoServico.local_id
+            };
 
             await serviceRoteiro.adicionarServico(payload);
             this.getRoteiro();
@@ -724,6 +726,8 @@ export default {
             });
             this.modalAdicionarServico = false;
         },
+
+
         toggleExpandir(servico) {
             servico.expandido = !servico.expandido;
 
