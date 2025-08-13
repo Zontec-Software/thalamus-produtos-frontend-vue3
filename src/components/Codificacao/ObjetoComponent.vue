@@ -171,7 +171,7 @@ export default {
             try {
                 const payload = { nome: this.novoObjeto.nome.trim() };
                 await serviceCodificacoes.cadastrarObjeto(payload);
-
+                await this.carregarObjetos();
                 this.toast.success('Objeto cadastrado com sucesso');
                 this.fecharModal();
             } catch (e) {
@@ -179,6 +179,7 @@ export default {
                 this.toast.error('Falha ao cadastrar objeto');
             }
         },
+
         editarObjeto(item) {
             this.objetoEdit = { id: item.id, nome: item.nome ?? "" };
             this.showEditModal = true;
