@@ -363,6 +363,21 @@ export default {
           }
         });
 
+        const campoOrigem = campos.find(c => c.chave === 'origem_mercadoria' && c.fiscal === true);
+        if (campoOrigem) {
+          valores[campoOrigem.id] = [
+            { id: '0', valor: 'Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8' },
+            { id: '1', valor: 'Estrangeira - Importação direta, exceto a indicada no código 6' },
+            { id: '2', valor: 'Estrangeira - Adquirida no mercado interno, exceto a indicada no código 7' },
+            { id: '3', valor: 'Nacional, CI > 40% e ≤ 70%' },
+            { id: '4', valor: 'Nacional, PPB conforme legislações dos Ajustes' },
+            { id: '5', valor: 'Nacional, CI ≤ 40%' },
+            { id: '6', valor: 'Estrangeira - Importação direta, sem similar (CAMEX) e gás natural' },
+            { id: '7', valor: 'Estrangeira - Mercado interno, sem similar (CAMEX) e gás natural' },
+            { id: '8', valor: 'Nacional, CI > 70%' }
+          ];
+        }
+
         this.valoresSelects = valores;
 
         const camposMapeados = campos.map(campo => ({
@@ -382,6 +397,9 @@ export default {
 
           if (camposSN.includes(campo.chave)) {
             valorAtual = valorAtual || 'N';
+          }
+          if (campo.chave === 'origem_mercadoria' && (valorAtual === undefined || valorAtual === null || valorAtual === '')) {
+            valorAtual = '0';
           }
 
           this.valoresSelecionados[campo.id] = valorAtual;
