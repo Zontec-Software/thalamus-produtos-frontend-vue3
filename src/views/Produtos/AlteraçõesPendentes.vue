@@ -4,16 +4,11 @@
   </div>
   <section v-else>
     <div class="margem" style="text-align: right;">
-      <!-- <strong> {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
-        ${produto_original.editadoPor ?? '??'}` }} </strong> -->
       <strong> {{ `Atualizado em: ${formatarData(produto_original.updated_at) ?? '?'} - por:
         ${produto_original.editadoPor ?? '??'}` }} </strong>
     </div>
     <div>
-      <!-- <div class="submit m-b">
-        <button v-if="isTemplate" @click="enviarAprovacao()">Enviar para Aprovação</button>
-      </div> -->
-      <div class="grid-4  container">
+      <div class="grid-4 container">
         <div class="bloco2 margem col-3">
           <div class="grid-4">
             <div>
@@ -26,9 +21,7 @@
                 </option>
               </select>
             </div>
-            <div
-              v-for="campo in camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== true && c.adicional !== true)"
-              :key="campo.id">
+            <div v-for="campo in camposBasicos" :key="campo.id">
               <label>{{ campo.label }}</label>
               <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'"
                 v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
@@ -53,11 +46,9 @@
                 :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
-          <br>
+          <br />
           <div class="grid">
-            <div
-              v-for="campo in camposSelects.filter(c => c.tipo === 'AreaTexto' && c.fiscal !== true && c.adicional !== true)"
-              :key="campo.id">
+            <div v-for="campo in camposAreaTexto" :key="campo.id">
               <label>{{ campo.label }}</label>
               <QuillEditor theme="snow" :readOnly="aguardandoAprovaçãoFiscal"
                 v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px;"
@@ -83,19 +74,20 @@
         </div>
         <!-- END FOTOS -->
       </div>
-      <br>
+      <br />
       <div class="grid-4 container">
         <div class="bloco3 col-4">
-          <div class=" tags m-b" style="cursor: pointer;">
-            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')">Informações
-              Adicionais</a>
-            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')">Recomendações Fiscais</a>
+          <div class="tags m-b" style="cursor: pointer;">
+            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')"> Informações
+              Adicionais </a>
+            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')"> Recomendações Fiscais
+            </a>
           </div>
         </div>
       </div>
       <div class="bloco2 container" v-if="blocoVisivel === 'informacoes'">
         <fieldset class="margem grid-4">
-          <div v-for="campo in camposSelects.filter(c => c.adicional === true)" :key="campo.id">
+          <div v-for="campo in camposAdicionais" :key="campo.id">
             <label>{{ campo.label }}</label>
             <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
               @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
@@ -115,7 +107,7 @@
       </div>
       <div class="bloco2 container" v-if="blocoVisivel === 'fiscais'">
         <fieldset class="margem grid-4">
-          <div v-for="campo in camposSelects.filter(c => c.fiscal === true && c.adicional !== true)" :key="campo.id">
+          <div v-for="campo in camposFiscaisVisiveis" :key="campo.id">
             <label>{{ campo.label }}</label>
             <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
               @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
@@ -131,43 +123,13 @@
               :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
               :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
-          <!-- <div>
-            <label>NCM : {{ produto_original.ncm }}</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm" required
-              @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
-            <div v-if="listaAbertaNcm && filteredNcm.length" style="
-              background-color: var(--cor-bg);
-              z-index: 99999;
-              max-height: 20rem;
-              overflow: auto;
-              position: absolute;
-              width: 20.5rem;
-              border: 1px solid var(--cor-separador);
-            ">
-              <ul style="list-style: none">
-                <li v-for="item in filteredNcm" :key="item.id" @click="selecionarNcm(item)"
-                  style="margin: .5rem; cursor: pointer;" @change="atualizarPayLoad('ncm', produto_original.ncm)">{{
-                    item.codigo }} {{ item.descricao }} </li>
-              </ul>
-            </div>
-          </div> -->
         </fieldset>
       </div>
-      <div style="text-align: center;">
-        <br>
-        <!-- <span v-if="!isSalvarHabilitado" style="color: var( --cor-erro);">Produto em modo Edição</span> -->
-      </div>
       <div class="submit m-b direita">
-        <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
         <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
-        <!-- <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
-          style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso" @click="cadastrarOMIE"> {{
-            isCadastro ? 'Cadastrar Produto' : 'Atualizar Produto' }}</button> -->
-        <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
       </div>
     </div>
   </section>
-  <!-- MODAL -->
   <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
     @fecharModal="showModalEditarCombo = false, atualizarSelect()" />
   <!-- MODAL FOTOS -->
@@ -179,7 +141,7 @@
         </div>
         <div class="modal-body">
           <input class="alinha-centro" type="file" accept="image/*" @change="adicionarFoto" />
-          <div class=" lista-imagens">
+          <div class="lista-imagens">
             <div v-for="(foto, index) in fotosProduto" :key="index" class="foto-item">
               <img :src="foto.url" alt="Foto Produto" />
               <i class="bi-x-circle" @click="removerFoto(index)"></i>
@@ -205,8 +167,6 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { urlFoto } from '@/services/api';
 import serviceCampos from '@/services/camposPorFamilia-service'
 import { useToast } from 'vue-toastification'
-
-
 
 export default {
   name: "AlteracoesProduto",
@@ -268,9 +228,10 @@ export default {
       valoresSelects: {},
       valoresSelecionados: {},
       valorCamposDinamicos: [],
-
+      idIndicadorEscala: null,
     };
   },
+
   setup() {
     const toast = useToast();
     return { urlFoto, toast };
@@ -280,6 +241,7 @@ export default {
       immediate: true,
       handler(novaFamiliaId) {
         if (novaFamiliaId) {
+          this.atualizarPayLoad('familia_id', novaFamiliaId);
           this.sincronizarCamposComBaseNaFamilia(novaFamiliaId);
         }
       }
@@ -291,10 +253,37 @@ export default {
       return this.funcionalidades.includes(113);
     },
     camposVazios() {
-      return ['origem_mercadoria', 'id_preco_tabelado', 'id_cest', 'indicador_escala', 'cnpj_fabricante', 'cupom_fiscal', 'market_place']
-        .some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '')
+      return [
+        'origem_mercadoria',
+        'id_preco_tabelado',
+        'id_cest',
+        'indicador_escala',
+        'cnpj_fabricante',
+        'cupom_fiscal',
+        'market_place'
+      ].some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '');
     },
 
+    camposBasicos() {
+      return this.camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== true && c.adicional !== true);
+    },
+    camposAreaTexto() {
+      return this.camposSelects.filter(c => c.tipo === 'AreaTexto' && c.fiscal !== true && c.adicional !== true);
+    },
+    camposAdicionais() {
+      return this.camposSelects.filter(c => c.adicional === true);
+    },
+    camposFiscais() {
+      return this.camposSelects.filter(c => c.fiscal === true && c.adicional !== true);
+    },
+
+    camposFiscaisVisiveis() {
+      const id = this.idIndicadorEscala;
+      const indicador = id ? this.valoresSelecionados[id] : null;
+      return this.camposFiscais.filter(c =>
+        c.chave !== 'cnpj_fabricante' || indicador === 'N'
+      );
+    },
   },
   async created() {
     this.funcionalidades = await getPermissao();
@@ -336,6 +325,8 @@ export default {
         const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
         const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
 
+        this.idIndicadorEscala = campos.find(c => c.chave === 'indicador_escala')?.id;
+
         const campoTipo = campos.find(c => c.chave === 'tipoProduto_id');
         if (campoTipo && this.tipos && this.tipos.length) {
           valores[campoTipo.id] = this.tipos.map(t => ({
@@ -359,6 +350,18 @@ export default {
             valores[campo.id] = [
               { id: 'S', valor: 'Sim' },
               { id: 'N', valor: 'Não' }
+            ];
+          }
+        });
+
+        const campoEscala = ['indicador_escala'];
+        campoEscala.forEach(chave => {
+          const campo = campos.find(c => c.chave === chave && c.fiscal === true);
+          if (campo) {
+            valores[campo.id] = [
+              { id: null, valor: '' },
+              { id: 'S', valor: 'Produzido em Escala Relevante' },
+              { id: 'N', valor: 'Produzido em Escala NÃO Relevante' }
             ];
           }
         });
@@ -398,6 +401,10 @@ export default {
           if (camposSN.includes(campo.chave)) {
             valorAtual = valorAtual || 'N';
           }
+          if (campoEscala.includes(campo.chave)) {
+            valorAtual = valorAtual || 'N';
+          }
+
           if (campo.chave === 'origem_mercadoria' && (valorAtual === undefined || valorAtual === null || valorAtual === '')) {
             valorAtual = '0';
           }
@@ -582,34 +589,39 @@ export default {
 
     async salvarProduto() {
       try {
-        const payloadAtualizar = {};
-
-        this.camposSelects
-          .filter(campo => campo.omie === 1)
-          .forEach(campo => {
-            payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
-          });
-
-        payloadAtualizar.campos_dinamicos = this.camposSelects
-          .filter(campo => campo.omie !== 1)
-          .map(campo => {
-            const valor = this.valoresSelecionados[campo.id];
-            if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
-              return {
-                campo_id: campo.id,
-                valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
-              };
-            }
-            return {
-              campo_id: campo.id,
-              valor: valor ?? null,
-            };
-          });
-
         if (this.isCadastro) {
+          // ✅ Garante que vai junto mesmo se o usuário não trocou o select
+          this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
           await serviceProdutos.salvarNovoProduto(this.payLoad);
           this.toast.success("Produto enviado com sucesso!");
         } else {
+          const payloadAtualizar = {};
+
+          // ✅ Inclui familia_id no update também
+          payloadAtualizar.familia_id = this.produto_original.familia_id ?? null;
+
+          this.camposSelects
+            .filter(campo => campo.omie === 1)
+            .forEach(campo => {
+              payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
+            });
+
+          payloadAtualizar.campos_dinamicos = this.camposSelects
+            .filter(campo => campo.omie !== 1)
+            .map(campo => {
+              const valor = this.valoresSelecionados[campo.id];
+              if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+                return {
+                  campo_id: campo.id,
+                  valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
+                };
+              }
+              return {
+                campo_id: campo.id,
+                valor: valor ?? null,
+              };
+            });
+
           await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
           this.toast.success("Produto salvo com sucesso!");
         }
