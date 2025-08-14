@@ -12,10 +12,10 @@
         <a @click="aba = 3, salvarAba(3)" :class="aba == 3 ? 'ativo' : ''">Local</a>
       </div>
       <div v-if="aba == 3" class="bloco margem">
-        <LocalComponent></LocalComponent>
+        <LocalComponent ref="localComp"></LocalComponent>
       </div>
       <div v-if="aba == 2" class="bloco margem">
-        <ObjetoComponent></ObjetoComponent>
+        <ObjetoComponent ref="objetoComp"></ObjetoComponent>
       </div>
       <div class="bloco margem" v-if="aba == 1">
         <div class="m-icone direita">
@@ -164,8 +164,15 @@ export default {
   methods: {
 
     salvarAba(id) {
-      localStorage.setItem('abaCodificacao', id)
+      this.abaAtiva = id;
+
+      this.$nextTick(() => {
+        if (id === 1) this.$refs.verboComp?.carregarVerbos();
+        if (id === 2) this.$refs.objetoComp?.carregarObjetos();
+        if (id === 3) this.$refs.localComp?.carregarLocais();
+      });
     },
+
     async carregarVerbos() {
       this.verbos = await serviceCodificacoes.getAllVerbos();
     },

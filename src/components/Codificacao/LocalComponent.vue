@@ -172,7 +172,6 @@ export default {
                 const payload = { nome: this.novoLocal.nome.trim() };
                 await serviceCodificacoes.cadastrarLocal(payload);
                 await this.carregarLocais();
-
                 this.toast.success('Local cadastrado com sucesso');
                 this.fecharModal();
             } catch (e) {
@@ -180,6 +179,7 @@ export default {
                 this.toast.error('Falha ao cadastrar local');
             }
         },
+
         editarLocal(item) {
             this.localEdit = { id: item.id, nome: item.nome ?? "" };
             this.showEditModal = true;
