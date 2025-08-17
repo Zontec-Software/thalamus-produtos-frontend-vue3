@@ -1,16 +1,21 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { sso } from "roboflex-thalamus-sso-lib";
 import { getPermissao } from "../services/permissao-service";
-import PortfolioProduto from '@/views/Produtos/PortfolioProduto.vue';
+import Produtos from '@/views/Produtos/Produtos.vue';
+import Portfolio from '@/views/Produtos/PortfolioView.vue';
 import CadastroProduto from '@/views/Produtos/CadastroProduto.vue'
 import TemplateView from '@/views/Produtos/TemplateView.vue'
 import Aprovacao from "@/views/Produtos/AprovacaoView.vue"
-import Servico from "@/views/Produtos/ServicoView.vue"
-import GerenciarServico from "@/views/Produtos/GerenciarServico.vue"
+import Codificacoes from "@/views/Produtos/CodificacoesView.vue"
+// import GerenciarCodificacoes from "@/views/Produtos/GerenciarCodificacoes.vue"
 import Ferramenta from "@/views/Produtos/FerramentaView.vue"
 import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue"
 import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
-
+import Gabarito from '@/views/Produtos/GabaritoView.vue';
+import ConfiguracaoProdutos from '@/views/Produtos/ConfiguracaoProdutos.vue';
+import ModaisProdutos from '@/views/Produtos/ModaisProdutos.vue';
+import CamposView from '@/views/Produtos/CamposView.vue';
+import CamposListar from '@/views/Produtos/CamposListar.vue';
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
   const buildMode = process.env.NODE_ENV;
@@ -66,7 +71,13 @@ const routes = [
   {
     path: '/',
     name: 'portfolioView',
-    component: PortfolioProduto,
+    component: Produtos,
+    beforeEnter: guardPermissaoRoute
+  },
+    {
+    path: '/portfolio',
+    name: 'Portfolio',
+    component: Portfolio,
     beforeEnter: guardPermissaoRoute
   },
   {
@@ -91,32 +102,12 @@ const routes = [
     beforeEnter: guardPermissaoRoute
   },
   {
-    path: '/servicos',
-    name: 'Servico',
-    component: Servico,
+    path: '/codificacoes',
+    name: 'Codificacao',
+    component: Codificacoes,
     beforeEnter: guardPermissaoRoute
   },
-  {
-    path: '/servicos/novo',
-    name: 'AdicionarServico',
-    component: GerenciarServico,
-    props: true,
-    beforeEnter: guardPermissaoRoute,
-  },
-  {
-    path: '/servicos/editar/:id',
-    name: 'EditarServico',
-    component: GerenciarServico,
-    props: true,
-    beforeEnter: guardPermissaoRoute
-  },
-  {
-    path: '/servicos/excluir',
-    name: 'ExcluirServico',
-    component: GerenciarServico,
-    props: true,
-    beforeEnter: guardPermissaoRoute
-  },
+
   {
     path: '/ferramentas',
     name: 'Ferramentas',
@@ -150,7 +141,44 @@ const routes = [
     component: ParametroTeste,
     beforeEnter: guardPermissaoRoute
   },
+  {
+    path: '/gabarito',
+    name: 'gabaritos',
+    component: Gabarito,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/configurar',
+    name: 'ConfigurarCamposPorTipo',
+    component: ConfiguracaoProdutos,
+    beforeEnter: guardPermissaoRoute
+  },
+    {
+    path: '/modais',
+    name: 'ModaisProdutos',
+    component: ModaisProdutos,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+  path: '/cadastro/:tipo',
+  name: 'CadastroGenerico',
+  component: () => import('@/components/Classificação/ClassificaçãoComponente.vue'),
+  beforeEnter: guardPermissaoRoute,
+  props: true,
+},
 
+    {
+    path: '/campos',
+    name: 'CamposView',
+    component: CamposView,
+    beforeEnter: guardPermissaoRoute
+  },
+      {
+    path: '/camposListar',
+    name: 'CamposListar',
+    component: CamposListar,
+    beforeEnter: guardPermissaoRoute
+  },
 
   {
     path: "/login",

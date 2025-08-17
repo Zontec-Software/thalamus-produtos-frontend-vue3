@@ -9,73 +9,7 @@
       </div>
     </div>
     <div class="margem container">
-      <div class="grid-3 bloco margem">
-        <div>
-          <label for="codigo">Código</label>
-          <input type="text" id="codigo" v-model="servico.codigo" />
-        </div>
-        <div>
-          <label for="parametro">Parâmetro de Inspeção</label>
-          <input type="text" id="parametro" v-model="servico.parametro" />
-        </div>
-        <div>
-          <label for="setor">Setor</label>
-          <select id="setor" v-model="servico.setor_id">
-            <option :value="null">Selecione</option>
-            <option v-for="item in setores" :key="item.id" :value="item.id"> {{ item.nome }} </option>
-          </select>
-        </div>
-        <div>
-          <label for="descricao">Descrição</label>
-          <textarea type="text" id="descricao" v-model="servico.descricao"></textarea>
-        </div>
-        <div>
-          <label for="observacao">Observação</label>
-          <textarea type="text" id="observacao" v-model="servico.observacao"></textarea>
-        </div>
-      </div>
-      <br />
-      <h2>Ferramentas</h2>
-      <div class="bloco margem grid-2">
-        <div>
-          <input style="width: 400px" v-model="searchQueryFerramenta" @focus="abrirListaFerramenta"
-            @input="filtrarFerramentas" @blur="fecharListaFerramenta" placeholder="Pesquisar Ferramenta" type="text" />
-          <div v-if="listaAbertaFerramenta && filteredFerramentas.length" style="
-              background-color: var(--cor-bg);
-              z-index: 99999;
-              max-height: 20rem;
-              overflow: auto;
-              position: absolute;
-              width: 20.5rem;
-              border: 1px solid var(--cor-separador);
-            ">
-            <ul style="list-style: none">
-              <li v-for="ferramenta in filteredFerramentas" :key="ferramenta.id">
-                <div @click="toggleFerramenta(ferramenta)" :style="{
-                  color: isFerramentaInServico(ferramenta)
-                    ? 'gray'
-                    : 'var(--cor-fonte)',
-                  cursor: isFerramentaInServico(ferramenta)
-                    ? 'not-allowed'
-                    : 'pointer',
-                }"> {{ ferramenta.nome }} </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <!-- <h3>Ferramentas Selecionadas</h3> -->
-        <div>
-          <ul style="list-style: none" class="listaMateriaisEFerramentas">
-            <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.ferramenta_id"> {{ ferramenta.ferramenta.nome
-            }} <div class="alinha-v submit">
-                <i class="fa-solid fa-circle-xmark" @click="desassociarFerramenta(ferramenta)"></i>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <br />
-      <h2>Materiais</h2>
+      <h2>Verbo</h2>
       <div class="bloco margem grid-2">
         <div>
           <input style="width: 400px" v-model="searchQueryMaterial" @focus="abrirListaMaterial"
@@ -103,23 +37,74 @@
             </ul>
           </div>
         </div>
-        <!-- <h3>Materiais Utilizados</h3> -->
+      </div>
+      <br />
+      <h2>Objeto</h2>
+      <div class="bloco margem grid-2">
+        <div>
+          <input style="width: 400px" v-model="searchQueryFerramenta" @focus="abrirListaFerramenta"
+            @input="filtrarFerramentas" @blur="fecharListaFerramenta" placeholder="Pesquisar Ferramenta" type="text" />
+          <div v-if="listaAbertaFerramenta && filteredFerramentas.length" style="
+              background-color: var(--cor-bg);
+              z-index: 99999;
+              max-height: 20rem;
+              overflow: auto;
+              position: absolute;
+              width: 20.5rem;
+              border: 1px solid var(--cor-separador);
+            ">
+            <ul style="list-style: none">
+              <li v-for="ferramenta in filteredFerramentas" :key="ferramenta.id">
+                <div @click="toggleFerramenta(ferramenta)" :style="{
+                  color: isFerramentaInServico(ferramenta)
+                    ? 'gray'
+                    : 'var(--cor-fonte)',
+                  cursor: isFerramentaInServico(ferramenta)
+                    ? 'not-allowed'
+                    : 'pointer',
+                }"> {{ ferramenta.nome }} </div>
+              </li>
+            </ul>
+          </div>
+        </div>
         <div>
           <ul style="list-style: none" class="listaMateriaisEFerramentas">
-            <li v-for="material in servico.materiais" :key="material.produto_cod">
-              <span>{{ material.produto.desc }}</span>
-              <div class="alinha-v submit">
-                <input type="number" v-model="material.qt" placeholder="Quantidade" min="0" />
-                <select v-model="material.unidade">
-                  <option value="Unidade">UN</option>
-                  <option value="Metro">Metro</option>
-                  <option value="Litro">Litro</option>
-                  <option value="Kg">Kg</option>
-                </select>
-                <i class="fa-solid fa-circle-xmark" @click="desassociarMaterial(material)"></i>
+            <li v-for="ferramenta in servico.ferramentas" :key="ferramenta.ferramenta_id"> {{ ferramenta.ferramenta.nome
+            }} <div class="alinha-v submit">
+                <i class="fa-solid fa-circle-xmark" @click="desassociarFerramenta(ferramenta)"></i>
               </div>
             </li>
           </ul>
+        </div>
+      </div>
+      <br />
+      <h2>Local</h2>
+      <div class="bloco margem grid-2">
+        <div>
+          <input style="width: 400px" v-model="searchQueryMaterial" @focus="abrirListaMaterial"
+            @input="filtrarMateriais" @blur="fecharListaMaterial" placeholder="Pesquisar Material" type="text" />
+          <br /> {{ teste }} <div v-if="listaAbertaMaterial && filteredMateriais.length" style="
+              background-color: var(--cor-bg);
+              z-index: 99999;
+              max-height: 20rem;
+              overflow: auto;
+              position: absolute;
+              width: 20.5rem;
+              border: 1px solid var(--cor-separador);
+            ">
+            <ul style="list-style: none">
+              <li v-for="material in filteredMateriais" :key="material.produto_cod">
+                <div @click="toggleMaterial(material)" :style="{
+                  color: isMaterialInServico(material)
+                    ? 'gray'
+                    : 'var(--cor-fonte)',
+                  cursor: isMaterialInServico(material)
+                    ? 'not-allowed'
+                    : 'pointer',
+                }"> {{ material.desc }} </div>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
       <div class="submit m-b">
@@ -131,14 +116,9 @@
 </template>
 <script>
 import serviceServicos from "@/services/serviceServicos";
-import serviceFerramentas from "@/services/serviceFerramentas";
-import serviceProdutos from "@/services/serviceProdutos";
-import { createToaster } from "@meforma/vue-toaster";
 
-const toaster = createToaster({
-  position: "top-right",
-  duration: 6000,
-});
+import { useToast } from 'vue-toastification'
+
 
 export default {
   data() {
@@ -165,6 +145,11 @@ export default {
       filteredMateriais: [],
       listaAbertaMaterial: false,
     };
+  },
+
+  setup() {
+    const toast = useToast();
+    return { toast };
   },
   methods: {
     abrirListaFerramenta() {
@@ -275,64 +260,13 @@ export default {
         console.log("Erro ao obter serviço:", error);
       }
     },
-    async obterSetores() {
-      try {
-        const response = await serviceServicos.getSetores();
-        this.setores = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar setores:", error);
-      }
-    },
 
-    async obterProdutos() {
-      try {
-        const response = await serviceProdutos.getProdutos();
-        this.produtos = response;
-      } catch (error) {
-        console.error("Erro ao carregar produtos:", error);
-      }
-    },
 
-    async obterFerramentas() {
-      try {
-        const response = await serviceFerramentas.getAllFerramentas();
-        this.ferramentas = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar ferramentas:", error);
-      }
-    },
+
+
+
     async cadastrarServico() {
-      try {
-        const servicoData = {
-          id: this.servico.id,
-          codigo: this.servico.codigo,
-          descricao: this.servico.descricao,
-          setor_id: this.servico.setor_id,
-          parametro: this.servico.parametro,
-          observacao: this.servico.observacao,
-          ferramentas: this.servico.ferramentas.map((f) => ({
-            ferramenta_id: f.ferramenta_id,
-          })),
-          materiais: this.servico.materiais.map((m) => ({
-            produto_cod: m.produto_cod,
-            qt: m.qt || 1,
-            unidade: m.unidade || "Unidade",
-          })),
-        };
 
-        if (this.modoCadastro) {
-          await serviceServicos.cadastrar(servicoData);
-          toaster.success("Serviço cadastrado com sucesso!");
-          this.$router.push({ name: "Servico" });
-        } else {
-          await serviceServicos.atualizar(servicoData);
-          toaster.success("Serviço atualizado com sucesso!");
-          this.$router.push({ name: "Servico" });
-        }
-      } catch (error) {
-        toaster.error("Erro ao salvar o serviço.");
-        console.error("Erro ao cadastrar/atualizar serviço:", error);
-      }
     },
   },
   async created() {
@@ -341,9 +275,7 @@ export default {
       this.modoCadastro = false;
       await this.obterServicoPorId(id);
     }
-    this.obterSetores();
-    this.obterFerramentas();
-    this.obterProdutos();
+
   },
 };
 </script>

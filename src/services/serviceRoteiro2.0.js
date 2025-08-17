@@ -509,12 +509,7 @@ const funções = {
     },
 
     async adicionarServico(payload) {
-        // payloadEsperado: {
-        //     // obrigatorio
-        //     "rot_setor_id" : 1,
-        //     "codigo_servico" : "1231564",
-        //     "descricao" : "gravar caixa"
-        // }
+
         try {
             const response = await api.post('/setor-servico/adicionar', payload);
             return response.data;
@@ -526,24 +521,7 @@ const funções = {
     },
 
     async atualizarServico(id, payload) {
-        // payloadEsperado: 
-        //todos opcionais
-        //"codigo_servico": "1231564",
-        //"descricao": "gravar caixa 5",
-        //"observação": ""
 
-        // quando for adicionar ferramenta
-        //"ferramenta_id": 1
-
-        // quando for adicionar parametro
-        //"parametro_id": 1
-
-        // quando for adicionar material
-        //"materiais": {
-        //    "produto_cod": 719635814,
-        //        "qtd": 124,
-        //            "unidade": "UN2"
-        //}
         try {
             const response = await api.patch(`/setor-servico/atualizar/${id}`, payload);
             return response.data;
@@ -604,12 +582,17 @@ const funções = {
         }
     },
 
+    async removerGabarito(id) {
+        try {
+            const response = await api.delete(`setor-servico/gabarito/remover/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
     async atualizarMaterial(id, payload) {
-        // payloadEsperado: 
-        //{
-        // "qtd": 124,
-        // "unidade": "UN2"
-        //}
         try {
             const response = await api.patch(`/setor-servico/material/atualizar/${id}`, payload);
             return response.data;
@@ -620,13 +603,20 @@ const funções = {
     },
 
     async atualizarInsumo(id, payload) {
-        // payloadEsperado: 
-        //{
-        // "qtd": 124,
-        // "unidade": "UN2"
-        //}
+
         try {
             const response = await api.patch(`/setor-servico/insumo/atualizar/${id}`, payload);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async atualizarGabarito(id, payload) {
+
+        try {
+            const response = await api.patch(`/setor-servico/gabarito/atualizar/${id}`, payload);
             return response.data;
         } catch (error) {
             console.error(error);
@@ -642,10 +632,20 @@ const funções = {
             console.error(error);
             throw error;
         }
-    }, 
+    },
 
-      //ANEXOS
-    async gravarAnexo(payload, id_setor_servico){
+    async reordenarServicos(id, ordem) {
+        try {
+            const response = await api.put(`setor-servico/${id}/ordem`, { ordem: ordem });
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    //ANEXOS
+    async gravarAnexo(payload, id_setor_servico) {
         try {
             const response = await api.post(`anexar/roteiro-servico/${id_setor_servico}`, payload)
             return response.data;
@@ -657,8 +657,8 @@ const funções = {
         }
     },
 
-    async deletarAnexo(id_setor_servico, anexo_id){
-          try {
+    async deletarAnexo(id_setor_servico, anexo_id) {
+        try {
             const response = await api.delete(`anexos/roteiro-servico/${id_setor_servico}/${anexo_id}`)
             return response.data;
 
@@ -668,8 +668,8 @@ const funções = {
         }
     },
 
-    async listarAnexo(roteiro_id){
-            try {
+    async listarAnexo(roteiro_id) {
+        try {
             const response = await api.get(`anexos/roteiro-servico/${roteiro_id}`)
             return response.data;
 
@@ -689,6 +689,23 @@ const funções = {
     //         throw error;
     //     }
     // }
+
+    //ANEXO INSPEÇÃO
+    async gravarAnexoParametro(formData, servicoId) {
+        return api.post(`/roteiro/${servicoId}/parametro/anexo`, formData);
+    },
+
+    async deletarAnexoParametro(servicoId, parametroId, anexoId) {
+        return api.delete(`/roteiro/${servicoId}/parametro/${parametroId}/anexo/${anexoId}`);
+    },
+
+    async atualizarParametro(servicoId, parametroId, payload) {
+        return api.put(`/roteiro/${servicoId}/parametro/${parametroId}`, payload);
+    }
+
+
+
+
 
 }
 

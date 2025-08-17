@@ -3,139 +3,58 @@
     <div></div>
   </div>
   <section v-else>
-    <div style="text-align: right;">
-      <strong>
-        {{ `Versão ${produto_original.versão ?? '?'} ${formatarData(produto_original.updated_at) ?? '?'} -
-        ${produto_original.editadoPor ?? '??'}` }}
-      </strong>
+    <div class="margem" style="text-align: right;">
+      <strong> {{ `Atualizado em: ${formatarData(produto_original.updated_at) ?? '?'} - por:
+        ${produto_original.editadoPor ?? '??'}` }} </strong>
     </div>
     <div>
-      <div class="submit m-b">
-        <button v-if="isTemplate" @click="enviarAprovacao()">Enviar para Aprovação</button>
-      </div>
-      <div class="grid-4  container">
+      <div class="grid-4 container">
         <div class="bloco2 margem col-3">
           <div class="grid-4">
             <div>
-              <label>Código do Produto</label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.cod" required
-                @input="atualizarPayLoad('cod', produto_original.cod)">
-            </div>
-            <div>
-              <label>Descrição</label>
-              <textarea :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.desc" required
-                @input="atualizarPayLoad('desc', produto_original.desc)"></textarea>
-              <!-- <span v-if="alteracoes.desc"> Alterado por {{ alteracoes.desc.usuario }} </span> -->
-            </div>
-            <div>
-              <label>Unidade <i title="Editar unidade" @click="abrirModalEditarCombo('und')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.und"
-                @change="atualizarPayLoad('und', produto_original.und)">
-                <option v-for="item in und" :key="item.id" :value="item.cod"> {{ item.nome }}</option>
+              <label>Família</label>
+              <select v-model="produto_original.familia_id"
+                @change="atualizarPayLoad('familia_id', produto_original.familia_id)"
+                :disabled="aguardandoAprovaçãoFiscal">
+                <option disabled value="">Selecione uma família</option>
+                <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome.toUpperCase() }}
+                </option>
               </select>
             </div>
-            <div> <label>Família</label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.familia_id"
-                @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
-                <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome }} </option>
+            <div v-for="campo in camposBasicos" :key="campo.id">
+              <label>{{ campo.label }}</label>
+              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'"
+                v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option disabled value="">Selecione</option>
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id"
+                  :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id"> {{ opcao.valor }} </option>
               </select>
-            </div>
-            <div>
-              <label>Tipo do Produto</label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.tipoProduto_id"
-                @change="atualizarPayLoad('tipoProduto_id', produto_original.tipoProduto_id)">
-                <option v-for="item in tipos" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
+                :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option disabled value="">Selecione</option>
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+                </option>
               </select>
-            </div>
-            <div>
-              <label>Linha <i title="Editar Linhas" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('linha')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.linha_id"
-                @change="atualizarPayLoad('linha_id', produto_original.linha_id)">
-                <option v-for="item in linha" :key="item.id" :value="item.id"> {{ item.nome }}</option>
+              <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+                :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+                </option>
               </select>
-            </div>
-            <div>
-              <label>Modelo <i title="Editar Modelos" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('modelo')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.modelo_id"
-                @change="atualizarPayLoad('modelo_id', produto_original.modelo_id)">
-                <option v-for="item in modelo" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
-              <label>Fixação <i title="Editar Fixações" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('fixacao')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.fixacao_id"
-                @change="atualizarPayLoad('fixacao_id', produto_original.fixacao_id)">
-                <option v-for="item in fixacao" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
-              <label>Tamanho <i title="Editar Tamanhos" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('tamanho')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.tamanho_id"
-                @change="atualizarPayLoad('tamanho_id', produto_original.tamanho_id)">
-                <option v-for="item in tamanho" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
-              <label>Linha Device </label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.linha_device"
-                @input="atualizarPayLoad('linha_device', produto_original.linha_device)">
-            </div>
-            <div>
-              <label>Modelo Device </label>
-              <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.modelo_device"
-                @input="atualizarPayLoad('modelo_device', produto_original.modelo_device)">
-            </div>
-            <div>
-              <label>Status</label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.status"
-                @change="atualizarPayLoad('status', produto_original.status)">
-                <option value="1">Ativo</option>
-                <option value="0">Desativado</option>
-              </select>
-            </div>
-            <div>
-              <label>Cor <i title="Editar Cor" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('cor')"></i></label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.cor_id"
-                @change="atualizarPayLoad('cor_id', produto_original.cor_id)">
-                <option v-for="item in cor" :key="item.id" :value="item.id"> {{ item.nome }}</option>
-              </select>
-            </div>
-            <div>
-              <label>Versão Produto <i title="Editar Versão Modelo" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('versaoModelo')"></i> </label>
-              <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.versao_modelo_id"
-                @change="atualizarPayLoad('versao_modelo_id', produto_original.versao_modelo_id)">
-                <option v-for="item in versaoModelo" :key="item.id" :value="item.id"> {{ item.nome }} </option>
-              </select>
-            </div>
-            <div class="col-2">
-              <label>Especificação Técnica <i title="Editar Especificação" class="bi bi-gear-fill adicionarItem"
-                  @click="abrirModalEditarCombo('especificacao')"></i></label>
-              <div class="tags">
-                <a v-for="i, index in produto_original.especificacoes" :key="index">{{ i.nome }} <i class="bi-trash"
-                    title="Remover" @click.prevent="removerEspecificação(i)"></i></a>
-                <AutoCompleteRoteiro
-                  :BaseOpcoes="especificacoes.filter(item => !produto_original.especificacoes.includes(item))"
-                  @adicionarItem="adicionarEspecificação" />
-              </div>
+              <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)"
+                v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
+                :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
-          <br>
+          <br />
           <div class="grid">
-            <label>Observações </label>
-            <QuillEditor theme="snow" @blur="atualizarPayLoad('observacoes', produto_original.observacoes)"
-              :readOnly="aguardandoAprovaçãoFiscal" v-model:content="produto_original.observacoes" content-type="html"
-              style="height: 80px;" />
+            <div v-for="campo in camposAreaTexto" :key="campo.id">
+              <label>{{ campo.label }}</label>
+              <QuillEditor theme="snow" :readOnly="aguardandoAprovaçãoFiscal"
+                v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px;"
+                @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+            </div>
           </div>
-          <!-- <select :disabled="aguardandoAprovaçãoFiscal" v-model="produto_original.especificacao_id"
-              @change="atualizarPayLoad('especificacao_id', produto_original.especificacao_id)">
-              <option v-for="item in especificacao" :key="item.id" :value="item.id"> {{ item.nome }} </option>
-            </select> -->
         </div>
         <!-- FOTOS -->
         <div class="bloco2 margem col-1 alinha-centro">
@@ -155,156 +74,62 @@
         </div>
         <!-- END FOTOS -->
       </div>
-      <div class="margem tags m-b" style="cursor: pointer;">
-        <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')">Informações
-          Adicionais</a>
-        <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')">Recomendações Fiscais</a>
+      <br />
+      <div class="grid-4 container">
+        <div class="bloco3 col-4">
+          <div class="tags m-b" style="cursor: pointer;">
+            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')"> Informações
+              Adicionais </a>
+            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')"> Recomendações Fiscais
+            </a>
+          </div>
+        </div>
       </div>
-      <div class="bloco2" v-if="blocoVisivel === 'informacoes'">
+      <div class="bloco2 container" v-if="blocoVisivel === 'informacoes'">
         <fieldset class="margem grid-4">
-          <div :class="{ destaque: alteracoes.peso }">
-            <label>Peso Líquido (Kg)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.peso_liq"
-              @input="atualizarPayLoad('peso_liq', produto_original.peso_liq)" />
-            <!-- <span v-if="alteracoes.peso"> Alterado por {{ alteracoes.peso.usuario }} </span> -->
-          </div>
-          <div>
-            <label>Peso Bruto (Kg)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.peso_bruto"
-              @input="atualizarPayLoad('peso_bruto', produto_original.peso_bruto)" />
-          </div>
-          <div>
-            <label>Altura (cm)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.altura"
-              @input="atualizarPayLoad('altura', produto_original.altura)" />
-          </div>
-          <div>
-            <label>Largura (cm)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.largura"
-              @input="atualizarPayLoad('largura', produto_original.largura)" />
-          </div>
-          <div>
-            <label>Profundidade (cm)</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.profundidade"
-              @input="atualizarPayLoad('profundidade', produto_original.profundidade)" />
-          </div>
-          <div>
-            <label>Dias de Crossdocking</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.dias_crossdocking"
-              @input="atualizarPayLoad('dias_crossdocking', produto_original.dias_crossdocking)" />
-          </div>
-          <div>
-            <label>Lead Time de Ressuprimento</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.lead_time"
-              @input="atualizarPayLoad('lead_time', produto_original.lead_time)" />
-          </div>
-          <div>
-            <label>Marca</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.marca"
-              @input="atualizarPayLoad('marca', produto_original.marca)" />
-          </div>
-          <div>
-            <label>Modelo</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.modelo"
-              @input="atualizarPayLoad('modelo', produto_original.modelo)" />
-          </div>
-          <div>
-            <label>Dias de Garantia</label>
-            <input :disabled="aguardandoAprovaçãoFiscal" type="text" v-model="produto_original.dias_garantia"
-              @input="atualizarPayLoad('dias_garantia', produto_original.dias_garantia)" />
+          <div v-for="campo in camposAdicionais" :key="campo.id">
+            <label>{{ campo.label }}</label>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+              </option>
+            </select>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+              </option>
+            </select>
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
+              :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
           </div>
         </fieldset>
       </div>
-      <div class="bloco2" v-if="blocoVisivel === 'fiscais'">
+      <div class="bloco2 container" v-if="blocoVisivel === 'fiscais'">
         <fieldset class="margem grid-4">
-          <div>
-            <label>Origem da Mercadoria</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.origem_mercadoria" required
-              @input="atualizarPayLoad('origem_mercadoria', produto_original.origem_mercadoria)" />
-            <!-- <span v-if="alteracoes.peso"> Alterado por {{ alteracoes.peso.usuario }} </span> -->
-          </div>
-          <div>
-            <label>Preço Tabelado (Pauta)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.id_preco_tabelado" required
-              @input="atualizarPayLoad('id_preco_tabelado', produto_original.id_preco_tabelado)">
-          </div>
-          <!-- <div>
-            <label>Número da FCI (Ficha de Conteúdo de Importação)</label>
-            <input :disabled="!isFinanceiro" type="text" >
-          </div> -->
-          <div>
-            <label>CEST (Código Especificador da Substituição Tributária)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.id_cest" required
-              @input="atualizarPayLoad('id_cest', produto_original.id_cest)">
-          </div>
-          <div>
-            <label>Indicador de Produção em Escala Relevante</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.indicador_escala" required
-              @input="atualizarPayLoad('indicador_escala', produto_original.indicador_escala)">
-          </div>
-          <div>
-            <label>CNPJ Fabricante</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cnpj_fabricante" required
-              @input="atualizarPayLoad('cnpj_fabricante', produto_original.cnpj_fabricante)">
-          </div>
-          <div>
-            <label>Cupom Fiscal</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.cupom_fiscal" required
-              @input="atualizarPayLoad('cupom_fiscal', produto_original.cupom_fiscal)">
-          </div>
-          <div>
-            <label>Market Place</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.market_place" required
-              @input="atualizarPayLoad('market_place', produto_original.market_place)">
-          </div>
-          <div>
-            <label>Preço Unitário</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.valor_unitario" required
-              @input="atualizarPayLoad('valor_unitario', produto_original.valor_unitario)" />
-            <!-- <span v-if="alteracoes.valor_unitario"> Alterado por {{ alteracoes.valor_unitario.usuario }} </span> -->
-          </div>
-          <div>
-            <label>Código EAN (GTIN)</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="produto_original.ean" required
-              @change="atualizarPayLoad('ean', produto_original.ean)" />
-          </div>
-          <div>
-            <label>NCM : {{ produto_original.ncm }}</label>
-            <input :disabled="!isFinanceiro" type="text" v-model="searchQueryNcm" @focus="abrirListaNcm" required
-              @input="filtrarNcm" @blur="fecharListaNcm" placeholder="Pesquisar NCM" />
-            <div v-if="listaAbertaNcm && filteredNcm.length" style="
-              background-color: var(--cor-bg);
-              z-index: 99999;
-              max-height: 20rem;
-              overflow: auto;
-              position: absolute;
-              width: 20.5rem;
-              border: 1px solid var(--cor-separador);
-            ">
-              <ul style="list-style: none">
-                <li v-for="item in filteredNcm" :key="item.id" @click="selecionarNcm(item)"
-                  style="margin: .5rem; cursor: pointer;" @change="atualizarPayLoad('ncm', produto_original.ncm)">{{
-                    item.codigo }} {{ item.descricao }} </li>
-              </ul>
-            </div>
+          <div v-for="campo in camposFiscaisVisiveis" :key="campo.id">
+            <label>{{ campo.label }}</label>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+              </option>
+            </select>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
+              </option>
+            </select>
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
+              :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
         </fieldset>
-      </div>
-      <div style="text-align: center;">
-        <br>
-        <!-- <span v-if="!isSalvarHabilitado" style="color: var( --cor-erro);">Produto em modo Edição</span> -->
       </div>
       <div class="submit m-b direita">
-        <!-- <button @click="finalizarCadastro()">Finalizar Cadastro</button> -->
         <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
-        <!-- <button v-if="isFinanceiro" :disabled="camposVazios" :style="{ 'opacity': (camposVazios ? '0.5' : '') }"
-          style="background-color: var(--cor-sucesso)" class="acao-secundaria bg-sucesso" @click="cadastrarOMIE"> {{
-            isCadastro ? 'Cadastrar Produto' : 'Atualizar Produto' }}</button> -->
-        <!-- <button @click="isTemplate ? salvarTemplate() : salvarProduto()">Salvar</button> -->
       </div>
     </div>
   </section>
-  <!-- MODAL -->
   <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
     @fecharModal="showModalEditarCombo = false, atualizarSelect()" />
   <!-- MODAL FOTOS -->
@@ -316,7 +141,7 @@
         </div>
         <div class="modal-body">
           <input class="alinha-centro" type="file" accept="image/*" @change="adicionarFoto" />
-          <div class=" lista-imagens">
+          <div class="lista-imagens">
             <div v-for="(foto, index) in fotosProduto" :key="index" class="foto-item">
               <img :src="foto.url" alt="Foto Produto" />
               <i class="bi-x-circle" @click="removerFoto(index)"></i>
@@ -334,26 +159,20 @@
 <script>
 import serviceProdutos from '@/services/serviceProdutos';
 import serviceAprovacao from '@/services/aprovacao-service'
-import { createToaster } from "@meforma/vue-toaster";
 import { sso } from "roboflex-thalamus-sso-lib";
 import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
 import { getPermissao } from '@/services/permissao-service';
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
-import AutoCompleteRoteiro from '@/components/AutoComplete/AutoCompleteRoteiro.vue';
 import { urlFoto } from '@/services/api';
+import serviceCampos from '@/services/camposPorFamilia-service'
+import { useToast } from 'vue-toastification'
 
-
-const toaster = createToaster({
-  position: "top-right",
-  duration: 6000,
-});
 export default {
   name: "AlteracoesProduto",
   components: {
     ModalEditarCombo,
     QuillEditor,
-    AutoCompleteRoteiro
   },
   props: {
     produto_cod: {
@@ -369,21 +188,26 @@ export default {
   },
   data() {
     return {
+      ordemCamposPrincipais: [
+        'tipoProduto_id',
+        'familia_id',
+        'cod',
+        'desc',
+        'und',
+        'ncm'
+      ],
+
       funcionalidades: [],
       aguardandoAprovaçãoFiscal: false,
-      produto_original: {},
+      produto_original: {
+        familia_id: null
+      },
+
       // produto_editado: {},
       alteracoes: {},
       familias: [],
       tipos: [],
-      fixacao: [],
-      linha: [],
-      modelo: [],
-      tamanho: [],
       ncm: [],
-      und: [],
-      cor: [],
-      versaoModelo: [],
       especificacoes: [],
       searchQueryNcm: "",
       filteredNcm: [],
@@ -399,14 +223,29 @@ export default {
       isLoading: true,
       showModalFotos: false,
       fotosProduto: [],
-      indiceAtual: 0
-
-
-
+      indiceAtual: 0,
+      camposSelects: [],
+      valoresSelects: {},
+      valoresSelecionados: {},
+      valorCamposDinamicos: [],
+      idIndicadorEscala: null,
     };
   },
+
   setup() {
-    return { urlFoto };
+    const toast = useToast();
+    return { urlFoto, toast };
+  },
+  watch: {
+    'produto_original.familia_id': {
+      immediate: true,
+      handler(novaFamiliaId) {
+        if (novaFamiliaId) {
+          this.atualizarPayLoad('familia_id', novaFamiliaId);
+          this.sincronizarCamposComBaseNaFamilia(novaFamiliaId);
+        }
+      }
+    }
   },
 
   computed: {
@@ -414,9 +253,37 @@ export default {
       return this.funcionalidades.includes(113);
     },
     camposVazios() {
-      return ['origem_mercadoria', 'id_preco_tabelado', 'id_cest', 'indicador_escala', 'cnpj_fabricante', 'cupom_fiscal', 'market_place']
-        .some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '')
-    }
+      return [
+        'origem_mercadoria',
+        'id_preco_tabelado',
+        'id_cest',
+        'indicador_escala',
+        'cnpj_fabricante',
+        'cupom_fiscal',
+        'market_place'
+      ].some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '');
+    },
+
+    camposBasicos() {
+      return this.camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== true && c.adicional !== true);
+    },
+    camposAreaTexto() {
+      return this.camposSelects.filter(c => c.tipo === 'AreaTexto' && c.fiscal !== true && c.adicional !== true);
+    },
+    camposAdicionais() {
+      return this.camposSelects.filter(c => c.adicional === true);
+    },
+    camposFiscais() {
+      return this.camposSelects.filter(c => c.fiscal === true && c.adicional !== true);
+    },
+
+    camposFiscaisVisiveis() {
+      const id = this.idIndicadorEscala;
+      const indicador = id ? this.valoresSelecionados[id] : null;
+      return this.camposFiscais.filter(c =>
+        c.chave !== 'cnpj_fabricante' || indicador === 'N'
+      );
+    },
   },
   async created() {
     this.funcionalidades = await getPermissao();
@@ -430,17 +297,8 @@ export default {
         this.carregarAlteracoes(),
         this.carregarNcm(),
         this.carregarTiposProduto(),
-        this.carregarFamilias(),
-        this.carregarLinhas(),
-        this.carregarModelos(),
-        this.carregarFixacao(),
-        this.carregarTamanho(),
-        this.carregarNcmPorId(),
-        this.carregarUnidades(),
-        this.carregarCores(),
-        this.carregarVersaoModelo(),
-        this.carregarEspecificacoes(),
-        this.carregarFotosProduto()
+        this.carregarFotosProduto(),
+        this.carregarFamilias()
       ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -449,13 +307,165 @@ export default {
     }
   },
   methods: {
-    formatarData(data) {
-      const [dataParte, horaParte] = data.split('T');
-      const [ano, mes, dia] = dataParte.split('-');
-      const [hora, minuto] = horaParte.split(':');
-
-      return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+    async carregarFamilias() {
+      try {
+        const response = await serviceCampos.listarFamilia();
+        this.familias = response.sort((a, b) => a.nome.localeCompare(b.nome));
+      } catch (error) {
+        console.error("Erro ao carregar famílias:", error);
+      }
     },
+
+    async sincronizarCamposComBaseNaFamilia(familiaId) {
+      this.valoresSelecionados = {};
+      this.camposPrincipais = [];
+      this.camposOutros = [];
+
+      try {
+        const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
+        const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
+
+        this.idIndicadorEscala = campos.find(c => c.chave === 'indicador_escala')?.id;
+
+        const campoTipo = campos.find(c => c.chave === 'tipoProduto_id');
+        if (campoTipo && this.tipos && this.tipos.length) {
+          valores[campoTipo.id] = this.tipos.map(t => ({
+            id: t.id,
+            valor: t.nome
+          }));
+        }
+
+        const campoStatus = campos.find(c => c.chave === 'status');
+        if (campoStatus) {
+          valores[campoStatus.id] = [
+            { id: 1, valor: 'Ativo' },
+            { id: 0, valor: 'Inativo' }
+          ];
+        }
+
+        const camposSN = ['cupom_fiscal', 'market_place', 'indicador_escala'];
+        camposSN.forEach(chave => {
+          const campo = campos.find(c => c.chave === chave && c.fiscal === true);
+          if (campo) {
+            valores[campo.id] = [
+              { id: 'S', valor: 'Sim' },
+              { id: 'N', valor: 'Não' }
+            ];
+          }
+        });
+
+        const campoEscala = ['indicador_escala'];
+        campoEscala.forEach(chave => {
+          const campo = campos.find(c => c.chave === chave && c.fiscal === true);
+          if (campo) {
+            valores[campo.id] = [
+              { id: null, valor: '' },
+              { id: 'S', valor: 'Produzido em Escala Relevante' },
+              { id: 'N', valor: 'Produzido em Escala NÃO Relevante' }
+            ];
+          }
+        });
+
+        const campoOrigem = campos.find(c => c.chave === 'origem_mercadoria' && c.fiscal === true);
+        if (campoOrigem) {
+          valores[campoOrigem.id] = [
+            { id: '0', valor: 'Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8' },
+            { id: '1', valor: 'Estrangeira - Importação direta, exceto a indicada no código 6' },
+            { id: '2', valor: 'Estrangeira - Adquirida no mercado interno, exceto a indicada no código 7' },
+            { id: '3', valor: 'Nacional, CI > 40% e ≤ 70%' },
+            { id: '4', valor: 'Nacional, PPB conforme legislações dos Ajustes' },
+            { id: '5', valor: 'Nacional, CI ≤ 40%' },
+            { id: '6', valor: 'Estrangeira - Importação direta, sem similar (CAMEX) e gás natural' },
+            { id: '7', valor: 'Estrangeira - Mercado interno, sem similar (CAMEX) e gás natural' },
+            { id: '8', valor: 'Nacional, CI > 70%' }
+          ];
+        }
+
+        this.valoresSelects = valores;
+
+        const camposMapeados = campos.map(campo => ({
+          ...campo,
+          componente: this.definirComponentePorTipo(campo.tipo)
+        }));
+
+        camposMapeados.forEach(campo => {
+          let valorAtual =
+            this.produto_original[campo.chave] ??
+            this.valorCamposDinamicos.find(d => d.campo_id === campo.id)?.valores[0]?.valor_id ??
+            this.valorCamposDinamicos.find(d => d.campo_id === campo.id)?.valores[0]?.valor;
+
+          if (campo.chave === 'status') {
+            valorAtual = typeof valorAtual === 'string' ? Number(valorAtual) : valorAtual;
+          }
+
+          if (camposSN.includes(campo.chave)) {
+            valorAtual = valorAtual || 'N';
+          }
+          if (campoEscala.includes(campo.chave)) {
+            valorAtual = valorAtual || 'N';
+          }
+
+          if (campo.chave === 'origem_mercadoria' && (valorAtual === undefined || valorAtual === null || valorAtual === '')) {
+            valorAtual = '0';
+          }
+
+          this.valoresSelecionados[campo.id] = valorAtual;
+          this.atualizarPayLoad(campo.chave, valorAtual);
+        });
+
+        const camposSemFamilia = camposMapeados.filter(c => c.chave !== 'familia_id');
+        const ordemCamposPrincipais = [
+          'tipoProduto_id',
+          'cod',
+          'desc',
+          'und',
+          'ncm'
+        ];
+        this.camposPrincipais = ordemCamposPrincipais
+          .map(chave => camposSemFamilia.find(c => c.chave === chave))
+          .filter(Boolean);
+        this.camposOutros = camposSemFamilia.filter(
+          c => !ordemCamposPrincipais.includes(c.chave)
+        );
+
+        this.camposSelects = [...this.camposPrincipais, ...this.camposOutros];
+
+      } catch (error) {
+        console.error("Erro ao sincronizar campos da família:", error);
+      }
+    },
+
+    definirComponentePorTipo(tipo) {
+      switch (tipo) {
+        case 'Lista': return 'select';
+        case 'MultiLista': return 'multiselect';
+        case 'Texto':
+        case 'Número':
+        case 'Decimal':
+        case 'Data':
+        case 'AreaTexto':
+          return 'quill';
+        default: return 'input';
+      }
+    },
+
+
+    formatarData(data) {
+      if (!data) return "-";
+      try {
+        // const [dataParte, horaParte] = data.split('T');
+        const [dataParte] = data.split('T');
+
+        const [ano, mes, dia] = dataParte.split('-');
+        // const [hora, minuto] = horaParte.split(':');
+        // return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+        return `${dia}/${mes}/${ano} `;
+
+      } catch {
+        return "-";
+      }
+    },
+
     async carregarFotosProduto() {
       try {
         const response = await serviceProdutos.listarAnexo(this.produto_cod);
@@ -474,7 +484,7 @@ export default {
       if (!file) return;
 
       if (this.fotosProduto.length >= 4) {
-        toaster.error("Você pode adicionar no máximo 4 fotos.");
+        this.toast.error("Você pode adicionar no máximo 4 fotos.");
         return;
       }
 
@@ -483,10 +493,10 @@ export default {
 
       try {
         await serviceProdutos.gravarAnexo(formData, this.produto_cod);
-        toaster.success("Foto adicionada com sucesso!");
+        this.toast.success("Foto adicionada com sucesso!");
         await this.carregarFotosProduto();
       } catch (error) {
-        toaster.error("Erro ao adicionar foto.");
+        this.toast.error("Erro ao adicionar foto.");
         console.error(error);
       }
     },
@@ -495,10 +505,10 @@ export default {
       const foto = this.fotosProduto[index];
       try {
         await serviceProdutos.deletarAnexo(this.produto_cod, foto.id);
-        toaster.success("Foto removida com sucesso!");
+        this.toast.success("Foto removida com sucesso!");
         await this.carregarFotosProduto();
       } catch (error) {
-        toaster.error("Erro ao remover foto.");
+        this.toast.error("Erro ao remover foto.");
         console.error(error);
       }
     },
@@ -517,103 +527,16 @@ export default {
       this.carregarNcm(),
         this.carregarTiposProduto(),
         this.carregarFamilias(),
-        this.carregarLinhas(),
-        this.carregarModelos(),
-        this.carregarFixacao(),
-        this.carregarTamanho(),
-        this.carregarNcmPorId(),
-        this.carregarUnidades(),
-        this.carregarCores(),
-        this.carregarVersaoModelo(),
-        this.carregarEspecificacoes()
-
+        this.carregarNcmPorId()
     },
     async cadastrarOMIE() {
       var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
       if (response) {
-        toaster.success("Produto cadastrado com sucesso!");
+        this.toast.success("Produto cadastrado com sucesso!");
       }
     },
-    abrirModalEditarCombo(itemEditado) {
-      switch (itemEditado) {
-        case 'und':
-          this.itemEditado = {
-            tipo: 'unidade',
-            url: 'unidade-medida',
-            combo: this.und
-          };
-          break;
-        case 'fixacao':
-          this.itemEditado = {
-            tipo: 'Fixação',
-            url: itemEditado,
-            combo: this.fixacao
-          };
-          break;
-        case 'linha':
-          this.itemEditado = {
-            tipo: 'Linha',
-            url: itemEditado,
-            combo: this.linha
-          };
-          break;
-        case 'modelo':
-          this.itemEditado = {
-            tipo: 'Modelo',
-            url: itemEditado,
-            combo: this.modelo
-          };
-          break;
-        case 'tamanho':
-          this.itemEditado = {
-            tipo: 'Tamanho',
-            url: 'tamanho-produto',
-            combo: this.tamanho
-          };
-          break;
-        case 'cor':
-          this.itemEditado = {
-            tipo: 'Cor',
-            url: 'produto/cor',
-            combo: this.cor
-          };
-          break;
-        case 'versaoModelo':
-          this.itemEditado = {
-            tipo: 'Versão Modelo',
-            url: 'produto/versao-modelo',
-            combo: this.versaoModelo
-          };
-          break;
-        case 'especificacao':
-          this.itemEditado = {
-            tipo: 'Especificação',
-            url: 'produto/especificacao',
-            combo: this.especificacoes
-          };
-          break;
 
-        default:
-          null
-      }
-      this.showModalEditarCombo = true
-    },
-    async carregarEspecificacoes() {
-      try {
-        const response = await serviceProdutos.getEspecificacao();
-        this.especificacoes = response;
-        if (this.produto_original.especificacoes) {
-          const especificacoesIds = JSON.parse(this.produto_original.especificacoes);
-          this.produto_original.especificacoes = especificacoesIds.map(
-            id => this.especificacoes.find(obj => obj.id === id)
-          ).filter(e => e);
-        } else {
-          this.produto_original.especificacoes = [];
-        }
-      } catch (error) {
-        console.error("Erro ao carregar lista de especificações:", error);
-      }
-    },
+
     async carregarNcm() {
       try {
         const response = await serviceProdutos.getAllNcm();
@@ -649,88 +572,7 @@ export default {
       this.produto_original.ncm = ncm.codigo;
       this.listaAbertaNcm = false;
     },
-    async carregarVersaoModelo() {
-      try {
-        const response = await serviceProdutos.getVersaoModelo();
-        this.versaoModelo = response;
-      } catch (error) {
-        console.error("Erro ao carregar versão modelo de produtos:", error);
-      }
-    },
-    async carregarCores() {
-      try {
-        const response = await serviceProdutos.getCor();
-        this.cor = response;
-      } catch (error) {
-        console.error("Erro ao carregar cores de produtos:", error);
-      }
-    },
 
-    async carregarUnidades() {
-      try {
-        const response = await serviceProdutos.getUnidade();
-        this.und = response;
-      } catch (error) {
-        console.error("Erro ao carregar unidades de produtos:", error);
-      }
-    },
-    async carregarTamanho() {
-      try {
-        const response = await serviceProdutos.getTamanho();
-        this.tamanho = response;
-      } catch (error) {
-        console.error("Erro ao carregar tamanho de produtos:", error);
-      }
-    },
-    async carregarFixacao() {
-      try {
-        const response = await serviceProdutos.getFixacao();
-        this.fixacao = response;
-      } catch (error) {
-        console.error("Erro ao carregar fixacao de produtos:", error);
-      }
-    },
-    async carregarDevice() {
-      try {
-        const response = await serviceProdutos.getDevice();
-        this.device = response;
-      } catch (error) {
-        console.error("Erro ao carregar device de produtos:", error);
-      }
-    },
-    async carregarLinhas() {
-      try {
-        const response = await serviceProdutos.getLinha();
-        this.linha = response;
-      } catch (error) {
-        console.error("Erro ao carregar linha de produtos:", error);
-      }
-    },
-    async carregarModelos() {
-      try {
-        const response = await serviceProdutos.getModelo();
-        this.modelo = response;
-      } catch (error) {
-        console.error("Erro ao carregar modelo de produtos:", error);
-      }
-    },
-    async carregarFamilias() {
-      try {
-        const response = await serviceProdutos.listarFamilia();
-        this.familias = response;
-      } catch (error) {
-        console.error("Erro ao carregar famílias de produtos:", error);
-      }
-    },
-    async carregarTiposProduto() {
-      try {
-        const response = await serviceProdutos.getTipoProduto();
-        this.tipos = response;
-      } catch (error) {
-        console.error("Erro ao carregar tipos de produtos:", error);
-        toaster.error("Erro ao carregar tipos de produtos");
-      }
-    },
     mostrarBloco(bloco) {
       if (this.blocoVisivel === bloco) {
         this.blocoVisivel = null;
@@ -741,34 +583,59 @@ export default {
     salvarTemplate() {
       console.log("aqui")
     },
-    atualizarPayLoad(chave, valor) {
+    async atualizarPayLoad(chave, valor) {
       this.payLoad[chave] = valor;
     },
+
     async salvarProduto() {
       try {
-        this.payLoad.observacoes = this.produto_original.observacoes;
-
         if (this.isCadastro) {
-          await serviceProdutos.salvarNovoProduto(this.payLoad)
-          toaster.success("Produto enviado com sucesso!");
-        }
+          // ✅ Garante que vai junto mesmo se o usuário não trocou o select
+          this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
+          await serviceProdutos.salvarNovoProduto(this.payLoad);
+          this.toast.success("Produto enviado com sucesso!");
+        } else {
+          const payloadAtualizar = {};
 
-        else {
-          await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
-          toaster.success("Produto salvo com sucesso!");
+          // ✅ Inclui familia_id no update também
+          payloadAtualizar.familia_id = this.produto_original.familia_id ?? null;
 
+          this.camposSelects
+            .filter(campo => campo.omie === 1)
+            .forEach(campo => {
+              payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
+            });
+
+          payloadAtualizar.campos_dinamicos = this.camposSelects
+            .filter(campo => campo.omie !== 1)
+            .map(campo => {
+              const valor = this.valoresSelecionados[campo.id];
+              if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+                return {
+                  campo_id: campo.id,
+                  valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
+                };
+              }
+              return {
+                campo_id: campo.id,
+                valor: valor ?? null,
+              };
+            });
+
+          await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
+          this.toast.success("Produto salvo com sucesso!");
         }
       } catch (error) {
-        toaster.error("Erro ao salvar produto")
+        this.toast.error("Erro ao salvar produto");
         console.error("Erro ao salvar produto:", error);
       }
     },
     async finalizarCadastro() {
       try {
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
-        toaster.success("Produto finalizado com sucesso!");
+        this.toast.success("Produto finalizado com sucesso!");
       } catch (error) {
-        toaster.error("Erro ao finalizar produto")
+        this.toast.error("Erro ao finalizar produto")
         console.error("Erro ao salvar produto:", error);
       }
     },
@@ -776,10 +643,10 @@ export default {
       try {
         const response = await serviceProdutos.carregarAlteracoesOriginalEditado(this.produto_cod);
         this.produto_original = response.produto_editado;
+        this.valorCamposDinamicos = response.campos_dinamicos;
 
         // this.produto_editado = response.produto_editado;
         this.em_edicao = response.em_edicao;
-
 
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
@@ -791,25 +658,40 @@ export default {
       const { usuario_id } = this.payLoad;
 
       if (!produto_cod || !usuario_id) {
-        toaster.error("Produto ou usuário não informado.");
+        this.toast.error("Produto ou usuário não informado.");
         return;
       }
 
       serviceAprovacao.enviarParaAprovacao(produto_cod, usuario_id)
         .then(() => {
-          toaster.success("Produto enviado para aprovação com sucesso!");
+          this.toast.success("Produto enviado para aprovação com sucesso!");
           this.$router.back()
 
         })
         .catch((error) => {
-          toaster.error("Erro ao enviar produto para aprovação.");
+          this.toast.error("Erro ao enviar produto para aprovação.");
           console.error("Erro ao enviar para aprovação:", error);
           this.$router.back()
         });
-    }
+    },
 
+    async carregarTiposProduto() {
+      try {
+        const lista = await serviceProdutos.getTipoProduto();
+        this.tipos = (lista || []).sort((a, b) => a.nome.localeCompare(b.nome));
+      } catch (error) {
+        console.error("Erro ao carregar Tipos de Produto:", error);
+      }
+    },
   }
-};
+
+
+
+
+}
+
+
+
 </script>
 <style scoped>
 .lista-imagens {

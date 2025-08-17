@@ -35,7 +35,7 @@ const funções = {
     async getProdutos() {
         try {
             const payload = {
-                tipo: [4, 5]
+                tipo: [1,2,3,4, 5,6,7,8,9,10,11,12]
             };
 
             const responseProdutos = await api.get('/produto-filtrar', {
@@ -94,11 +94,48 @@ const funções = {
             throw error;
         }
     },
+async  listarProdutosComPaginacao({
+  searchQuery = "",
+  filtroTipo = "",
+  filtroFamilia = "",
+  pagina = 1
+}) {
+  try {
+    const base = {
+      tipo: filtroTipo ? [filtroTipo] : [1,2,3,4,5,6,7,8,9,10,11,12],
+    };
+
+   
+    const params = (searchQuery && searchQuery.trim())
+      ? {
+          ...base,
+          pesquisa: searchQuery.trim(),
+        }
+      : {
+          ...base,
+          ...(filtroFamilia ? { familia: filtroFamilia } : {}),
+          paginacao: 1,
+          pagina
+        };
+
+    const { data } = await api.get("/produto-filtrar", { params });
+
+  
+    const items = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+    const totalPages = data?.meta?.total_pages ?? data?.total_paginas ?? null;
+
+    return { items, totalPages };
+  } catch (error) {
+    console.error("Erro ao listar produtos:", error);
+    throw error;
+  }
+},
+
 
     async getTipoeFamilias() {
         try {
             const payload = {
-                tipo: [4, 5]
+                tipo: [1,2,3,4, 5,6,7,8,9,10,11,12]
             };
 
             const responseProdutos = await api.get('/produto-filtrar', {
@@ -245,6 +282,18 @@ const funções = {
             throw error;
         }
     },
+    async getGenerico(url) {
+  const { data } = await api.get(`/${url}/listar`);    return data;
+  },
+  async criarGenerico(url, payload) {
+    return await api.post(`/${url}/gravar`, payload);
+  },
+  async atualizarGenerico(url, id, payload) {
+    return await api.put(`/${url}/${id}`, payload);
+  },
+  async excluirGenerico(url, id) {
+    return await api.delete(`/${url}/excluir/${id}`);
+  },
 
     //ALTERAR NO OMIE, SEM APROVAÇÃO
     async finalizarCadastro(id, payload) {

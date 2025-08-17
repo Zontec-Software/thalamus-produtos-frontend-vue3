@@ -4,29 +4,106 @@
     <!-- class="esconde" -->
     <main id="main">
       <aside>
-        <MenuLateralComponent />
+        <!-- <MenuLateralComponent @abrirModal="abrirModalEditarCombo" /> -->
+        <MenuLateralComponent></MenuLateralComponent>
       </aside>
       <section>
         <RouterView />
       </section>
     </main>
   </body>
+  <!-- <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo" @fecharModal="fecharModal" /> -->
 </template>
 <script>
 import { HeaderComponent } from "roboflex-thalamus-componentes-vue3-lib";
 import MenuLateralComponent from "./components/MenuLateral/MenuLateralComponent.vue";
+// import ModalEditarCombo from "./components/Modais/ModalEditarCombo.vue";
+// import serviceProdutos from '@/services/serviceProdutos';
 
 export default {
 
   data() {
     return {
-      envMode: process.env.NODE_ENV
+      envMode: process.env.NODE_ENV,
+      // itemEditado: null,
+      // showModalEditarCombo: false
     }
   },
   components: {
     MenuLateralComponent,
-    HeaderComponent
-  }
+    HeaderComponent,
+    // ModalEditarCombo
+  },
+  methods: {
+    // fecharModal() {
+    //   this.showModalEditarCombo = false;
+    //   this.$router.go();
+    // },
+    // async abrirModalEditarCombo(item) {
+    //   switch (item) {
+    //     case 'und':
+    //       this.itemEditado = {
+    //         tipo: 'unidade',
+    //         url: 'unidade-medida',
+    //         combo: await serviceProdutos.getUnidade()
+    //       };
+    //       break;
+    //     case 'fixacao':
+    //       this.itemEditado = {
+    //         tipo: 'Fixação',
+    //         url: item,
+    //         combo: await serviceProdutos.getFixacao()
+    //       };
+    //       break;
+    //     case 'linha':
+    //       this.itemEditado = {
+    //         tipo: 'Linha',
+    //         url: item,
+    //         combo: await serviceProdutos.getLinha()
+    //       };
+    //       break;
+    //     case 'modelo':
+    //       this.itemEditado = {
+    //         tipo: 'Modelo',
+    //         url: item,
+    //         combo: await serviceProdutos.getModelo()
+    //       };
+    //       break;
+    //     case 'tamanho':
+    //       this.itemEditado = {
+    //         tipo: 'Tamanho',
+    //         url: 'tamanho-produto',
+    //         combo: await serviceProdutos.getTamanho()
+    //       };
+    //       break;
+    //     case 'cor':
+    //       this.itemEditado = {
+    //         tipo: 'Cor',
+    //         url: 'produto/cor',
+    //         combo: await serviceProdutos.getCor()
+    //       };
+    //       break;
+    //     case 'versaoModelo':
+    //       this.itemEditado = {
+    //         tipo: 'Versão Modelo',
+    //         url: 'produto/versao-modelo',
+    //         combo: await serviceProdutos.getVersaoModelo()
+    //       };
+    //       break;
+    //     case 'especificacao':
+    //       this.itemEditado = {
+    //         tipo: 'Especificação',
+    //         url: 'produto/especificacao',
+    //         combo: await serviceProdutos.getEspecificacao()
+    //       };
+    //       break;
+
+    //     default:
+    //       null
+    //   }
+    //   this.showModalEditarCombo = true;
+    // },
+  },
 }
 </script>
 <style>
