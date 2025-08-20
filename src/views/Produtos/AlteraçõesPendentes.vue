@@ -229,6 +229,7 @@ export default {
       valoresSelecionados: {},
       valorCamposDinamicos: [],
       idIndicadorEscala: null,
+
     };
   },
 
@@ -307,6 +308,7 @@ export default {
     }
   },
   methods: {
+
     async carregarFamilias() {
       try {
         const response = await serviceCampos.listarFamilia();
@@ -590,14 +592,12 @@ export default {
     async salvarProduto() {
       try {
         if (this.isCadastro) {
-          // ✅ Garante que vai junto mesmo se o usuário não trocou o select
           this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
           await serviceProdutos.salvarNovoProduto(this.payLoad);
           this.toast.success("Produto enviado com sucesso!");
         } else {
           const payloadAtualizar = {};
 
-          // ✅ Inclui familia_id no update também
           payloadAtualizar.familia_id = this.produto_original.familia_id ?? null;
 
           this.camposSelects
@@ -684,16 +684,23 @@ export default {
       }
     },
   }
-
-
-
-
 }
 
 
 
 </script>
 <style scoped>
+.grid-4,
+.container,
+fieldset {
+  overflow: visible !important;
+}
+
+select {
+  position: relative;
+  z-index: 10;
+}
+
 .lista-imagens {
   display: flex;
   flex-wrap: wrap;
