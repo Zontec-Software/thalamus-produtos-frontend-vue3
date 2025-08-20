@@ -119,6 +119,11 @@
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
               </option>
             </select>
+            <div v-else-if="campo.chave === 'id_cest'">
+              <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+                @input="mascaraCest(campo.id)" maxlength="11" placeholder="00.000.000"
+                :disabled="aguardandoAprovaçãoFiscal" />
+            </div>
             <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
               :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
               :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
@@ -229,6 +234,9 @@ export default {
       valoresSelecionados: {},
       valorCamposDinamicos: [],
       idIndicadorEscala: null,
+
+
+
     };
   },
 
@@ -307,6 +315,23 @@ export default {
     }
   },
   methods: {
+    mascaraCest(campoId) {
+      let valor = this.valoresSelecionados[campoId] || "";
+      valor = valor.replace(/\D/g, "");
+
+      if (valor.length > 2) {
+        valor = valor.replace(/^(\d{2})(\d)/, "$1.$2");
+      }
+      if (valor.length > 6) {
+        valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+      }
+
+      valor = valor.substring(0, 10);
+      this.valoresSelecionados[campoId] = valor;
+      this.atualizarPayLoad("id_cest", valor);
+    },
+
+
     async carregarFamilias() {
       try {
         const response = await serviceCampos.listarFamilia();
@@ -589,16 +614,22 @@ export default {
 
     async salvarProduto() {
       try {
+        this.errors = {};
+        const cest = this.valoresSelecionados["id_cest"];
+        const regexCest = /^\d{2}\.\d{3}\.\d{3}$/;
+
+        if (cest && !regexCest.test(cest)) {
+          this.errors["id_cest"] = "O CEST deve estar no formato 00.000.000";
+          this.toast.error(this.errors["id_cest"]);
+          return;
+        }
+
         if (this.isCadastro) {
-          // ✅ Garante que vai junto mesmo se o usuário não trocou o select
           this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
           await serviceProdutos.salvarNovoProduto(this.payLoad);
           this.toast.success("Produto enviado com sucesso!");
         } else {
-          const payloadAtualizar = {};
-
-          // ✅ Inclui familia_id no update também
-          payloadAtualizar.familia_id = this.produto_original.familia_id ?? null;
+          const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
 
           this.camposSelects
             .filter(campo => campo.omie === 1)
@@ -616,20 +647,22 @@ export default {
                   valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
                 };
               }
-              return {
-                campo_id: campo.id,
-                valor: valor ?? null,
-              };
+              return { campo_id: campo.id, valor: valor ?? null };
             });
 
           await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
           this.toast.success("Produto salvo com sucesso!");
         }
       } catch (error) {
-        this.toast.error("Erro ao salvar produto");
+        if (error.response?.data?.errors?.id_cest) {
+          this.toast.error("CEST inválido. Use 00.000.000");
+        } else {
+          this.toast.error("Erro ao salvar produto");
+        }
         console.error("Erro ao salvar produto:", error);
       }
     },
+
     async finalizarCadastro() {
       try {
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
@@ -684,16 +717,23 @@ export default {
       }
     },
   }
-
-
-
-
 }
 
 
 
 </script>
 <style scoped>
+.grid-4,
+.container,
+fieldset {
+  overflow: visible !important;
+}
+
+select {
+  position: relative;
+  z-index: 10;
+}
+
 .lista-imagens {
   display: flex;
   flex-wrap: wrap;
