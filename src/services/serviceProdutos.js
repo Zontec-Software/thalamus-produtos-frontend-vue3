@@ -14,6 +14,10 @@ const funções = {
     // '10, 'Serviços',
     // '11', 'Outros Insumos',
     // '12, 'Outras', 
+    async filtrarProdutos(payload) {
+  return await api.post("/produto-filtrar", payload);
+},
+
 
     async getProdutosPorCategoria(tipos) {
         try {
@@ -32,21 +36,21 @@ const funções = {
         }
     },
 
-    async getProdutos() {
-        try {
-            const payload = {
-                tipo: [1,2,3,4, 5,6,7,8,9,10,11,12]
-            };
 
-            const responseProdutos = await api.get('/produto-filtrar', {
-                params: payload
-            });
+       async getProdutos(url = "/produto-filtrar") {
+    try {
+      const payload = {
+        tipo: [1,2,3,4,5,6,7,8,9,10,11,12],
+        paginacao: ""  
+      };
 
-            return responseProdutos.data;
-        } catch (error) {
-            console.error("Erro ao buscar produtos:", error);
-            throw error;
-        }
+      const response = await api.get(url, { params: payload });
+      return response.data; 
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      throw error;
+    }
+  
     },
 
     async getEstrutura(id) {
