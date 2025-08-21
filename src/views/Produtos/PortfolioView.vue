@@ -24,8 +24,8 @@
                     <label>Família:</label>
                     <select v-model="filtroFamilia">
                         <option value="">Todas</option>
-                        <option v-for="(familia, index) in familiasProduto" :key="index" :value="familia">{{
-                            familia.toUpperCase() }}</option>
+                        <option v-for="(familia, index) in familiasProduto" :key="index" :value="familia"> {{ familia ?
+                            familia.toUpperCase() : '' }} </option>
                     </select>
                 </div>
             </div>
@@ -74,7 +74,8 @@ export default {
             .sort((a, b) => a.localeCompare(b));
 
         this.familiasProduto = familias
-            .map(f => f.familia_nome)
+            .map(f => f.familia_nome || "")
+            .filter(f => f)
             .sort((a, b) => a.localeCompare(b));
     },
 

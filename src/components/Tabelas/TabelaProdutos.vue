@@ -25,29 +25,45 @@
         <th v-if="exibirAcoes">Ações</th>
         <th v-if="exibirAcoes" style="text-align: center;">Revisão</th>
       </tr>
-      <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
-        @click="abrirDetalhes(item.id)">
-        <td> {{ item.cod }} </td>
-        <td> {{ item.desc }} </td>
-        <td> {{ item.tipo?.nome ?? "-" }} </td>
-        <td> {{ item.familia_produto?.familia_nome ?? "-" }} </td>
-        <td @click.stop v-if="exibirAcoes">
-          <div>
-            <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
-                class="fa-regular fa-copy"></i></span>
-          </div>
-        </td>
-        <td v-if="exibirAcoes" style="text-align: center;" @click.stop>
-          <select @change="atualizarStatus(item.produto_cod, item.status_produto)" v-model="item.status_produto"
-            style="text-align: center; width: fit-content;">
-            <option :value="null" hidden>Não realizada</option>
-            <option>Realizada</option>
-            <option>Fiscal realizada</option>
-          </select>
-        </td>
-      </tr>
+      <template v-if="!carregando">
+        <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
+          @click="abrirDetalhes(item.id)">
+          <td> {{ item.cod }} </td>
+          <td> {{ item.desc }} </td>
+          <td> {{ item.tipo?.nome ?? "-" }} </td>
+          <td> {{ item.familia_produto?.familia_nome ?? "-" }} </td>
+          <td @click.stop v-if="exibirAcoes">
+            <div>
+              <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
+                  class="fa-regular fa-copy"></i></span>
+            </div>
+          </td>
+          <td v-if="exibirAcoes" style="text-align: center;" @click.stop>
+            <select @change="atualizarStatus(item.produto_cod, item.status_produto)" v-model="item.status_produto"
+              style="text-align: center; width: fit-content;">
+              <option :value="null" hidden>Não realizada</option>
+              <option>Realizada</option>
+              <option>Fiscal realizada</option>
+            </select>
+          </td>
+        </tr>
+      </template>
     </tbody>
   </table>
+  <div v-if="carregando" class="loading">
+    <div></div>
+  </div>
+  <div class="alinha-centro">
+    <div class="paginacao">
+      <button :disabled="!prevPageUrl" @click="carregarPagina(prevPageUrl)">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <span>Página <b>{{ paginaAtual }}</b> de <b>{{ ultimaPagina }}</b></span>
+      <button :disabled="!nextPageUrl" @click="carregarPagina(nextPageUrl)">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
   <div class="loading" v-if="produtos.length == 0">
     <div></div>
   </div>
@@ -63,29 +79,34 @@ export default {
     filtro: { type: String, default: "" },
     filtroTipo: { type: String, default: "" },
     filtroFamilia: { type: String, default: "" },
-    useModal: {
-      type: Boolean,
-      default: false
-    },
+    useModal: { type: Boolean, default: false },
     exibirAcoes: { type: Boolean, default: true }
   },
   data() {
     return {
       produtos: [],
       listaProdutosFiltrada: [],
+      paginaAtual: 1,
+      ultimaPagina: 1,
+      nextPageUrl: null,
+      prevPageUrl: null,
+      pesquisando: false,
     };
   },
   async mounted() {
+    this.carregarPagina();
+
     try {
       this.produtos = await serviceProdutos.getProdutos();
       this.filtrarProdutos();
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
     }
+
   },
   watch: {
     searchQuery() {
-      this.filtrarProdutos();
+      this.pesquisarProdutos();
     },
     filtro() {
       this.filtrarProdutos();
@@ -98,8 +119,77 @@ export default {
     },
   },
 
-
   methods: {
+    async pesquisarProdutos() {
+      try {
+        this.carregando = true;
+
+        let payload = {
+          tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        };
+        if (this.searchQuery) {
+          payload.termo = this.searchQuery;
+        } else if (this.filtroTipo) {
+          payload.termo = this.filtroTipo;
+        } else if (this.filtroFamilia) {
+          payload.termo = this.filtroFamilia;
+        }
+
+        const response = await serviceProdutos.filtrarProdutos(payload);
+        const produtos = Array.isArray(response.data)
+          ? response.data
+          : response.data?.data || [];
+
+        this.produtos = produtos;
+        this.filtrarProdutos();
+
+      } catch (error) {
+        console.error("Erro ao pesquisar produtos:", error);
+      } finally {
+        this.carregando = false;
+      }
+    },
+
+    // async pesquisarProdutos() {
+    //   try {
+    //     this.carregando = true;
+
+    //     var payload = {
+    //       tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    //     };
+
+    //     if (this.searchQuery) { payload.termo = this.searchQuery }
+
+    //     const response = await serviceProdutos.filtrarProdutos(payload);
+    //     const produtos = Array.isArray(response.data) ? response.data : response.data?.data || [];
+    //     this.produtos = produtos;
+    //     this.filtrarProdutos();
+
+    //   } catch (error) {
+    //     console.error("Erro ao pesquisar produtos:", error);
+    //   } finally {
+    //     this.carregando = false;
+    //   }
+    // },
+
+    async carregarPagina(url = "/produto-filtrar") {
+      try {
+        this.carregando = true;
+        const response = await serviceProdutos.getProdutos(url);
+
+        this.produtos = response.data;
+        this.paginaAtual = response.current_page;
+        this.ultimaPagina = response.last_page;
+        this.nextPageUrl = response.next_page_url;
+        this.prevPageUrl = response.prev_page_url;
+
+        this.filtrarProdutos();
+      } catch (error) {
+        console.error("Erro ao carregar produtos:", error);
+      } finally {
+        this.carregando = false;
+      }
+    },
     atualizarStatus(id, status) {
       var payload = {
         usuario_id: sso.getUsuarioLogado().id,
@@ -215,6 +305,30 @@ export default {
 };
 </script>
 <style>
+.alinha-centro {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.paginacao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.paginacao button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.paginacao button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .ação:hover {
   transform: scale(1.1);
   transition: all 100ms ease;
