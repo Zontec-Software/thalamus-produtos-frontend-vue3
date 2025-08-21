@@ -124,14 +124,22 @@ export default {
       try {
         this.carregando = true;
 
-        var payload = {
+        let payload = {
           tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         };
-
-        if (this.searchQuery) { payload.termo = this.searchQuery }
+        if (this.searchQuery) {
+          payload.termo = this.searchQuery;
+        } else if (this.filtroTipo) {
+          payload.termo = this.filtroTipo;
+        } else if (this.filtroFamilia) {
+          payload.termo = this.filtroFamilia;
+        }
 
         const response = await serviceProdutos.filtrarProdutos(payload);
-        const produtos = Array.isArray(response.data) ? response.data : response.data?.data || [];
+        const produtos = Array.isArray(response.data)
+          ? response.data
+          : response.data?.data || [];
+
         this.produtos = produtos;
         this.filtrarProdutos();
 
@@ -141,6 +149,28 @@ export default {
         this.carregando = false;
       }
     },
+
+    // async pesquisarProdutos() {
+    //   try {
+    //     this.carregando = true;
+
+    //     var payload = {
+    //       tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    //     };
+
+    //     if (this.searchQuery) { payload.termo = this.searchQuery }
+
+    //     const response = await serviceProdutos.filtrarProdutos(payload);
+    //     const produtos = Array.isArray(response.data) ? response.data : response.data?.data || [];
+    //     this.produtos = produtos;
+    //     this.filtrarProdutos();
+
+    //   } catch (error) {
+    //     console.error("Erro ao pesquisar produtos:", error);
+    //   } finally {
+    //     this.carregando = false;
+    //   }
+    // },
 
     async carregarPagina(url = "/produto-filtrar") {
       try {
