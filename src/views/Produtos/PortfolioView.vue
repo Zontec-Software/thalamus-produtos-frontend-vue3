@@ -13,7 +13,7 @@
         </div>
         <div class="margem container">
             <div class="filtros" style="display: flex; gap: 1rem; align-items: center; margin: 10px 0;">
-                <div>
+                <!-- <div>
                     <label>Tipo:</label>
                     <select v-model="filtroTipo">
                         <option value="">Todos</option>
@@ -27,13 +27,13 @@
                         <option v-for="(familia, index) in familiasProduto" :key="index" :value="familia"> {{ familia ?
                             familia.toUpperCase() : '' }} </option>
                     </select>
-                </div>
+                </div> -->
             </div>
             <div class="bloco margem">
                 <TabelaProdutos :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
                     :filtroFamilia="filtroFamilia" :useModal="true" @abrir-detalhes="mostrarModalProduto"
                     :exibirAcoes="false" />
-                <ModaisProdutos v-if="produtoSelecionado !== null" :product-id="produtoSelecionado"
+                <ModaisProdutos v-if="produtoSelecionado !== null" :propProduto="produtoSelecionado"
                     @fechar="produtoSelecionado = null"></ModaisProdutos>
             </div>
         </div>
@@ -89,8 +89,8 @@ export default {
                 this.filtro = item;
             }
         },
-        mostrarModalProduto(id) {
-            this.produtoSelecionado = id;
+        mostrarModalProduto(produto) {
+            this.produtoSelecionado = produto;
         }
     }
 }

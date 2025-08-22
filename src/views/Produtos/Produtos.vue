@@ -12,7 +12,7 @@
       </div>
     </div>
     <div class="margem container">
-      <div class="filtros" style="display: flex; gap: 1rem; align-items: center; margin: 10px 0;">
+      <!-- <div class="filtros" style="display: flex; gap: 1rem; align-items: center; margin: 10px 0;">
         <div>
           <label>Tipo:</label>
           <select v-model="filtroTipo">
@@ -28,7 +28,7 @@
               familia.toUpperCase() : '' }} </option>
           </select>
         </div>
-      </div>
+      </div> -->
       <div class="bloco margem">
         <div class="alinha-v" style="display: flex; justify-content: space-between">
           <!-- <div class="tags" style="cursor: pointer">

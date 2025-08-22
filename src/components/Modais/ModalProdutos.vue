@@ -30,13 +30,11 @@
     </div>
 </template>
 <script>
-import serviceProdutos from "@/services/serviceProdutos";
 
 export default {
     name: "ModalProduto",
     props: {
-        productId: {
-            type: [Number, String],
+        propProduto: {
             required: true
         }
     },
@@ -57,9 +55,8 @@ export default {
             this.error = null;
             this.produto = null;
             try {
-                const produtos = await serviceProdutos.getProdutos();
-                if (this.productId) {
-                    const produtoEditado = produtos.find(prod => prod.id == this.productId);
+                if (this.propProduto) {
+                    const produtoEditado = this.propProduto;
                     if (produtoEditado) {
                         this.produto = produtoEditado;
 

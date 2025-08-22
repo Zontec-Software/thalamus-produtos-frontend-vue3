@@ -15,8 +15,8 @@ const funções = {
     // '11', 'Outros Insumos',
     // '12, 'Outras', 
     async filtrarProdutos(payload) {
-  return await api.post("/produto-filtrar", payload);
-},
+        return await api.post("/produto-filtrar", payload);
+    },
 
 
     async getProdutosPorCategoria(tipos) {
@@ -36,22 +36,32 @@ const funções = {
         }
     },
 
+    async getProdutos(pagina = 1) {
+        try {
+            const payload = {
+                tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                paginacao: 1,
+                page: pagina
+            };
 
-       async getProdutos(url = "/produto-filtrar") {
-    try {
-      const payload = {
-        tipo: [1,2,3,4,5,6,7,8,9,10,11,12],
-        paginacao: ""  
-      };
-
-      const response = await api.get(url, { params: payload });
-      return response.data; 
-    } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
-      throw error;
-    }
-  
+            const response = await api.get("/produto-filtrar", { params: payload });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar produtos:", error);
+            throw error;
+        }
     },
+
+    async getProdutoById(cod) {
+        try {
+            const response = await api.get(`/produto-filtrar/${cod}`);
+            return response.data
+        } catch (error) {
+            console.error("Erro ao buscar produtos:", error);
+            throw error;
+        }
+    },
+
 
     async getEstrutura(id) {
         try {
@@ -98,48 +108,48 @@ const funções = {
             throw error;
         }
     },
-async  listarProdutosComPaginacao({
-  searchQuery = "",
-  filtroTipo = "",
-  filtroFamilia = "",
-  pagina = 1
-}) {
-  try {
-    const base = {
-      tipo: filtroTipo ? [filtroTipo] : [1,2,3,4,5,6,7,8,9,10,11,12],
-    };
+    async listarProdutosComPaginacao({
+        searchQuery = "",
+        filtroTipo = "",
+        filtroFamilia = "",
+        pagina = 1
+    }) {
+        try {
+            const base = {
+                tipo: filtroTipo ? [filtroTipo] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            };
 
-   
-    const params = (searchQuery && searchQuery.trim())
-      ? {
-          ...base,
-          pesquisa: searchQuery.trim(),
+
+            const params = (searchQuery && searchQuery.trim())
+                ? {
+                    ...base,
+                    pesquisa: searchQuery.trim(),
+                }
+                : {
+                    ...base,
+                    ...(filtroFamilia ? { familia: filtroFamilia } : {}),
+                    paginacao: 1,
+                    pagina
+                };
+
+            const { data } = await api.get("/produto-filtrar", { params });
+
+
+            const items = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+            const totalPages = data?.meta?.total_pages ?? data?.total_paginas ?? null;
+
+            return { items, totalPages };
+        } catch (error) {
+            console.error("Erro ao listar produtos:", error);
+            throw error;
         }
-      : {
-          ...base,
-          ...(filtroFamilia ? { familia: filtroFamilia } : {}),
-          paginacao: 1,
-          pagina
-        };
-
-    const { data } = await api.get("/produto-filtrar", { params });
-
-  
-    const items = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-    const totalPages = data?.meta?.total_pages ?? data?.total_paginas ?? null;
-
-    return { items, totalPages };
-  } catch (error) {
-    console.error("Erro ao listar produtos:", error);
-    throw error;
-  }
-},
+    },
 
 
     async getTipoeFamilias() {
         try {
             const payload = {
-                tipo: [1,2,3,4, 5,6,7,8,9,10,11,12]
+                tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
             };
 
             const responseProdutos = await api.get('/produto-filtrar', {
@@ -276,7 +286,7 @@ async  listarProdutosComPaginacao({
             throw error;
         }
     },
-       async getEspecificacao() {
+    async getEspecificacao() {
         try {
             const response = await api.get(`/produto/especificacao/listar`)
             return response.data;
@@ -287,17 +297,17 @@ async  listarProdutosComPaginacao({
         }
     },
     async getGenerico(url) {
-  const { data } = await api.get(`/${url}/listar`);    return data;
-  },
-  async criarGenerico(url, payload) {
-    return await api.post(`/${url}/gravar`, payload);
-  },
-  async atualizarGenerico(url, id, payload) {
-    return await api.put(`/${url}/${id}`, payload);
-  },
-  async excluirGenerico(url, id) {
-    return await api.delete(`/${url}/excluir/${id}`);
-  },
+        const { data } = await api.get(`/${url}/listar`); return data;
+    },
+    async criarGenerico(url, payload) {
+        return await api.post(`/${url}/gravar`, payload);
+    },
+    async atualizarGenerico(url, id, payload) {
+        return await api.put(`/${url}/${id}`, payload);
+    },
+    async excluirGenerico(url, id) {
+        return await api.delete(`/${url}/excluir/${id}`);
+    },
 
     //ALTERAR NO OMIE, SEM APROVAÇÃO
     async finalizarCadastro(id, payload) {
@@ -412,7 +422,7 @@ async  listarProdutosComPaginacao({
     },
 
     //ANEXOS
-    async gravarAnexo(payload, produto_cod){
+    async gravarAnexo(payload, produto_cod) {
         try {
             const response = await api.post(`anexar/produto/${produto_cod}`, payload)
             return response.data;
@@ -423,8 +433,8 @@ async  listarProdutosComPaginacao({
         }
     },
 
-    async deletarAnexo(produto_cod, anexo_id){
-          try {
+    async deletarAnexo(produto_cod, anexo_id) {
+        try {
             const response = await api.delete(`anexos/produto/${produto_cod}/${anexo_id}`)
             return response.data;
 
@@ -434,8 +444,8 @@ async  listarProdutosComPaginacao({
         }
     },
 
-    async listarAnexo(produto_cod){
-            try {
+    async listarAnexo(produto_cod) {
+        try {
             const response = await api.get(`anexos/produto/${produto_cod}`)
             return response.data;
 
@@ -445,8 +455,8 @@ async  listarProdutosComPaginacao({
         }
     },
 
-    async downloadAnexo(anexo_id){
-           try {
+    async downloadAnexo(anexo_id) {
+        try {
             const response = await api.get(`anexo/download/${anexo_id}`)
             return response.data;
 
