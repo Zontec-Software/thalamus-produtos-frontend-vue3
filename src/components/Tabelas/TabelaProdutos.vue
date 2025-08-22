@@ -27,7 +27,7 @@
       </tr>
       <template v-if="!carregando">
         <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
-          @click="abrirDetalhes(item.id)">
+          @click="abrirDetalhes(item)">
           <td> {{ item.cod }} </td>
           <td> {{ item.desc }} </td>
           <td> {{ item.tipo?.nome ?? "-" }} </td>
@@ -235,9 +235,10 @@ export default {
 
     },
 
-    abrirDetalhes(id) {
+    abrirDetalhes(produto) {
+      var id = produto.id
       if (this.useModal) {
-        this.$emit("abrir-detalhes", id);
+        this.$emit("abrir-detalhes", produto);
       } else {
         this.$router.push({ name: "cadastroProduto", params: { id } });
       }
