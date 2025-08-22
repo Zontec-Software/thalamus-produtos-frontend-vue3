@@ -52,15 +52,10 @@ const funções = {
         }
     },
 
-    async getProdutoById(id) {
-        console.log('chamando')
+    async getProdutoById(cod) {
         try {
-            const response = await api.get("/produto-filtrar", {
-                tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-            });
-            var produto = response.data.find((prod) => prod.id == id);
-            console.log(produto)
-            return produto
+            const response = await api.get(`/produto-filtrar/${cod}`);
+            return response.data
         } catch (error) {
             console.error("Erro ao buscar produtos:", error);
             throw error;

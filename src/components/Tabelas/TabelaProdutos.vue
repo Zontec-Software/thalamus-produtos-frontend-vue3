@@ -236,7 +236,7 @@ export default {
     },
 
     abrirDetalhes(produto) {
-      var id = produto.id
+      var id = produto.produto_cod
       if (this.useModal) {
         this.$emit("abrir-detalhes", produto);
       } else {
