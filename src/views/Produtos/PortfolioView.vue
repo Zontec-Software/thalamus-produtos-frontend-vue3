@@ -33,7 +33,7 @@
                 <TabelaProdutos :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
                     :filtroFamilia="filtroFamilia" :useModal="true" @abrir-detalhes="mostrarModalProduto"
                     :exibirAcoes="false" />
-                <ModaisProdutos v-if="produtoSelecionado !== null" :product-id="produtoSelecionado"
+                <ModaisProdutos v-if="produtoSelecionado !== null" :propProduto="produtoSelecionado"
                     @fechar="produtoSelecionado = null"></ModaisProdutos>
             </div>
         </div>
@@ -89,8 +89,8 @@ export default {
                 this.filtro = item;
             }
         },
-        mostrarModalProduto(id) {
-            this.produtoSelecionado = id;
+        mostrarModalProduto(produto) {
+            this.produtoSelecionado = produto;
         }
     }
 }

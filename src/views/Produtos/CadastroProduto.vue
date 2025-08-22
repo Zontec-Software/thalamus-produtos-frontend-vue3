@@ -148,9 +148,9 @@ export default {
     },
     async getProduto() {
       this.produto = null;
-      var produtos = await serviceProdutos.getProdutos();
       if (this.id) {
-        var produtoEditado = produtos.find((prod) => prod.id == this.id);
+        // var produtoEditado = produtos.find((prod) => prod.id == this.id);
+        var produtoEditado = await serviceProdutos.getProdutoById(this.id);
         if (produtoEditado) {
           this.produto = produtoEditado;
           this.getEstrutura(produtoEditado.produto_cod)
