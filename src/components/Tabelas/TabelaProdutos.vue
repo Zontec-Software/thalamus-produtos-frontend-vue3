@@ -172,33 +172,18 @@ export default {
     //   }
     // },
 
-    async carregarPagina(url = "/produto-filtrar") {
+    async carregarPagina(pagina = 1) {
       try {
         this.carregando = true;
 
-        let endpoint = url;
-        if (url && url.startsWith("http")) {
-          try {
-            const parsedUrl = new URL(url);
-            endpoint = parsedUrl.pathname + parsedUrl.search;
-          } catch (e) {
-            console.warn("Erro ao normalizar URL:", e);
-          }
-        }
-
-        const response = await serviceProdutos.getProdutos(endpoint);
+        const response = await serviceProdutos.getProdutos(pagina);
 
         this.produtos = response.data;
         this.paginaAtual = response.current_page;
         this.ultimaPagina = response.last_page;
 
-        this.nextPageUrl = response.next_page_url
-          ? new URL(response.next_page_url).pathname + new URL(response.next_page_url).search
-          : null;
-
-        this.prevPageUrl = response.prev_page_url
-          ? new URL(response.prev_page_url).pathname + new URL(response.prev_page_url).search
-          : null;
+        this.nextPageUrl = this.paginaAtual < this.ultimaPagina ? this.paginaAtual + 1 : null;
+        this.prevPageUrl = this.paginaAtual > 1 ? this.paginaAtual - 1 : null;
 
         this.filtrarProdutos();
       } catch (error) {
@@ -207,6 +192,7 @@ export default {
         this.carregando = false;
       }
     },
+
 
     atualizarStatus(id, status) {
       var payload = {
