@@ -10,7 +10,7 @@
             <button class="acao-secundaria" @click="abrirModalAdicionar">Cadastrar</button>
         </div>
         <br>
-        <table class="tabela alinha-centro">
+        <table class="tabela">
             <thead>
                 <tr>
                     <th>Código</th>
@@ -18,7 +18,7 @@
                     <th></th>
                 </tr>
             </thead>
-            <tbody class="alinha-centro" style="cursor: pointer">
+            <tbody style="cursor: pointer; justify-content: center">
                 <tr v-for="item in objetosFiltrados" :key="item.id">
                     <td>{{ item.id }}</td>
                     <td>{{ item.nome }}</td>

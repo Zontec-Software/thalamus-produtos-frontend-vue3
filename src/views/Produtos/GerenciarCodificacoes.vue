@@ -279,7 +279,7 @@ export default {
   },
 };
 </script>
-<style>
+<style scoped>
 .listaMateriaisEFerramentas {
   max-height: 20rem;
   overflow: auto;
