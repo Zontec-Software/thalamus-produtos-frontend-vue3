@@ -10,7 +10,7 @@
             <button class="acao-secundaria" @click="abrirModalAdicionar">Cadastrar</button>
         </div>
         <br>
-        <table class="tabela alinha-centro">
+        <table class="tabela ">
             <thead>
                 <tr>
                     <th>Código</th>
@@ -18,76 +18,70 @@
                     <th></th>
                 </tr>
             </thead>
-            <tbody class="alinha-centro" style="cursor: pointer">
+            <tbody style="cursor: pointer; justify-content: center">
                 <tr v-for="item in locaisFiltrados" :key="item.id">
                     <td>{{ item.id }}</td>
                     <td>{{ item.nome }}</td>
                     <td style="display: flex; justify-content: center">
                         <div style="display: flex">
                             <div>
-                                <a style="transform: scale(0.8)" @click="editarLocal(item)"
-                                    title="Clique para editar o local" class="icone-editar"></a>
+                                <a style="transform: scale(0.8)" @click="editarLocal(item)" title="Editar local"
+                                    class="icone-editar"></a>
                             </div>
                             <div>
-                                <a @click="abrirModalExcluir(item)" title="Clique para excluir local"
-                                    class="icone-lixeira"></a>
+                                <a @click="abrirModalExcluir(item)" title="Excluir local" class="icone-lixeira"></a>
                             </div>
                         </div>
                     </td>
                 </tr>
             </tbody>
         </table>
-    </div>
-    <!-- MODAL EXCLUIR  -->
-    <div class="modal-mask" v-if="showDeleteModal" @click="fecharModalFora">
-        <div class="modal-container" style="height: min-content; width: 50rem;">
-            <div style="display: flex; justify-content: center"></div>
-            <br />
-            <div class="modal-body">
-                <span>Confirma a exclusão de: <strong>{{ nomeToDelete }}</strong>?</span>
-                <div class="modal-footer">
-                    <br /><br />
-                    <button type="button" @click="confirmarExclusao">Confirmar</button> &nbsp;&nbsp; <button
-                        type="button" @click="fecharModal" class="acao-secundaria">Cancelar</button>
+        <!-- MODAL EXCLUIR -->
+        <div class="modal-mask" v-if="showDeleteModal" @click="fecharModalFora">
+            <div class="modal-container">
+                <div class="modal-body">
+                    <h3>Confirma a exclusão de: <strong>{{ nomeToDelete }}</strong>?</h3>
+                    <br><br>
+                    <div class="modal-footer">
+                        <button type="button" @click="confirmarExclusao">Confirmar</button>
+                        <button type="button" @click="fecharModal" class="acao-secundaria">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL ADICIONAR -->
+        <div class="modal-mask" v-if="showAddModal" @click="fecharModalFora">
+            <div class="modal-container">
+                <div class="modal-body">
+                    <h3>Cadastrar Local</h3>
+                    <br>
+                    <label for="nomeLocal">Nome do local</label>
+                    <input id="nomeLocal" type="text" v-model.trim="novoLocal.nome" @keyup.enter="salvarLocal" />
+                    <br><br>
+                    <div class="modal-footer">
+                        <button type="button" @click="salvarLocal">Salvar</button>
+                        <button type="button" @click="fecharModal" class="acao-secundaria">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL EDITAR -->
+        <div class="modal-mask" v-if="showEditModal" @click="fecharModalFora">
+            <div class="modal-container" style="height: min-content; width: 50rem;">
+                <div class="modal-body">
+                    <h3>Editar Local</h3>
+                    <br>
+                    <label for="nomeLocalEdit">Nome do local</label>
+                    <input id="nomeLocalEdit" type="text" v-model.trim="localEdit.nome" @keyup.enter="salvarEdicao" />
+                    <br><br>
+                    <div class="modal-footer">
+                        <button type="button" @click="salvarEdicao">Salvar</button>
+                        <button type="button" @click="fecharModal" class="acao-secundaria">Cancelar</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- END MODAL EXCLUIR -->
-    <!-- MODAL ADICIONAR -->
-    <div class="modal-mask" v-if="showAddModal" @click="fecharModalFora">
-        <div class="modal-container" style="height: min-content; width: 50rem;">
-            <div class="modal-body">
-                <h3>Cadastrar Local</h3>
-                <br />
-                <label for="nomeLocal">Nome do local</label>
-                <input id="nomeLocal" type="text" v-model.trim="novoLocal.nome" @keyup.enter="salvarLocal" />
-                <div class="modal-footer">
-                    <br />
-                    <button type="button" @click="salvarLocal">Salvar</button> &nbsp;&nbsp; <button type="button"
-                        @click="fecharModal" class="acao-secundaria">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- END MODAL ADICIONAR -->
-    <!-- MODAL EDITAR -->
-    <div class="modal-mask" v-if="showEditModal" @click="fecharModalFora">
-        <div class="modal-container" style="height: min-content; width: 50rem;">
-            <div class="modal-body">
-                <h3>Editar Local</h3>
-                <br />
-                <label for="nomeLocalEdit">Nome do local</label>
-                <input id="nomeLocalEdit" type="text" v-model.trim="localEdit.nome" @keyup.enter="salvarEdicao" />
-                <div class="modal-footer">
-                    <br />
-                    <button type="button" @click="salvarEdicao">Salvar</button> &nbsp;&nbsp; <button type="button"
-                        @click="fecharModal" class="acao-secundaria">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- END MODAL EDITAR -->
 </template>
 <script>
 import { useToast } from 'vue-toastification'
