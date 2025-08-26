@@ -32,6 +32,7 @@
           <td> {{ item.desc }} </td>
           <td> {{ item.tipo?.nome ?? "-" }} </td>
           <td> {{ item.familia_produto?.familia_nome ?? "-" }} </td>
+          <!-- teste -->
           <td @click.stop v-if="exibirAcoes">
             <div>
               <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
