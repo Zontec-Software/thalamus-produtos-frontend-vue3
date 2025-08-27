@@ -692,21 +692,17 @@ const funções = {
 
     //ANEXO INSPEÇÃO
     async gravarAnexoParametro(formData, servicoId) {
-        return api.post(`/roteiro/${servicoId}/parametro/anexo`, formData);
+        return api.post(`anexar/roteiro-servico/${servicoId}?categoria=servico-parametro`, formData);
+         //a chave que você vai me mandar chama "arquivo", pode ser um array com varios, um um arquivo sozinho fora do array, aí você ve se vai mandar varios de uma vez ou de 1 em 1 
     },
 
-    async deletarAnexoParametro(servicoId, parametroId, anexoId) {
-        return api.delete(`/roteiro/${servicoId}/parametro/${parametroId}/anexo/${anexoId}`);
+    async deletarAnexoParametro(servicoId, anexoId) {
+        return api.delete(`anexos/roteiro-servico/${servicoId}/${anexoId}`);
     },
 
     async atualizarParametro(servicoId, parametroId, payload) {
         return api.put(`/roteiro/${servicoId}/parametro/${parametroId}`, payload);
     }
-
-
-
-
-
 }
 
 export default funções;
