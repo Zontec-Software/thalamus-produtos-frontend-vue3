@@ -4,7 +4,7 @@
             <strong style=" font-size: 0.9rem;"> {{ `Criado em: ${formatarData(roteiro.created_at) ?? '?'} ` }}
             </strong><br>
             <strong style=" font-size: 0.9rem;"> {{ ` Atualizado em: ${formatarData(roteiro.updated_at) ?? '?'} - por: `
-            }} </strong>
+                }} </strong>
         </div>
         <div class="bloco margem">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -114,7 +114,7 @@
                                             <li v-for="gabarito in servico.gabaritos" :key="gabarito.id">
                                                 <div class="conteudo-item">
                                                     <span>{{ gabarito.gabarito.codigo }} - {{ gabarito.gabarito.nome
-                                                    }}</span>
+                                                        }}</span>
                                                     <span class="descricao-item">Descrição: {{
                                                         gabarito?.gabarito?.descricao || '' }} </span>
                                                 </div>
@@ -150,10 +150,11 @@
                                         <br>
                                         <div class=" ">
                                             <label><b>Anexos Parâmetros de Inspeção:</b></label>
-                                            <ul class="lista-materiais" v-if="servico.anexos && servico.anexos.length">
-                                                <li v-for="anexo in servico.anexos" :key="anexo.id">
+                                            <ul class="lista-materiais"
+                                                v-if="servico.anexos_servico_parametro && servico.anexos_servico_parametro.length">
+                                                <li v-for="anexo in servico.anexos_servico_parametro" :key="anexo.id">
                                                     <a :href="caminhoFoto + anexo.caminho" target="_blank"> {{
-                                                        anexo.nome_original }}</a>
+                                                        anexo.nome_original }} </a>
                                                 </li>
                                             </ul>
                                             <a @click="abrirModalAnexosInspecao(servico)" class="icone-inc"></a>
@@ -228,11 +229,12 @@
                         </li>
                     </ul>
                 </div>
-                <div class="bloco margem" v-if="servicoAtual?.anexos_inspecao?.length">
+                <div class="bloco margem" v-if="servicoAtual?.anexos_servico_parametro?.length">
                     <label><b>Anexos existentes:</b></label>
                     <ul class="lista-materiais">
-                        <li v-for="anexo in servicoAtual.anexos_inspecao" :key="anexo.id">
-                            <a :href="anexo.url" target="_blank">{{ anexo.nome_gravado }}</a>
+                        <li v-for="anexo in servicoAtual.anexos_servico_parametro" :key="anexo.id">
+                            <a :href="caminhoFoto + anexo.caminho" target="_blank" style="color: var(--cor-primaria)">
+                                {{ anexo.nome_original }} </a>
                             <i class="bi-x-circle" @click.prevent="deletarAnexoInspecao(anexo.id)"></i>
                         </li>
                     </ul>
@@ -298,7 +300,7 @@
                         <select v-model="novoMaterial" class="servico-listbox">
                             <option value="" disabled>Selecione um material</option>
                             <option v-for="material in produtos" :key="material.id" :value="material"> {{ material.cod
-                                }} - {{ material.descricao }} </option>
+                            }} - {{ material.descricao }} </option>
                         </select>
                     </div>
                     <div>
@@ -583,8 +585,9 @@ export default {
 
         async deletarAnexoInspecao(anexoId) {
             try {
-                await serviceRoteiro.deletarAnexoInspecao(this.servicoAtual.id, anexoId);
-                this.servicoAtual.anexos_inspecao = this.servicoAtual.anexos_inspecao.filter(a => a.id !== anexoId);
+                await serviceRoteiro.deletarAnexoParametro(this.servicoAtual.id, anexoId);
+                this.servicoAtual.anexos_servico_parametro =
+                    this.servicoAtual.anexos_servico_parametro.filter(a => a.id !== anexoId);
                 this.toast.success("Anexo de inspeção removido!");
             } catch (error) {
                 console.error("Erro ao deletar anexo de inspeção:", error);
@@ -597,7 +600,7 @@ export default {
             this.anexosSelecionadosInspecao.forEach(file => formData.append('arquivo', file));
             formData.append('servico_id', this.servicoAtual.id);
             try {
-                await serviceRoteiro.gravarAnexoInspecao(formData, this.servicoAtual.id);
+                await serviceRoteiro.gravarAnexoParametro(formData, this.servicoAtual.id);
                 this.getRoteiro();
             } catch (e) {
                 console.error('Erro ao enviar anexos de inspeção', e);
