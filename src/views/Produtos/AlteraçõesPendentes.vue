@@ -131,8 +131,8 @@
         </fieldset>
       </div>
       <div class="submit m-b direita">
-        <button class="acao-secundaria" @click="encerrarCadastro()">{{ produto_original.editavel ? 'Retomar Cadastro' :
-          'Finalizar Cadastro' }} </button>
+        <button class="acao-secundaria" @click="encerrarCadastro()">{{ produto_original.editavel ? 'Finalizar Cadastro'
+          : 'Retomar Cadastro' }} </button>
         <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
       </div>
     </div>
