@@ -46,7 +46,7 @@
         </div>
         <v-btn class="acao-secundaria" icon="mdi-plus" @click="cadastrarProduto()"></v-btn>
         <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
-          :filtroFamilia="filtroFamilia" />
+          :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" />
         <!-- <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos> -->
       </div>
     </div>
