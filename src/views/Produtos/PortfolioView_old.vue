@@ -32,7 +32,7 @@
             <div class="bloco margem">
                 <TabelaProdutos :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
                     :filtroFamilia="filtroFamilia" :useModal="true" @abrir-detalhes="mostrarModalProduto"
-                    :exibirAcoes="false" :exibirApenasEditavel="true" />
+                    :exibirAcoes="false" />
                 <ModaisProdutos v-if="produtoSelecionado !== null" :propProduto="produtoSelecionado"
                     @fechar="produtoSelecionado = null"></ModaisProdutos>
             </div>

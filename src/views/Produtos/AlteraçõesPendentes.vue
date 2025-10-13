@@ -131,6 +131,8 @@
         </fieldset>
       </div>
       <div class="submit m-b direita">
+        <button class="acao-secundaria" @click="encerrarCadastro()">{{ produto_original.editavel ? 'Retomar Cadastro' :
+          'Finalizar Cadastro' }} </button>
         <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
       </div>
     </div>
@@ -315,6 +317,10 @@ export default {
     }
   },
   methods: {
+
+    async encerrarCadastro() {
+      await serviceProdutos.finalizarCadastro(this.produto_cod, { editavel: !this.produto_original.editavel });
+    },
     mascaraCest(campoId) {
       let valor = this.valoresSelecionados[campoId] || "";
       valor = valor.replace(/\D/g, "");

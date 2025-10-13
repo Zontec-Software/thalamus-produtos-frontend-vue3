@@ -81,7 +81,8 @@ export default {
     filtroTipo: { type: String, default: "" },
     filtroFamilia: { type: String, default: "" },
     useModal: { type: Boolean, default: false },
-    exibirAcoes: { type: Boolean, default: true }
+    exibirAcoes: { type: Boolean, default: true },
+    exibirApenasEditavel: { type: Boolean, default: true },
   },
   data() {
     return {
@@ -98,7 +99,11 @@ export default {
     this.carregarPagina();
 
     try {
-      this.produtos = await serviceProdutos.getProdutos();
+      if (this.exibirApenasEditavel) {
+        this.produtos = await serviceProdutos.getProdutosEditaveis()
+      } else {
+        this.produtos = await serviceProdutos.getProdutos();
+      }
       this.filtrarProdutos();
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
@@ -176,8 +181,13 @@ export default {
     async carregarPagina(pagina = 1) {
       try {
         this.carregando = true;
+        var response = {}
 
-        const response = await serviceProdutos.getProdutos(pagina);
+        if (this.exibirApenasEditavel) {
+          response = await serviceProdutos.getProdutosEditaveis(pagina);
+        } else {
+          response = await serviceProdutos.getProdutos(pagina);
+        }
 
         this.produtos = response.data;
         this.paginaAtual = response.current_page;
