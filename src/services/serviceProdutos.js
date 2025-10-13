@@ -52,6 +52,23 @@ const funções = {
         }
     },
 
+    async getProdutosEditaveis(pagina = 1) {
+        try {
+            const payload = {
+                tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                paginacao: 1,
+                page: pagina,
+                editavel: true
+            };
+
+            const response = await api.get("/produto-filtrar", { params: payload });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar produtos:", error);
+            throw error;
+        }
+    },
+
     async getProdutoById(cod) {
         try {
             const response = await api.get(`/produto-filtrar/${cod}`);
