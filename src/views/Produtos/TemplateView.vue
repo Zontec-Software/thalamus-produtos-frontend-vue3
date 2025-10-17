@@ -31,11 +31,20 @@ export default {
             produto: null,
         }
     },
+
     async mounted() {
-        var produtos = await serviceProdutos.getProdutos();
-        if (this.id) {
-            this.produto = produtos.find((prod) => prod.id == this.id);
+        try {
+            const resp = await serviceProdutos.getProdutos();
+            const lista = Array.isArray(resp?.data) ? resp.data : [];
+
+            if (this.id && Array.isArray(lista)) {
+                const idNum = isNaN(this.id) ? this.id : Number(this.id);
+                this.produto = lista.find((prod) => prod.id == idNum) || null;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar produtos', e);
         }
     }
+
 }
 </script>
