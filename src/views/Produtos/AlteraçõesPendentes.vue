@@ -24,26 +24,26 @@
             <div v-for="campo in camposBasicos" :key="campo.id">
               <label>{{ campo.label }}</label>
               <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'"
-                v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+                v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio & !valoresSelecionados[campo.id]"
                 @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id"
                   :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id"> {{ opcao.valor }} </option>
               </select>
               <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
-                :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
                 </option>
               </select>
               <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-                :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
                 </option>
               </select>
               <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)"
                 v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
-                :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
           <br />
@@ -131,8 +131,10 @@
         </fieldset>
       </div>
       <div class="submit m-b direita">
-        <button class="acao-secundaria" @click="encerrarCadastro()">{{ produto_original.editavel ? 'Retomar Cadastro' :
-          'Finalizar Cadastro' }} </button>
+        <button class="acao-secundaria" @click="encerrarCadastro()" v-if="!isCadastro && produto_original.editavel">
+          <!-- {{ produto_original.editavel ? 'Retomar Cadastro' : 'Finalizar Cadastro' }} -->
+          Finalizar Cadastro
+        </button>
         <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
       </div>
     </div>
@@ -631,11 +633,13 @@ export default {
         }
 
         if (this.isCadastro) {
+          this.payLoad.editavel = true;
           this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
           // await serviceProdutos.salvarNovoProduto(this.payLoad);
           await serviceProdutos.cadastrarProdutoOMIE(this.payLoad);
           this.toast.success("Produto enviado com sucesso!");
         } else {
+          this.payLoad.editavel = false;
           const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
 
           this.camposSelects

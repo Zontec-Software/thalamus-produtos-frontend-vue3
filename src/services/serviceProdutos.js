@@ -41,7 +41,8 @@ const funções = {
             const payload = {
                 tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
                 paginacao: 1,
-                page: pagina
+                page: pagina,
+                editavel: false
             };
 
             const response = await api.get("/produto-filtrar", { params: payload });
