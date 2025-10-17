@@ -8,7 +8,7 @@
                         <a class="icone-pesquisa" title="Pesquise"></a>
                     </div>
                 </div>
-                <h2>Produtos</h2>
+                <h2>Catálogo de Produtos</h2>
             </div>
         </div>
         <div class="margem container">
