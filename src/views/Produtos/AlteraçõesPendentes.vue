@@ -131,8 +131,8 @@
         </fieldset>
       </div>
       <div class="submit m-b direita">
-        <button class="acao-secundaria" @click="encerrarCadastro()">{{ produto_original.editavel ? 'Finalizar Cadastro'
-          : 'Retomar Cadastro' }} </button>
+        <button class="acao-secundaria" @click="encerrarCadastro()">{{ produto_original.editavel ? 'Retomar Cadastro' :
+          'Finalizar Cadastro' }} </button>
         <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
       </div>
     </div>
@@ -632,7 +632,8 @@ export default {
 
         if (this.isCadastro) {
           this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
-          await serviceProdutos.salvarNovoProduto(this.payLoad);
+          // await serviceProdutos.salvarNovoProduto(this.payLoad);
+          await serviceProdutos.cadastrarProdutoOMIE(this.payLoad);
           this.toast.success("Produto enviado com sucesso!");
         } else {
           const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
