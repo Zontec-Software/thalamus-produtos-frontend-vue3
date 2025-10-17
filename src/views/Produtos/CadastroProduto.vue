@@ -146,24 +146,51 @@ export default {
 
       return produtos;
     },
+    // async getProduto() {
+    //   this.produto = null;
+    //   if (this.id) {
+    //     // var produtoEditado = produtos.find((prod) => prod.id == this.id);
+    //     var produtoEditado = await serviceProdutos.getProdutoById(this.id);
+    //     if (produtoEditado) {
+    //       this.produto = produtoEditado;
+    //       this.getEstrutura(produtoEditado.produto_cod)
+    //       this.mostrarEstrutura = true;
+    //     } else {
+    //       this.produto = { filhos: [] };
+    //     }
+    //   }
+
+    //   if (this.id == "Matéria Prima") {
+    //     this.mostrarEstrutura = false;
+    //   }
+    // },
     async getProduto() {
       this.produto = null;
-      if (this.id) {
-        // var produtoEditado = produtos.find((prod) => prod.id == this.id);
-        var produtoEditado = await serviceProdutos.getProdutoById(this.id);
+
+      const isCadastro = this.tiposProduto.includes(this.id);
+
+      if (isCadastro) {
+        this.produto = { filhos: [] };
+        return;
+      }
+
+      try {
+        const produtoEditado = await serviceProdutos.getProdutoById(this.id);
         if (produtoEditado) {
           this.produto = produtoEditado;
-          this.getEstrutura(produtoEditado.produto_cod)
+          this.getEstrutura(produtoEditado.produto_cod);
           this.mostrarEstrutura = true;
         } else {
           this.produto = { filhos: [] };
         }
-      }
-
-      if (this.id == "Matéria Prima") {
+      } catch (error) {
+        console.error("Erro ao carregar produto:", error);
+        this.produto = { filhos: [] };
         this.mostrarEstrutura = false;
       }
     },
+
+
     async getEstrutura(id) {
       var estrutura = await serviceProdutos.getEstrutura(id);
       this.produto.filhos = estrutura;
