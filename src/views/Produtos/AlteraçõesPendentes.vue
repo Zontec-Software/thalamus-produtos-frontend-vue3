@@ -135,13 +135,15 @@
         </fieldset>
       </div>
       <div class="submit m-b direita">
-        <!-- <button class="acao-secundaria" @click="encerrarCadastro()" v-if="!isCadastro && produto_original.editavel"> {{
-          produto_original.editavel ? 'Retomar Cadastro' : 'Finalizar Cadastro' }} 
-        </button> -->
         <button class="acao-secundaria" @click="encerrarCadastro()" v-if="!isCadastro"> {{ produto_original.editavel ?
           'Finalizar Cadastro' : 'Retomar Cadastro' }} <!-- Finalizar Cadastro -->
         </button>
         <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
+
+<button class="acao-secundaria" @click="finalizarAtualizacao()" v-if="!isCadastro && produto_original.editavel">
+  Finalizar Atualização
+</button>
+
       </div>
     </div>
   </section>
@@ -355,124 +357,141 @@ export default {
       }
     },
 
-    async sincronizarCamposComBaseNaFamilia(familiaId) {
-      this.valoresSelecionados = {};
-      this.camposPrincipais = [];
-      this.camposOutros = [];
+async sincronizarCamposComBaseNaFamilia(familiaId) {
+  this.valoresSelecionados = {};
+  this.camposPrincipais = [];
+  this.camposOutros = [];
 
-      try {
-        const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
-        const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
+  try {
+    const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
+    const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
 
-        this.idIndicadorEscala = campos.find(c => c.chave === 'indicador_escala')?.id;
+    const campoTipo = campos.find(c => c.chave === 'tipoProduto_id');
+    if (campoTipo && this.tipos?.length) {
+      valores[campoTipo.id] = this.tipos.map(t => ({ id: t.id, valor: t.nome }));
+    }
 
-        const campoTipo = campos.find(c => c.chave === 'tipoProduto_id');
-        if (campoTipo && this.tipos && this.tipos.length) {
-          valores[campoTipo.id] = this.tipos.map(t => ({
-            id: t.id,
-            valor: t.nome
-          }));
-        }
+    const campoStatus = campos.find(c => c.chave === 'status');
+    if (campoStatus) {
+      valores[campoStatus.id] = [
+        { id: 1, valor: 'Ativo' },
+        { id: 0, valor: 'Inativo' },
+      ];
+    }
 
-        const campoStatus = campos.find(c => c.chave === 'status');
-        if (campoStatus) {
-          valores[campoStatus.id] = [
-            { id: 1, valor: 'Ativo' },
-            { id: 0, valor: 'Inativo' }
-          ];
-        }
-
-        const camposSN = ['cupom_fiscal', 'market_place', 'indicador_escala'];
-        camposSN.forEach(chave => {
-          const campo = campos.find(c => c.chave === chave && c.fiscal === true);
-          if (campo) {
-            valores[campo.id] = [
-              { id: 'S', valor: 'Sim' },
-              { id: 'N', valor: 'Não' }
-            ];
-          }
-        });
-
-        const campoEscala = ['indicador_escala'];
-        campoEscala.forEach(chave => {
-          const campo = campos.find(c => c.chave === chave && c.fiscal === true);
-          if (campo) {
-            valores[campo.id] = [
-              { id: null, valor: '' },
-              { id: 'S', valor: 'Produzido em Escala Relevante' },
-              { id: 'N', valor: 'Produzido em Escala NÃO Relevante' }
-            ];
-          }
-        });
-
-        const campoOrigem = campos.find(c => c.chave === 'origem_mercadoria' && c.fiscal === true);
-        if (campoOrigem) {
-          valores[campoOrigem.id] = [
-            { id: '0', valor: 'Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8' },
-            { id: '1', valor: 'Estrangeira - Importação direta, exceto a indicada no código 6' },
-            { id: '2', valor: 'Estrangeira - Adquirida no mercado interno, exceto a indicada no código 7' },
-            { id: '3', valor: 'Nacional, CI > 40% e ≤ 70%' },
-            { id: '4', valor: 'Nacional, PPB conforme legislações dos Ajustes' },
-            { id: '5', valor: 'Nacional, CI ≤ 40%' },
-            { id: '6', valor: 'Estrangeira - Importação direta, sem similar (CAMEX) e gás natural' },
-            { id: '7', valor: 'Estrangeira - Mercado interno, sem similar (CAMEX) e gás natural' },
-            { id: '8', valor: 'Nacional, CI > 70%' }
-          ];
-        }
-
-        this.valoresSelects = valores;
-
-        const camposMapeados = campos.map(campo => ({
-          ...campo,
-          componente: this.definirComponentePorTipo(campo.tipo)
-        }));
-
-        camposMapeados.forEach(campo => {
-          let valorAtual =
-            this.produto_original[campo.chave] ??
-            this.valorCamposDinamicos.find(d => d.campo_id === campo.id)?.valores[0]?.valor_id ??
-            this.valorCamposDinamicos.find(d => d.campo_id === campo.id)?.valores[0]?.valor;
-
-          if (campo.chave === 'status') {
-            valorAtual = typeof valorAtual === 'string' ? Number(valorAtual) : valorAtual;
-          }
-
-          if (camposSN.includes(campo.chave)) {
-            valorAtual = valorAtual || 'N';
-          }
-          if (campoEscala.includes(campo.chave)) {
-            valorAtual = valorAtual || 'N';
-          }
-
-          if (campo.chave === 'origem_mercadoria' && (valorAtual === undefined || valorAtual === null || valorAtual === '')) {
-            valorAtual = '0';
-          }
-
-          this.valoresSelecionados[campo.id] = valorAtual;
-          this.atualizarPayLoad(campo.chave, valorAtual);
-        });
-
-        const camposSemFamilia = camposMapeados.filter(c => c.chave !== 'familia_id');
-        const ordemCamposPrincipais = [
-          'tipoProduto_id',
-          'cod',
-          'desc',
-          'und',
-          'ncm'
+    const camposSNChaves = ['cupom_fiscal', 'market_place', 'indicador_escala'];
+    camposSNChaves.forEach(chave => {
+      const campo = campos.find(c => c.chave === chave && c.fiscal === true);
+      if (campo) {
+        valores[campo.id] = [
+          { id: 'S', valor: 'Sim' },
+          { id: 'N', valor: 'Não' },
         ];
-        this.camposPrincipais = ordemCamposPrincipais
-          .map(chave => camposSemFamilia.find(c => c.chave === chave))
-          .filter(Boolean);
-        this.camposOutros = camposSemFamilia.filter(
-          c => !ordemCamposPrincipais.includes(c.chave)
-        );
-
-        this.camposSelects = [...this.camposPrincipais, ...this.camposOutros];
-
-      } catch (error) {
-        console.error("Erro ao sincronizar campos da família:", error);
       }
-    },
+    });
+
+    const campoEscala = campos.find(c => c.chave === 'indicador_escala' && c.fiscal === true);
+    if (campoEscala) {
+      valores[campoEscala.id] = [
+        { id: null, valor: '' },
+        { id: 'S', valor: 'Produzido em Escala Relevante' },
+        { id: 'N', valor: 'Produzido em Escala NÃO Relevante' },
+      ];
+      this.idIndicadorEscala = campoEscala.id;
+    } else {
+      this.idIndicadorEscala = null;
+    }
+
+    const campoOrigem = campos.find(c => c.chave === 'origem_mercadoria' && c.fiscal === true);
+    if (campoOrigem) {
+      valores[campoOrigem.id] = [
+        { id: '0', valor: 'Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8' },
+        { id: '1', valor: 'Estrangeira - Importação direta, exceto a indicada no código 6' },
+        { id: '2', valor: 'Estrangeira - Adquirida no mercado interno, exceto a indicada no código 7' },
+        { id: '3', valor: 'Nacional, CI > 40% e ≤ 70%' },
+        { id: '4', valor: 'Nacional, PPB conforme legislações dos Ajustes' },
+        { id: '5', valor: 'Nacional, CI ≤ 40%' },
+        { id: '6', valor: 'Estrangeira - Importação direta, sem similar (CAMEX) e gás natural' },
+        { id: '7', valor: 'Estrangeira - Mercado interno, sem similar (CAMEX) e gás natural' },
+        { id: '8', valor: 'Nacional, CI > 70%' },
+      ];
+    }
+
+    this.valoresSelects = valores;
+
+    const camposMapeados = campos.map(campo => ({
+      ...campo,
+      componente: this.definirComponentePorTipo(campo.tipo),
+    }));
+
+    const stagedArr = Array.isArray(this.produto_original?.campos_dinamicos)
+      ? this.produto_original.campos_dinamicos
+      : (this.valorCamposDinamicos || []);
+
+    const camposPrincipaisOrdem = ['tipoProduto_id', 'cod', 'desc', 'und', 'ncm'];
+    const camposSN = ['cupom_fiscal', 'market_place', 'indicador_escala'];
+
+    camposMapeados.forEach(campo => {
+      const stagedDyn = stagedArr.find(d => d.campo_id === campo.id);
+
+      let valorAtual;
+
+      // STAGING (dinâmicos)
+      if (campo.tipo === 'Lista' || campo.tipo === 'MultiLista') {
+        const lista = Array.isArray(stagedDyn?.valor_id) ? stagedDyn.valor_id : [];
+        valorAtual = (campo.tipo === 'Lista') ? (lista.length ? lista[0] : '') : lista;
+      } else if (['Texto', 'Número', 'Decimal', 'Data', 'AreaTexto'].includes(campo.tipo)) {
+        valorAtual = (stagedDyn && Object.prototype.hasOwnProperty.call(stagedDyn, 'valor'))
+          ? stagedDyn.valor
+          : null;
+      }
+
+      // Fallback para FIXOS do produto (desc, cod, und, etc.)
+      const precisaFallback =
+        valorAtual === undefined ||
+        valorAtual === null ||
+        (campo.tipo === 'Lista' && valorAtual === '');
+
+      if (precisaFallback) {
+        const doProduto = this.produto_original[campo.chave];
+        if (doProduto !== undefined && doProduto !== null && doProduto !== '') {
+          valorAtual = doProduto;
+        }
+      }
+
+      // Ajustes e defaults
+      if (campo.chave === 'status' && valorAtual !== null && valorAtual !== '') {
+        valorAtual = typeof valorAtual === 'string' ? Number(valorAtual) : valorAtual;
+      }
+      if (camposSN.includes(campo.chave) && (valorAtual === null || valorAtual === undefined || valorAtual === '')) {
+        valorAtual = 'N';
+      }
+      if (campo.chave === 'origem_mercadoria' && (valorAtual === null || valorAtual === undefined || valorAtual === '')) {
+        valorAtual = '0';
+      }
+
+      if (campo.tipo === 'MultiLista' && !Array.isArray(valorAtual)) {
+        valorAtual = valorAtual ? [valorAtual] : [];
+      }
+
+      this.valoresSelecionados[campo.id] = valorAtual;
+      this.atualizarPayLoad(campo.chave, this.valoresSelecionados[campo.id]);
+    });
+
+    const camposSemFamilia = camposMapeados.filter(c => c.chave !== 'familia_id');
+
+    this.camposPrincipais = camposPrincipaisOrdem
+      .map(chave => camposSemFamilia.find(c => c.chave === chave))
+      .filter(Boolean);
+
+    this.camposOutros = camposSemFamilia.filter(c => !camposPrincipaisOrdem.includes(c.chave));
+
+    this.camposSelects = [...this.camposPrincipais, ...this.camposOutros];
+
+  } catch (error) {
+    console.error("Erro ao sincronizar campos da família:", error);
+  }
+},
 
     definirComponentePorTipo(tipo) {
       switch (tipo) {
@@ -625,61 +644,96 @@ export default {
     async atualizarPayLoad(chave, valor) {
       this.payLoad[chave] = valor;
     },
+async salvarProduto() {
+  try {
+    this.errors = {};
+    const cest = this.valoresSelecionados["id_cest"];
+    const regexCest = /^\d{2}\.\d{3}\.\d{3}$/;
 
-    async salvarProduto() {
-      try {
-        this.errors = {};
-        const cest = this.valoresSelecionados["id_cest"];
-        const regexCest = /^\d{2}\.\d{3}\.\d{3}$/;
+    if (cest && !regexCest.test(cest)) {
+      this.errors["id_cest"] = "O CEST deve estar no formato 00.000.000";
+      this.toast.error(this.errors["id_cest"]);
+      return;
+    }
 
-        if (cest && !regexCest.test(cest)) {
-          this.errors["id_cest"] = "O CEST deve estar no formato 00.000.000";
-          this.toast.error(this.errors["id_cest"]);
-          return;
+    // CADASTRO de novo produto (já envia pro Omie)
+    if (this.isCadastro) {
+      this.payLoad.editavel = true;
+      this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
+      await serviceProdutos.cadastrarProdutoOMIE(this.payLoad);
+      this.toast.success("Produto enviado com sucesso!");
+      return;
+    }
+
+    // EDIÇÃO de produto existente
+    if (this.produto_original.editavel) {
+      // >>>>>> SALVAR EM STAGING (local) <<<<<<
+      const payloadStaging = {
+        ...this.payLoad,
+        // IMPORTANTÍSSIMO: incluir os campos dinâmicos no staging em JSON
+        campos_dinamicos: this.camposSelects
+          .filter(campo => campo.omie !== 1)
+          .map(campo => {
+            const valor = this.valoresSelecionados[campo.id];
+            if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+              return {
+                campo_id: campo.id,
+                valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
+              };
+            }
+            return { campo_id: campo.id, valor: valor ?? null };
+          }),
+      };
+
+      await serviceProdutos.salvarLocal(this.produto_cod, payloadStaging);
+      this.toast.success("Alterações salvas (rascunho). Clique em Finalizar Atualização para aplicar.");
+      return;
+    }
+
+    // EDIÇÃO com editavel = false (fluxo antigo, aplica direto e já manda Omie)
+    const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
+    this.camposSelects
+      .filter(campo => campo.omie === 1)
+      .forEach(campo => {
+        payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
+      });
+
+    payloadAtualizar.campos_dinamicos = this.camposSelects
+      .filter(campo => campo.omie !== 1)
+      .map(campo => {
+        const valor = this.valoresSelecionados[campo.id];
+        if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+          return {
+            campo_id: campo.id,
+            valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
+          };
         }
+        return { campo_id: campo.id, valor: valor ?? null };
+      });
 
-        if (this.isCadastro) {
-          this.payLoad.editavel = true;
-          this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
-          // await serviceProdutos.salvarNovoProduto(this.payLoad);
-          await serviceProdutos.cadastrarProdutoOMIE(this.payLoad);
-          this.toast.success("Produto enviado com sucesso!");
-        } else {
-          this.payLoad.editavel = false;
-          const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
+    await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
+    this.toast.success("Produto salvo com sucesso!");
 
-          this.camposSelects
-            .filter(campo => campo.omie === 1)
-            .forEach(campo => {
-              payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
-            });
+  } catch (error) {
+    if (error.response?.data?.errors?.id_cest) {
+      this.toast.error("CEST inválido. Use 00.000.000");
+    } else {
+      this.toast.error("Erro ao salvar produto");
+    }
+    console.error("Erro ao salvar produto:", error);
+  }
+},
 
-          payloadAtualizar.campos_dinamicos = this.camposSelects
-            .filter(campo => campo.omie !== 1)
-            .map(campo => {
-              const valor = this.valoresSelecionados[campo.id];
-              if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
-                return {
-                  campo_id: campo.id,
-                  valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
-                };
-              }
-              return { campo_id: campo.id, valor: valor ?? null };
-            });
-
-          await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
-          this.toast.success("Produto salvo com sucesso!");
-        }
-      } catch (error) {
-        if (error.response?.data?.errors?.id_cest) {
-          this.toast.error("CEST inválido. Use 00.000.000");
-        } else {
-          this.toast.error("Erro ao salvar produto");
-        }
-        console.error("Erro ao salvar produto:", error);
-      }
-    },
-
+    async finalizarAtualizacao() {
+  try {
+    await serviceProdutos.finalizarAtualizacao(this.produto_cod);
+    this.toast.success("Atualização finalizada e enviada à Omie!");
+    this.$router.push({ name: "portfolioView" });
+  } catch (error) {
+    this.toast.error("Erro ao finalizar atualização");
+    console.error(error);
+  }
+},
     async finalizarCadastro() {
       try {
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
@@ -693,7 +747,10 @@ export default {
       try {
         const response = await serviceProdutos.carregarAlteracoesOriginalEditado(this.produto_cod);
         this.produto_original = response.produto_editado;
-        this.valorCamposDinamicos = response.campos_dinamicos;
+
+        this.valorCamposDinamicos = Array.isArray(response.produto_editado?.campos_dinamicos)
+  ? response.produto_editado.campos_dinamicos
+  : (response.campos_dinamicos || []);
 
         // this.produto_editado = response.produto_editado;
         this.em_edicao = response.em_edicao;

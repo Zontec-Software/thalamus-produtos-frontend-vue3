@@ -1,21 +1,21 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from "vue-router";
 import { sso } from "roboflex-thalamus-sso-lib";
 import { getPermissao } from "../services/permissao-service";
-import Produtos from '@/views/Produtos/Produtos.vue';
-import Portfolio from '@/views/Produtos/PortfolioView.vue';
-import CadastroProduto from '@/views/Produtos/CadastroProduto.vue'
-import TemplateView from '@/views/Produtos/TemplateView.vue'
-import Aprovacao from "@/views/Produtos/AprovacaoView.vue"
-import Codificacoes from "@/views/Produtos/CodificacoesView.vue"
+import Produtos from "@/views/Produtos/Produtos.vue";
+import Portfolio from "@/views/Produtos/PortfolioView.vue";
+import CadastroProduto from "@/views/Produtos/CadastroProduto.vue";
+import TemplateView from "@/views/Produtos/TemplateView.vue";
+import Aprovacao from "@/views/Produtos/AprovacaoView.vue";
+import Codificacoes from "@/views/Produtos/CodificacoesView.vue";
 // import GerenciarCodificacoes from "@/views/Produtos/GerenciarCodificacoes.vue"
-import Ferramenta from "@/views/Produtos/FerramentaView.vue"
-import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue"
-import ParametroTeste from '@/views/Produtos/ParametroTeste.vue';
-import Gabarito from '@/views/Produtos/GabaritoView.vue';
-import ConfiguracaoProdutos from '@/views/Produtos/ConfiguracaoProdutos.vue';
-import ModaisProdutos from '@/views/Produtos/ModaisProdutos.vue';
-import CamposView from '@/views/Produtos/CamposView.vue';
-import CamposListar from '@/views/Produtos/CamposListar.vue';
+import Ferramenta from "@/views/Produtos/FerramentaView.vue";
+import GerenciarFerramenta from "@/views/Produtos/GerenciarFerramenta.vue";
+import ParametroTeste from "@/views/Produtos/ParametroTeste.vue";
+import Gabarito from "@/views/Produtos/GabaritoView.vue";
+import ConfiguracaoProdutos from "@/views/Produtos/ConfiguracaoProdutos.vue";
+import ModaisProdutos from "@/views/Produtos/ModaisProdutos.vue";
+import CamposView from "@/views/Produtos/CamposView.vue";
+import CamposListar from "@/views/Produtos/CamposListar.vue";
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
   const buildMode = process.env.NODE_ENV;
@@ -69,127 +69,126 @@ function guardPermissaoRoute(to, from, next) {
 
 const routes = [
   {
-    path: '/',
-    name: 'portfolioView',
+    path: "/",
+    name: "portfolioView",
     component: Produtos,
-    beforeEnter: guardPermissaoRoute
-  },
-    {
-    path: '/portfolio',
-    name: 'Portfolio',
-    component: Portfolio,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/cadastroProduto/:id',
-    name: 'cadastroProduto',
+    path: "/portfolio",
+    name: "Portfolio",
+    component: Portfolio,
+    beforeEnter: guardPermissaoRoute,
+  },
+  {
+    path: "/cadastroProduto/:id",
+    name: "cadastroProduto",
     component: CadastroProduto,
     props: true,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
 
   {
-    path: '/template/:id',
-    name: 'template',
+    path: "/template/:id",
+    name: "template",
     component: TemplateView,
     props: true,
     beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/aprovacao',
-    name: 'aprovacao',
+    path: "/aprovacao",
+    name: "aprovacao",
     component: Aprovacao,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/codificacoes',
-    name: 'Codificacao',
+    path: "/codificacoes",
+    name: "Codificacao",
     component: Codificacoes,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
 
   {
-    path: '/ferramentas',
-    name: 'Ferramentas',
+    path: "/ferramentas",
+    name: "Ferramentas",
     component: Ferramenta,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/ferramentas/novo',
-    name: 'AdicionarFerramenta',
+    path: "/ferramentas/novo",
+    name: "AdicionarFerramenta",
     component: GerenciarFerramenta,
     props: true,
     beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/ferramentas/editar/:id',
-    name: 'EditarFerramenta',
+    path: "/ferramentas/editar/:id",
+    name: "EditarFerramenta",
     component: GerenciarFerramenta,
     props: true,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/ferramentas/excluir',
-    name: 'ExcluirFerramenta',
+    path: "/ferramentas/excluir",
+    name: "ExcluirFerramenta",
     component: GerenciarFerramenta,
     props: true,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/parametrosTeste',
-    name: 'parametros',
+    path: "/parametrosTeste",
+    name: "parametros",
     component: ParametroTeste,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/gabarito',
-    name: 'gabaritos',
+    path: "/gabarito",
+    name: "gabaritos",
     component: Gabarito,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
   {
-    path: '/configurar',
-    name: 'ConfigurarCamposPorTipo',
+    path: "/configurar",
+    name: "ConfigurarCamposPorTipo",
     component: ConfiguracaoProdutos,
-    beforeEnter: guardPermissaoRoute
-  },
-    {
-    path: '/modais',
-    name: 'ModaisProdutos',
-    component: ModaisProdutos,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
   {
-  path: '/cadastro/:tipo',
-  name: 'CadastroGenerico',
-  component: () => import('@/components/Classificação/ClassificaçãoComponente.vue'),
-  beforeEnter: guardPermissaoRoute,
-  props: true,
-},
-
-    {
-    path: '/campos',
-    name: 'CamposView',
-    component: CamposView,
-    beforeEnter: guardPermissaoRoute
+    path: "/modais",
+    name: "ModaisProdutos",
+    component: ModaisProdutos,
+    beforeEnter: guardPermissaoRoute,
   },
-      {
-    path: '/camposListar',
-    name: 'CamposListar',
+  {
+    path: "/cadastro/:tipo",
+    name: "CadastroGenerico",
+    component: () => import("@/components/Classificação/ClassificaçãoComponente.vue"),
+    beforeEnter: guardPermissaoRoute,
+    props: true,
+  },
+
+  {
+    path: "/campos",
+    name: "CamposView",
+    component: CamposView,
+    beforeEnter: guardPermissaoRoute,
+  },
+  {
+    path: "/camposListar",
+    name: "CamposListar",
     component: CamposListar,
-    beforeEnter: guardPermissaoRoute
+    beforeEnter: guardPermissaoRoute,
   },
 
   {
     path: "/login",
     redirect: "http://portal.thalamus.com.br/#/login",
   },
-
-]
+];
 
 const router = createRouter({
   history: createWebHashHistory(),
-  routes
-})
+  routes,
+});
 
-export default router
+export default router;
