@@ -1,8 +1,6 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import { sso } from "roboflex-thalamus-sso-lib";
 import { getPermissao } from "../services/permissao-service";
-import Produtos from "@/views/Produtos/Produtos.vue";
-import Portfolio from "@/views/Produtos/PortfolioView.vue";
 import CadastroProduto from "@/views/Produtos/CadastroProduto.vue";
 import TemplateView from "@/views/Produtos/TemplateView.vue";
 import Aprovacao from "@/views/Produtos/AprovacaoView.vue";
@@ -16,6 +14,8 @@ import ConfiguracaoProdutos from "@/views/Produtos/ConfiguracaoProdutos.vue";
 import ModaisProdutos from "@/views/Produtos/ModaisProdutos.vue";
 import CamposView from "@/views/Produtos/CamposView.vue";
 import CamposListar from "@/views/Produtos/CamposListar.vue";
+import ProdutosView from "@/views/Produtos/ProdutosView.vue";
+import CatalogoView from "@/views/Produtos/CatalogoView.vue";
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
   const buildMode = process.env.NODE_ENV;
@@ -70,14 +70,14 @@ function guardPermissaoRoute(to, from, next) {
 const routes = [
   {
     path: "/",
-    name: "portfolioView",
-    component: Produtos,
+    name: "ProdutosView",
+    component: ProdutosView,
     beforeEnter: guardPermissaoRoute,
   },
   {
-    path: "/portfolio",
-    name: "Portfolio",
-    component: Portfolio,
+    path: "/catalogo",
+    name: "CatalogoView",
+    component: CatalogoView,
     beforeEnter: guardPermissaoRoute,
   },
   {

@@ -17,6 +17,16 @@ const funções = {
     return await api.get("/produto-filtrar", { params: payload });
   },
 
+  async setEditavel(produto_cod, flag) {
+    try {
+      const { data } = await api.patch(`/produto/editavel/${produto_cod}`, { editavel: !!flag });
+      return data;
+    } catch (error) {
+      console.error("Erro ao alterar flag editavel:", error);
+      throw error;
+    }
+  },
+
   async getProdutosPorCategoria(tipos) {
     try {
       const payload = {
@@ -40,7 +50,7 @@ const funções = {
         tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         paginacao: 1,
         page: pagina,
-        editavel: false,
+        //editavel: false, //comentado para nova lógica
       };
 
       const response = await api.get("/produto-filtrar", { params: payload });
@@ -68,9 +78,9 @@ const funções = {
     }
   },
 
-  async getProdutoById(cod) {
+  async getProdutoByCod(cod) {
     try {
-      const response = await api.get(`/produto-filtrar/${cod}`);
+      const response = await api.get(`/produto-buscar/${cod}`);
       return response.data;
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);

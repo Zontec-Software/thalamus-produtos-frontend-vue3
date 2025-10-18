@@ -102,8 +102,16 @@
         </fieldset>
       </div>
       <div class="submit m-b direita">
+        <!-- Editando e em modo de edição: pode finalizar -->
         <button class="acao-secundaria" v-if="!isCadastro && produto_original.editavel" @click="finalizarAtualizacao()">Finalizar Atualização</button>
-        <button @click="salvarProduto()">{{ isCadastro ? "Cadastrar Produto" : "Salvar" }}</button>
+
+        <!-- Editando: botão para habilitar edição -->
+        <button class="acao-secundaria" v-if="!isCadastro && !produto_original.editavel" @click="enviarParaEdicao()">Enviar para Edição</button>
+
+        <!-- Salvar/Cadastrar -->
+        <button @click="salvarProduto()">
+          {{ isCadastro ? "Cadastrar Produto" : "Salvar" }}
+        </button>
       </div>
     </div>
   </section>
@@ -151,7 +159,7 @@ export default {
     QuillEditor,
   },
   props: {
-    produto_cod: { type: String, required: false, default: null }, // ✅
+    produto_cod: { type: String, required: false, default: null },
     isTemplate: { required: false },
     isCadastro: { required: true },
   },
@@ -269,6 +277,7 @@ export default {
           }),
       };
     },
+
     async finalizarAtualizacao() {
       try {
         if (!this.produto_cod) {
@@ -283,13 +292,30 @@ export default {
         // aplica staging no produto + envia ao Omie
         await serviceProdutos.finalizarAtualizacao(this.produto_cod);
 
-        this.toast.success("Atualização finalizada e enviada à Omie!");
-        this.$router.push({ name: "portfolioView" });
+        this.toast.success("Atualização finalizada e enviada ao Omie!");
+        this.$router.push({ name: "ProdutosView" });
       } catch (error) {
         this.toast.error("Erro ao finalizar atualização");
         console.error(error);
       }
     },
+
+    async enviarParaEdicao() {
+      try {
+        if (!this.produto_cod) {
+          this.toast.error("Produto inválido para entrar em edição.");
+          return;
+        }
+        await serviceProdutos.setEditavel(this.produto_cod, true);
+        this.produto_original.editavel = true;
+        this.toast.success("Produto habilitado para edição.");
+        this.$router.push({ name: "CatalogoView" });
+      } catch (e) {
+        this.toast.error("Não foi possível habilitar edição.");
+        console.error(e);
+      }
+    },
+
     mascaraCest(campoId) {
       let valor = this.valoresSelecionados[campoId] || "";
       valor = valor.replace(/\D/g, "");
@@ -611,6 +637,7 @@ export default {
           this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
           await serviceProdutos.cadastrarProdutoOMIE(this.payLoad);
           this.toast.success("Produto enviado com sucesso!");
+          this.$router.push({ name: "CatalogoView" });
           return;
         }
 
@@ -618,7 +645,8 @@ export default {
         if (this.produto_original.editavel) {
           const payloadStaging = this.buildStagingPayload();
           await serviceProdutos.salvarLocal(this.produto_cod, payloadStaging);
-          this.toast.success("Alterações salvas (rascunho). Clique em Finalizar Atualização para aplicar.");
+          this.toast.success("Alterações salvas Localmente.");
+          this.$router.push({ name: "ProdutosView" });
           return;
         }
 

@@ -22,31 +22,35 @@
           <i class="fa-solid fa-caret-up" id="setaCimaFamiliaProduto" style="display: none"></i>
           <i class="fa-solid fa-caret-down" id="setaBaixoFamiliaProduto" style="display: none"></i>
         </th>
+        <th v-if="!exibirAcoes" scope="col" style="white-space: nowrap">
+          <span>Status</span>
+        </th>
         <th v-if="exibirAcoes">Ações</th>
-        <th v-if="exibirAcoes" style="text-align: center;">Revisão</th>
+        <!-- <th v-if="exibirAcoes" style="text-align: center">Revisão</th> -->
       </tr>
       <template v-if="!carregando">
-        <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
-          @click="abrirDetalhes(item)">
-          <td> {{ item.cod }} </td>
-          <td> {{ item.desc }} </td>
-          <td> {{ item.tipo?.nome ?? "-" }} </td>
-          <td> {{ item.familia_produto?.familia_nome ?? "-" }} </td>
+        <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index" @click="abrirDetalhes(item)">
+          <td>{{ item.cod }}</td>
+          <td>{{ item.desc }}</td>
+          <td>{{ item.tipo?.nome ?? "-" }}</td>
+          <td>{{ item.familia_produto?.familia_nome ?? "-" }}</td>
+          <td v-if="!exibirAcoes">
+            <span v-if="item.editavel">Em edição</span>
+            <span v-else>Publicado</span>
+          </td>
           <!-- teste -->
           <td @click.stop v-if="exibirAcoes">
             <div>
-              <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
-                  class="fa-regular fa-copy"></i></span>
+              <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i class="fa-regular fa-copy"></i></span>
             </div>
           </td>
-          <td v-if="exibirAcoes" style="text-align: center;" @click.stop>
-            <select @change="atualizarStatus(item.produto_cod, item.status_produto)" v-model="item.status_produto"
-              style="text-align: center; width: fit-content;">
+          <!--           <td v-if="exibirAcoes" style="text-align: center" @click.stop>
+            <select @change="atualizarStatus(item.produto_cod, item.status_produto)" v-model="item.status_produto" style="text-align: center; width: fit-content">
               <option :value="null" hidden>Não realizada</option>
               <option>Realizada</option>
               <option>Fiscal realizada</option>
             </select>
-          </td>
+          </td> -->
         </tr>
       </template>
     </tbody>
@@ -59,7 +63,9 @@
       <button :disabled="!prevPageUrl" @click="carregarPagina(prevPageUrl)">
         <i class="fa-solid fa-chevron-left"></i>
       </button>
-      <span>Página <b>{{ paginaAtual }}</b> de <b>{{ ultimaPagina }}</b></span>
+      <span
+        >Página <b>{{ paginaAtual }}</b> de <b>{{ ultimaPagina }}</b></span
+      >
       <button :disabled="!nextPageUrl" @click="carregarPagina(nextPageUrl)">
         <i class="fa-solid fa-chevron-right"></i>
       </button>
@@ -100,7 +106,7 @@ export default {
 
     try {
       if (this.exibirApenasEditavel) {
-        this.produtos = await serviceProdutos.getProdutosEditaveis()
+        this.produtos = await serviceProdutos.getProdutosEditaveis();
       } else {
         this.produtos = await serviceProdutos.getProdutos();
       }
@@ -108,7 +114,6 @@ export default {
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
     }
-
   },
   watch: {
     searchQuery() {
@@ -135,9 +140,7 @@ export default {
         };
 
         if (this.exibirApenasEditavel) {
-          payload.editavel = true
-        } else {
-          payload.editavel = false
+          payload.editavel = true;
         }
 
         if (this.searchQuery) {
@@ -149,13 +152,10 @@ export default {
         }
 
         const response = await serviceProdutos.filtrarProdutos(payload);
-        const produtos = Array.isArray(response.data)
-          ? response.data
-          : response.data?.data || [];
+        const produtos = Array.isArray(response.data) ? response.data : response.data?.data || [];
 
         this.produtos = produtos;
         this.filtrarProdutos();
-
       } catch (error) {
         console.error("Erro ao pesquisar produtos:", error);
       } finally {
@@ -163,32 +163,10 @@ export default {
       }
     },
 
-    // async pesquisarProdutos() {
-    //   try {
-    //     this.carregando = true;
-
-    //     var payload = {
-    //       tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-    //     };
-
-    //     if (this.searchQuery) { payload.termo = this.searchQuery }
-
-    //     const response = await serviceProdutos.filtrarProdutos(payload);
-    //     const produtos = Array.isArray(response.data) ? response.data : response.data?.data || [];
-    //     this.produtos = produtos;
-    //     this.filtrarProdutos();
-
-    //   } catch (error) {
-    //     console.error("Erro ao pesquisar produtos:", error);
-    //   } finally {
-    //     this.carregando = false;
-    //   }
-    // },
-
     async carregarPagina(pagina = 1) {
       try {
         this.carregando = true;
-        var response = {}
+        var response = {};
 
         if (this.exibirApenasEditavel) {
           response = await serviceProdutos.getProdutosEditaveis(pagina);
@@ -211,38 +189,30 @@ export default {
       }
     },
 
-
     atualizarStatus(id, status) {
       var payload = {
         usuario_id: sso.getUsuarioLogado().id,
         status_produto: status,
       };
-      serviceProdutos.finalizarCadastro(id, payload)
+      serviceProdutos.finalizarCadastro(id, payload);
     },
+
     filtrarProdutos() {
-      this.listaProdutosFiltrada = this.produtos.filter(item => {
+      this.listaProdutosFiltrada = this.produtos.filter((item) => {
         const matchQuery = this.searchQuery
-          ? Object.values(item).some(valor => {
-            if (valor && typeof valor === 'object') {
-              return Object.values(valor).some(subValor =>
-                String(subValor).toLowerCase().includes(this.searchQuery.toLowerCase())
-              );
-            }
-            return String(valor).toLowerCase().includes(this.searchQuery.toLowerCase());
-          })
+          ? Object.values(item).some((valor) => {
+              if (valor && typeof valor === "object") {
+                return Object.values(valor).some((subValor) => String(subValor).toLowerCase().includes(this.searchQuery.toLowerCase()));
+              }
+              return String(valor).toLowerCase().includes(this.searchQuery.toLowerCase());
+            })
           : true;
 
-        const matchFiltroBotao = this.filtro
-          ? item.tipo?.nome === this.filtro
-          : true;
+        const matchFiltroBotao = this.filtro ? item.tipo?.nome === this.filtro : true;
 
-        const matchTipoSelect = this.filtroTipo
-          ? item.tipo?.nome === this.filtroTipo
-          : true;
+        const matchTipoSelect = this.filtroTipo ? item.tipo?.nome === this.filtroTipo : true;
 
-        const matchFamilia = this.filtroFamilia
-          ? item.familia_produto?.familia_nome === this.filtroFamilia
-          : true;
+        const matchFamilia = this.filtroFamilia ? item.familia_produto?.familia_nome === this.filtroFamilia : true;
 
         return matchQuery && matchFiltroBotao && matchTipoSelect && matchFamilia;
       });
@@ -250,11 +220,10 @@ export default {
 
     abrirTemplate(id) {
       this.$router.push({ name: "template", params: { id } });
-
     },
 
     abrirDetalhes(produto) {
-      var id = produto.produto_cod
+      var id = produto.produto_cod;
       if (this.useModal) {
         this.$emit("abrir-detalhes", produto);
       } else {
@@ -267,26 +236,16 @@ export default {
 
       colunas.forEach((coluna) => {
         if (coluna !== itemReferencia) {
-          const setaBaixo = document.getElementById(
-            `setaBaixo${coluna.charAt(0).toUpperCase() + coluna.slice(1)}`
-          );
-          const setaCima = document.getElementById(
-            `setaCima${coluna.charAt(0).toUpperCase() + coluna.slice(1)}`
-          );
+          const setaBaixo = document.getElementById(`setaBaixo${coluna.charAt(0).toUpperCase() + coluna.slice(1)}`);
+          const setaCima = document.getElementById(`setaCima${coluna.charAt(0).toUpperCase() + coluna.slice(1)}`);
 
           if (setaBaixo) setaBaixo.style.display = "none";
           if (setaCima) setaCima.style.display = "none";
         }
       });
 
-      const setaBaixoReferencia = document.getElementById(
-        `setaBaixo${itemReferencia.charAt(0).toUpperCase() + itemReferencia.slice(1)
-        }`
-      );
-      const setaCimaReferencia = document.getElementById(
-        `setaCima${itemReferencia.charAt(0).toUpperCase() + itemReferencia.slice(1)
-        }`
-      );
+      const setaBaixoReferencia = document.getElementById(`setaBaixo${itemReferencia.charAt(0).toUpperCase() + itemReferencia.slice(1)}`);
+      const setaCimaReferencia = document.getElementById(`setaCima${itemReferencia.charAt(0).toUpperCase() + itemReferencia.slice(1)}`);
 
       if (setaBaixoReferencia && setaCimaReferencia) {
         const ascendingOrder = setaBaixoReferencia.style.display === "none";

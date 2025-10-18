@@ -144,15 +144,15 @@ export default {
       this.produto = null;
 
       if (!this.isEdicao) {
-        // ✅ cadastro novo
+        // cadastro novo
         this.produto = { filhos: [] };
         this.mostrarEstrutura = false;
         return;
       }
 
       try {
-        // ✅ edição existente
-        const produtoEditado = await serviceProdutos.getProdutoById(this.id);
+        // edição existente
+        const produtoEditado = await serviceProdutos.getProdutoByCod(this.id);
         this.produto = produtoEditado ?? { filhos: [] };
         if (produtoEditado) {
           this.getEstrutura(produtoEditado.produto_cod);
