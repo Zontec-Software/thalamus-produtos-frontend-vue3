@@ -14,7 +14,7 @@
     <div class="margem container">
       <div class="bloco margem">
         <div class="alinha-v" style="display: flex; justify-content: space-between"></div>
-        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo" :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" :exibirAcoes="false" />
+        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo" :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" :exibirAcoes="false" :somenteVisualizacao="true" />
         <!-- <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos> -->
       </div>
     </div>

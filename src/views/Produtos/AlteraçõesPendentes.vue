@@ -2,7 +2,8 @@
   <div v-if="isLoading" class="loading">
     <div></div>
   </div>
-  <section v-else>
+
+  <section v-readonly="isReadOnly" v-else>
     <div class="margem" style="text-align: right">
       <strong>
         {{
@@ -24,7 +25,7 @@
             </div>
             <div v-for="campo in camposBasicos" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'" v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio & !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'" v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id">{{ opcao.valor }}</option>
               </select>
@@ -42,7 +43,7 @@
           <div class="grid">
             <div v-for="campo in camposAreaTexto" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <QuillEditor theme="snow" :readOnly="aguardandoAprovaçãoFiscal" v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px" @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+              <QuillEditor theme="snow" :readOnly="isReadOnly || aguardandoAprovaçãoFiscal" v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px" @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
         </div>
@@ -56,7 +57,7 @@
               <span>Sem fotos cadastradas.</span>
             </div>
             <br />
-            <a style="cursor: pointer; border: 1px solid; color: var(--cor-primaria)" class="icone-camera" @click="showModalFotos = true"> Gerenciar Fotos </a>
+            <a data-block-when-readonly style="cursor: pointer; border: 1px solid; color: var(--cor-primaria)" class="icone-camera" @click="showModalFotos = true"> Gerenciar Fotos </a>
           </div>
         </div>
         <!-- END FOTOS -->
@@ -103,18 +104,19 @@
       </div>
       <div class="submit m-b direita">
         <!-- Editando e em modo de edição: pode finalizar -->
-        <button class="acao-secundaria" v-if="!isCadastro && produto_original.editavel" @click="finalizarAtualizacao()">Finalizar Atualização</button>
+        <button class="acao-secundaria" v-if="!isReadOnly && !isCadastro && produto_original.editavel" @click="finalizarAtualizacao()">Finalizar Edição</button>
 
         <!-- Editando: botão para habilitar edição -->
-        <button class="acao-secundaria" v-if="!isCadastro && !produto_original.editavel" @click="enviarParaEdicao()">Enviar para Edição</button>
+        <button data-allow-when-readonly class="acao-secundaria" v-if="!isCadastro && !produto_original.editavel" @click="enviarParaEdicao()">Enviar para Edição</button>
 
         <!-- Salvar/Cadastrar -->
-        <button @click="salvarProduto()">
+        <button v-if="!isReadOnly" @click="salvarProduto()">
           {{ isCadastro ? "Cadastrar Produto" : "Salvar" }}
         </button>
       </div>
     </div>
   </section>
+
   <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo" @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
   <!-- MODAL FOTOS -->
   <div v-if="showModalFotos" class="modal-mask">
@@ -162,6 +164,7 @@ export default {
     produto_cod: { type: String, required: false, default: null },
     isTemplate: { required: false },
     isCadastro: { required: true },
+    somenteVisualizacao: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -219,6 +222,13 @@ export default {
   },
 
   computed: {
+    isReadOnly() {
+      // Catálogo:somente visualização
+      if (this.somenteVisualizacao) return true;
+      // Produtos: só edita se não for cadastro e o produto estiver em modo edição
+      return !this.isCadastro && !this.produto_original.editavel;
+    },
+
     isFinanceiro() {
       return this.funcionalidades.includes(113);
     },
@@ -514,6 +524,7 @@ export default {
     },
 
     async adicionarFoto(event) {
+      if (this.isReadOnly) return;
       const file = event.target.files[0];
       if (!file) return;
 
@@ -536,6 +547,7 @@ export default {
     },
 
     async removerFoto(index) {
+      if (this.isReadOnly) return;
       const foto = this.fotosProduto[index];
       try {
         await serviceProdutos.deletarAnexo(this.produto_cod, foto.id);
@@ -617,9 +629,14 @@ export default {
       console.log("aqui");
     },
     async atualizarPayLoad(chave, valor) {
+      if (this.isReadOnly && !this.isCadastro) return;
       this.payLoad[chave] = valor;
     },
     async salvarProduto() {
+      if (this.isReadOnly && !this.isCadastro) {
+        this.toast.info("Este produto está em visualização. Clique em 'Enviar para Edição'.");
+        return;
+      }
       try {
         this.errors = {};
         const cest = this.valoresSelecionados["id_cest"];

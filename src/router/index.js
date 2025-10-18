@@ -16,6 +16,7 @@ import CamposView from "@/views/Produtos/CamposView.vue";
 import CamposListar from "@/views/Produtos/CamposListar.vue";
 import ProdutosView from "@/views/Produtos/ProdutosView.vue";
 import CatalogoView from "@/views/Produtos/CatalogoView.vue";
+import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
   const buildMode = process.env.NODE_ENV;
@@ -73,7 +74,24 @@ const routes = [
     name: "ProdutosView",
     component: ProdutosView,
     beforeEnter: guardPermissaoRoute,
+    props: (route) => ({
+      isCadastro: false,
+      produto_cod: route.params.id,
+      somenteVisualizacao: false,
+    }),
   },
+  {
+    path: "/catalogo/produto/:id", // catálogo (sempre read-only)
+    name: "catalogoProduto",
+    component: AlteraçõesPendentes,
+    beforeEnter: guardPermissaoRoute,
+    props: (route) => ({
+      isCadastro: false,
+      produto_cod: route.params.id,
+      somenteVisualizacao: true,
+    }),
+  },
+
   {
     path: "/catalogo",
     name: "CatalogoView",

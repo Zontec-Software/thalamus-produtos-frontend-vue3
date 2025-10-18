@@ -89,6 +89,7 @@ export default {
     useModal: { type: Boolean, default: false },
     exibirAcoes: { type: Boolean, default: true },
     exibirApenasEditavel: { type: Boolean, default: true },
+    somenteVisualizacao: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -223,12 +224,9 @@ export default {
     },
 
     abrirDetalhes(produto) {
-      var id = produto.produto_cod;
-      if (this.useModal) {
-        this.$emit("abrir-detalhes", produto);
-      } else {
-        this.$router.push({ name: "cadastroProduto", params: { id } });
-      }
+      const id = produto.produto_cod;
+      const rota = this.somenteVisualizacao ? "catalogoProduto" : "cadastroProduto";
+      this.$router.push({ name: rota, params: { id } });
     },
 
     ordernarTabela(itemReferencia) {
