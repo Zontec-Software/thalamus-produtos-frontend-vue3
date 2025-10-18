@@ -81,7 +81,15 @@ const routes = [
     beforeEnter: guardPermissaoRoute,
   },
   {
-    path: "/cadastroProduto/:id",
+    path: "/cadastroProduto",
+    name: "cadastroProdutoNovo",
+    component: CadastroProduto,
+    props: () => ({ id: null }),
+    beforeEnter: guardPermissaoRoute,
+  },
+
+  {
+    path: "/cadastroProduto/:id(\\d+)",
     name: "cadastroProduto",
     component: CadastroProduto,
     props: true,

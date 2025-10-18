@@ -14,17 +14,7 @@ const funções = {
   // '11', 'Outros Insumos',
   // '12, 'Outras',
   async filtrarProdutos(payload) {
-    return await api.post("/produto-filtrar", payload);
-  },
-
-  async finalizarAtualizacao(produto_cod) {
-    try {
-      const { data } = await api.post(`/produto/finalizar-atualizacao/${produto_cod}`);
-      return data;
-    } catch (error) {
-      console.error("Erro ao finalizar atualização:", error);
-      throw error;
-    }
+    return await api.get("/produto-filtrar", { params: payload });
   },
 
   async getProdutosPorCategoria(tipos) {
@@ -133,31 +123,34 @@ const funções = {
       throw error;
     }
   },
-  async listarProdutosComPaginacao({ searchQuery = "", filtroTipo = "", filtroFamilia = "", pagina = 1 }) {
+  async listarProdutosComPaginacao({ searchQuery = "", filtroTipo = "", filtroFamilia = "", pagina = 1 } = {}) {
     try {
+      // base de filtros: sempre manda "tipo"
       const base = {
         tipo: filtroTipo ? [filtroTipo] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
       };
 
+      // manda "termo"
+      // - senão, paginação e "familia"
       const params =
         searchQuery && searchQuery.trim()
-          ? {
-              ...base,
-              pesquisa: searchQuery.trim(),
-            }
+          ? { ...base, termo: searchQuery.trim() }
           : {
               ...base,
               ...(filtroFamilia ? { familia: filtroFamilia } : {}),
               paginacao: 1,
-              pagina,
+              page: pagina,
             };
 
       const { data } = await api.get("/produto-filtrar", { params });
 
       const items = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-      const totalPages = data?.meta?.total_pages ?? data?.total_paginas ?? null;
 
-      return { items, totalPages };
+      const totalPages = data?.last_page ?? data?.meta?.last_page ?? data?.meta?.total_pages ?? data?.total_paginas ?? null;
+
+      const currentPage = data?.current_page ?? data?.meta?.current_page ?? (totalPages ? pagina : 1);
+
+      return { items, totalPages, currentPage };
     } catch (error) {
       console.error("Erro ao listar produtos:", error);
       throw error;
@@ -326,7 +319,7 @@ const funções = {
   },
 
   //ALTERAR NO OMIE, SEM APROVAÇÃO
-  async finalizarCadastro(id, payload) {
+  async finalizarAtualizacao(id, payload) {
     try {
       const response = await api.patch(`/produto/omie/atualizar/${id}`, payload);
       return response.data;
@@ -343,16 +336,6 @@ const funções = {
       return response.data;
     } catch (error) {
       console.error("Erro ao salvar alterações do produto:", error);
-      throw error;
-    }
-  },
-
-  async salvarNovoProduto(payload) {
-    try {
-      const response = await api.post(`/produto-novo/gravar`, payload);
-      return response.data;
-    } catch (error) {
-      console.error("Erro ao finalizar cadastro de novo produto:", error);
       throw error;
     }
   },
@@ -383,16 +366,6 @@ const funções = {
       return response.data;
     } catch (error) {
       console.error("Erro ao carregar alterações");
-      throw error;
-    }
-  },
-
-  async listarProdutosEmDesenv() {
-    try {
-      const response = await api.get(`/produto-novo/listar`);
-      return response.data;
-    } catch (error) {
-      console.error("Erro ao listar produtos");
       throw error;
     }
   },

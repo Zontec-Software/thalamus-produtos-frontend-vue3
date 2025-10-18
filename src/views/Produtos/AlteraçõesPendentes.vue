@@ -3,9 +3,13 @@
     <div></div>
   </div>
   <section v-else>
-    <div class="margem" style="text-align: right;">
-      <strong> {{ `Atualizado em: ${formatarData(produto_original.updated_at) ?? '?'} - por:
-        ${produto_original.editadoPor ?? '??'}` }} </strong>
+    <div class="margem" style="text-align: right">
+      <strong>
+        {{
+          `Atualizado em: ${formatarData(produto_original.updated_at) ?? "?"} - por:
+        ${produto_original.editadoPor ?? "??"}`
+        }}
+      </strong>
     </div>
     <div>
       <div class="grid-4 container">
@@ -13,50 +17,32 @@
           <div class="grid-4">
             <div>
               <label>Família</label>
-              <select v-model="produto_original.familia_id"
-                @change="atualizarPayLoad('familia_id', produto_original.familia_id)"
-                :disabled="aguardandoAprovaçãoFiscal">
+              <select v-model="produto_original.familia_id" @change="atualizarPayLoad('familia_id', produto_original.familia_id)" :disabled="aguardandoAprovaçãoFiscal">
                 <option disabled value="">Selecione uma família</option>
-                <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome.toUpperCase() }}
-                </option>
+                <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome.toUpperCase() }}</option>
               </select>
             </div>
             <div v-for="campo in camposBasicos" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'"
-                v-model.number="valoresSelecionados[campo.id]"
-                :required="campo.obrigatorio & !valoresSelecionados[campo.id]"
-                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'" v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio & !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id"
-                  :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id"> {{ opcao.valor }} </option>
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id">{{ opcao.valor }}</option>
               </select>
-              <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-                </option>
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
               </select>
-              <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-                </option>
+              <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
               </select>
-              <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)"
-                v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-                @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+              <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)" v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
           <br />
           <div class="grid">
             <div v-for="campo in camposAreaTexto" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <QuillEditor theme="snow" :readOnly="aguardandoAprovaçãoFiscal"
-                v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px;"
-                @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+              <QuillEditor theme="snow" :readOnly="aguardandoAprovaçãoFiscal" v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px" @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
         </div>
@@ -64,16 +50,13 @@
         <div class="bloco2 margem col-1 alinha-centro">
           <div>
             <div v-if="fotosProduto.length > 0" class="carousel">
-              <img v-for="(foto, index) in fotosProduto" :key="index" :src="foto.url" :alt="foto.nome" class="imagem"
-                @click="indiceAtual = index"
-                :style="{ border: indiceAtual === index ? '2px solid var(--cor-primaria)' : 'none' }" />
+              <img v-for="(foto, index) in fotosProduto" :key="index" :src="foto.url" :alt="foto.nome" class="imagem" @click="indiceAtual = index" :style="{ border: indiceAtual === index ? '2px solid var(--cor-primaria)' : 'none' }" />
             </div>
             <div v-else>
               <span>Sem fotos cadastradas.</span>
             </div>
             <br />
-            <a style="cursor: pointer; border: 1px solid; color: var(--cor-primaria);" class="icone-camera"
-              @click="showModalFotos = true"> Gerenciar Fotos </a>
+            <a style="cursor: pointer; border: 1px solid; color: var(--cor-primaria)" class="icone-camera" @click="showModalFotos = true"> Gerenciar Fotos </a>
           </div>
         </div>
         <!-- END FOTOS -->
@@ -81,11 +64,9 @@
       <br />
       <div class="grid-4 container">
         <div class="bloco3 col-4">
-          <div class="tags m-b" style="cursor: pointer;">
-            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')"> Informações
-              Adicionais </a>
-            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')"> Recomendações Fiscais
-            </a>
+          <div class="tags m-b" style="cursor: pointer">
+            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')"> Informações Adicionais </a>
+            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')"> Recomendações Fiscais </a>
           </div>
         </div>
       </div>
@@ -93,19 +74,13 @@
         <fieldset class="margem grid-4">
           <div v-for="campo in camposAdicionais" :key="campo.id">
             <label>{{ campo.label }}</label>
-            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-              </option>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
             </select>
-            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-              </option>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
             </select>
-            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-              :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
-              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
           </div>
         </fieldset>
       </div>
@@ -113,45 +88,29 @@
         <fieldset class="margem grid-4">
           <div v-for="campo in camposFiscaisVisiveis" :key="campo.id">
             <label>{{ campo.label }}</label>
-            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-              </option>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
             </select>
-            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-              </option>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
             </select>
             <div v-else-if="campo.chave === 'id_cest'">
-              <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-                @input="mascaraCest(campo.id)" maxlength="11" placeholder="00.000.000"
-                :disabled="aguardandoAprovaçãoFiscal" />
+              <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="mascaraCest(campo.id)" maxlength="11" placeholder="00.000.000" :disabled="aguardandoAprovaçãoFiscal" />
             </div>
-            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-              :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
-              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
         </fieldset>
       </div>
       <div class="submit m-b direita">
-        <button class="acao-secundaria" @click="encerrarCadastro()" v-if="!isCadastro"> {{ produto_original.editavel ?
-          'Finalizar Cadastro' : 'Retomar Cadastro' }} <!-- Finalizar Cadastro -->
-        </button>
-        <button @click="salvarProduto()">{{ isCadastro ? 'Cadastrar Produto' : 'Salvar' }}</button>
-
-<button class="acao-secundaria" @click="finalizarAtualizacao()" v-if="!isCadastro && produto_original.editavel">
-  Finalizar Atualização
-</button>
-
+        <button class="acao-secundaria" v-if="!isCadastro && produto_original.editavel" @click="finalizarAtualizacao()">Finalizar Atualização</button>
+        <button @click="salvarProduto()">{{ isCadastro ? "Cadastrar Produto" : "Salvar" }}</button>
       </div>
     </div>
   </section>
-  <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
-    @fecharModal="showModalEditarCombo = false, atualizarSelect()" />
+  <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo" @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
   <!-- MODAL FOTOS -->
   <div v-if="showModalFotos" class="modal-mask">
-    <div class="modal-container" style="height: min-content; width: 50rem;">
+    <div class="modal-container" style="height: min-content; width: 50rem">
       <div class="modal-content">
         <div class="modal-header alinha-centro">
           <h3>Gerenciar Fotos</h3>
@@ -174,16 +133,16 @@
   <!-- END MODAL FOTOS -->
 </template>
 <script>
-import serviceProdutos from '@/services/serviceProdutos';
-import serviceAprovacao from '@/services/aprovacao-service'
+import serviceProdutos from "@/services/serviceProdutos";
+import serviceAprovacao from "@/services/aprovacao-service";
 import { sso } from "roboflex-thalamus-sso-lib";
-import ModalEditarCombo from '@/components/Modais/ModalEditarCombo.vue';
-import { getPermissao } from '@/services/permissao-service';
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css';
-import { urlFoto } from '@/services/api';
-import serviceCampos from '@/services/camposPorFamilia-service'
-import { useToast } from 'vue-toastification'
+import ModalEditarCombo from "@/components/Modais/ModalEditarCombo.vue";
+import { getPermissao } from "@/services/permissao-service";
+import { QuillEditor } from "@vueup/vue-quill";
+import "@vueup/vue-quill/dist/vue-quill.snow.css";
+import { urlFoto } from "@/services/api";
+import serviceCampos from "@/services/camposPorFamilia-service";
+import { useToast } from "vue-toastification";
 
 export default {
   name: "AlteracoesProduto",
@@ -192,32 +151,18 @@ export default {
     QuillEditor,
   },
   props: {
-    produto_cod: {
-      type: String,
-      required: true,
-    },
-    isTemplate: {
-      required: false,
-    },
-    isCadastro: {
-      required: true
-    }
+    produto_cod: { type: String, required: false, default: null }, // ✅
+    isTemplate: { required: false },
+    isCadastro: { required: true },
   },
   data() {
     return {
-      ordemCamposPrincipais: [
-        'tipoProduto_id',
-        'familia_id',
-        'cod',
-        'desc',
-        'und',
-        'ncm'
-      ],
+      ordemCamposPrincipais: ["tipoProduto_id", "familia_id", "cod", "desc", "und", "ncm"],
 
       funcionalidades: [],
       aguardandoAprovaçãoFiscal: false,
       produto_original: {
-        familia_id: null
+        familia_id: null,
       },
 
       // produto_editado: {},
@@ -231,10 +176,10 @@ export default {
       listaAbertaNcm: false,
       payLoad: {
         usuario_id: null,
-        ncm: ""
+        ncm: "",
       },
       em_edicao: [],
-      blocoVisivel: 'informacoes',
+      blocoVisivel: "informacoes",
       showModalEditarCombo: false,
       itemEditado: null,
       isLoading: true,
@@ -246,9 +191,6 @@ export default {
       valoresSelecionados: {},
       valorCamposDinamicos: [],
       idIndicadorEscala: null,
-
-
-
     };
   },
 
@@ -257,15 +199,15 @@ export default {
     return { urlFoto, toast };
   },
   watch: {
-    'produto_original.familia_id': {
+    "produto_original.familia_id": {
       immediate: true,
       handler(novaFamiliaId) {
         if (novaFamiliaId) {
-          this.atualizarPayLoad('familia_id', novaFamiliaId);
+          this.atualizarPayLoad("familia_id", novaFamiliaId);
           this.sincronizarCamposComBaseNaFamilia(novaFamiliaId);
         }
-      }
-    }
+      },
+    },
   },
 
   computed: {
@@ -273,53 +215,36 @@ export default {
       return this.funcionalidades.includes(113);
     },
     camposVazios() {
-      return [
-        'origem_mercadoria',
-        'id_preco_tabelado',
-        'id_cest',
-        'indicador_escala',
-        'cnpj_fabricante',
-        'cupom_fiscal',
-        'market_place'
-      ].some(campo => this.produto_original[campo] == null || this.produto_original[campo] === '');
+      return ["origem_mercadoria", "id_preco_tabelado", "id_cest", "indicador_escala", "cnpj_fabricante", "cupom_fiscal", "market_place"].some((campo) => this.produto_original[campo] == null || this.produto_original[campo] === "");
     },
 
     camposBasicos() {
-      return this.camposSelects.filter(c => c.tipo !== 'AreaTexto' && c.fiscal !== true && c.adicional !== true);
+      return this.camposSelects.filter((c) => c.tipo !== "AreaTexto" && c.fiscal !== true && c.adicional !== true);
     },
     camposAreaTexto() {
-      return this.camposSelects.filter(c => c.tipo === 'AreaTexto' && c.fiscal !== true && c.adicional !== true);
+      return this.camposSelects.filter((c) => c.tipo === "AreaTexto" && c.fiscal !== true && c.adicional !== true);
     },
     camposAdicionais() {
-      return this.camposSelects.filter(c => c.adicional === true);
+      return this.camposSelects.filter((c) => c.adicional === true);
     },
     camposFiscais() {
-      return this.camposSelects.filter(c => c.fiscal === true && c.adicional !== true);
+      return this.camposSelects.filter((c) => c.fiscal === true && c.adicional !== true);
     },
 
     camposFiscaisVisiveis() {
       const id = this.idIndicadorEscala;
       const indicador = id ? this.valoresSelecionados[id] : null;
-      return this.camposFiscais.filter(c =>
-        c.chave !== 'cnpj_fabricante' || indicador === 'N'
-      );
+      return this.camposFiscais.filter((c) => c.chave !== "cnpj_fabricante" || indicador === "N");
     },
   },
   async created() {
     this.funcionalidades = await getPermissao();
-    // this.blocoVisivel = this.funcionalidades.includes(113) ? 'fiscais' : 'informacoes';
-    this.blocoVisivel = 'informacoes';
+    this.blocoVisivel = "informacoes";
 
     this.payLoad.usuario_id = sso.getUsuarioLogado().id;
     this.isLoading = true;
     try {
-      await Promise.all([
-        this.carregarAlteracoes(),
-        this.carregarNcm(),
-        this.carregarTiposProduto(),
-        this.carregarFotosProduto(),
-        this.carregarFamilias()
-      ]);
+      await Promise.all([this.isCadastro ? Promise.resolve() : this.carregarAlteracoes(), this.carregarNcm(), this.carregarTiposProduto(), this.isCadastro ? Promise.resolve() : this.carregarFotosProduto(), this.carregarFamilias()]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -327,9 +252,43 @@ export default {
     }
   },
   methods: {
+    buildStagingPayload() {
+      return {
+        ...this.payLoad,
+        campos_dinamicos: this.camposSelects
+          .filter((campo) => campo.omie !== 1)
+          .map((campo) => {
+            const valor = this.valoresSelecionados[campo.id];
+            if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+              return {
+                campo_id: campo.id,
+                valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
+              };
+            }
+            return { campo_id: campo.id, valor: valor ?? null };
+          }),
+      };
+    },
+    async finalizarAtualizacao() {
+      try {
+        if (!this.produto_cod) {
+          this.toast.error("Produto inválido para finalizar.");
+          return;
+        }
 
-    async encerrarCadastro() {
-      await serviceProdutos.finalizarCadastro(this.produto_cod, { editavel: !this.produto_original.editavel });
+        // salvar oque está na tela no staging
+        const payloadStaging = this.buildStagingPayload();
+        await serviceProdutos.salvarLocal(this.produto_cod, payloadStaging);
+
+        // aplica staging no produto + envia ao Omie
+        await serviceProdutos.finalizarAtualizacao(this.produto_cod);
+
+        this.toast.success("Atualização finalizada e enviada à Omie!");
+        this.$router.push({ name: "portfolioView" });
+      } catch (error) {
+        this.toast.error("Erro ao finalizar atualização");
+        console.error(error);
+      }
     },
     mascaraCest(campoId) {
       let valor = this.valoresSelecionados[campoId] || "";
@@ -347,7 +306,6 @@ export default {
       this.atualizarPayLoad("id_cest", valor);
     },
 
-
     async carregarFamilias() {
       try {
         const response = await serviceCampos.listarFamilia();
@@ -357,180 +315,172 @@ export default {
       }
     },
 
-async sincronizarCamposComBaseNaFamilia(familiaId) {
-  this.valoresSelecionados = {};
-  this.camposPrincipais = [];
-  this.camposOutros = [];
+    async sincronizarCamposComBaseNaFamilia(familiaId) {
+      this.valoresSelecionados = {};
+      this.camposPrincipais = [];
+      this.camposOutros = [];
 
-  try {
-    const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
-    const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
+      try {
+        const campos = await serviceCampos.listarCamposFamilia({ familia_id: familiaId });
+        const valores = await serviceCampos.listarValoresCampos({ familia_id: familiaId });
 
-    const campoTipo = campos.find(c => c.chave === 'tipoProduto_id');
-    if (campoTipo && this.tipos?.length) {
-      valores[campoTipo.id] = this.tipos.map(t => ({ id: t.id, valor: t.nome }));
-    }
-
-    const campoStatus = campos.find(c => c.chave === 'status');
-    if (campoStatus) {
-      valores[campoStatus.id] = [
-        { id: 1, valor: 'Ativo' },
-        { id: 0, valor: 'Inativo' },
-      ];
-    }
-
-    const camposSNChaves = ['cupom_fiscal', 'market_place', 'indicador_escala'];
-    camposSNChaves.forEach(chave => {
-      const campo = campos.find(c => c.chave === chave && c.fiscal === true);
-      if (campo) {
-        valores[campo.id] = [
-          { id: 'S', valor: 'Sim' },
-          { id: 'N', valor: 'Não' },
-        ];
-      }
-    });
-
-    const campoEscala = campos.find(c => c.chave === 'indicador_escala' && c.fiscal === true);
-    if (campoEscala) {
-      valores[campoEscala.id] = [
-        { id: null, valor: '' },
-        { id: 'S', valor: 'Produzido em Escala Relevante' },
-        { id: 'N', valor: 'Produzido em Escala NÃO Relevante' },
-      ];
-      this.idIndicadorEscala = campoEscala.id;
-    } else {
-      this.idIndicadorEscala = null;
-    }
-
-    const campoOrigem = campos.find(c => c.chave === 'origem_mercadoria' && c.fiscal === true);
-    if (campoOrigem) {
-      valores[campoOrigem.id] = [
-        { id: '0', valor: 'Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8' },
-        { id: '1', valor: 'Estrangeira - Importação direta, exceto a indicada no código 6' },
-        { id: '2', valor: 'Estrangeira - Adquirida no mercado interno, exceto a indicada no código 7' },
-        { id: '3', valor: 'Nacional, CI > 40% e ≤ 70%' },
-        { id: '4', valor: 'Nacional, PPB conforme legislações dos Ajustes' },
-        { id: '5', valor: 'Nacional, CI ≤ 40%' },
-        { id: '6', valor: 'Estrangeira - Importação direta, sem similar (CAMEX) e gás natural' },
-        { id: '7', valor: 'Estrangeira - Mercado interno, sem similar (CAMEX) e gás natural' },
-        { id: '8', valor: 'Nacional, CI > 70%' },
-      ];
-    }
-
-    this.valoresSelects = valores;
-
-    const camposMapeados = campos.map(campo => ({
-      ...campo,
-      componente: this.definirComponentePorTipo(campo.tipo),
-    }));
-
-    const stagedArr = Array.isArray(this.produto_original?.campos_dinamicos)
-      ? this.produto_original.campos_dinamicos
-      : (this.valorCamposDinamicos || []);
-
-    const camposPrincipaisOrdem = ['tipoProduto_id', 'cod', 'desc', 'und', 'ncm'];
-    const camposSN = ['cupom_fiscal', 'market_place', 'indicador_escala'];
-
-    camposMapeados.forEach(campo => {
-      const stagedDyn = stagedArr.find(d => d.campo_id === campo.id);
-
-      let valorAtual;
-
-      // STAGING (dinâmicos)
-      if (campo.tipo === 'Lista' || campo.tipo === 'MultiLista') {
-        const lista = Array.isArray(stagedDyn?.valor_id) ? stagedDyn.valor_id : [];
-        valorAtual = (campo.tipo === 'Lista') ? (lista.length ? lista[0] : '') : lista;
-      } else if (['Texto', 'Número', 'Decimal', 'Data', 'AreaTexto'].includes(campo.tipo)) {
-        valorAtual = (stagedDyn && Object.prototype.hasOwnProperty.call(stagedDyn, 'valor'))
-          ? stagedDyn.valor
-          : null;
-      }
-
-      // Fallback para FIXOS do produto (desc, cod, und, etc.)
-      const precisaFallback =
-        valorAtual === undefined ||
-        valorAtual === null ||
-        (campo.tipo === 'Lista' && valorAtual === '');
-
-      if (precisaFallback) {
-        const doProduto = this.produto_original[campo.chave];
-        if (doProduto !== undefined && doProduto !== null && doProduto !== '') {
-          valorAtual = doProduto;
+        const campoTipo = campos.find((c) => c.chave === "tipoProduto_id");
+        if (campoTipo && this.tipos?.length) {
+          valores[campoTipo.id] = this.tipos.map((t) => ({ id: t.id, valor: t.nome }));
         }
-      }
 
-      // Ajustes e defaults
-      if (campo.chave === 'status' && valorAtual !== null && valorAtual !== '') {
-        valorAtual = typeof valorAtual === 'string' ? Number(valorAtual) : valorAtual;
-      }
-      if (camposSN.includes(campo.chave) && (valorAtual === null || valorAtual === undefined || valorAtual === '')) {
-        valorAtual = 'N';
-      }
-      if (campo.chave === 'origem_mercadoria' && (valorAtual === null || valorAtual === undefined || valorAtual === '')) {
-        valorAtual = '0';
-      }
+        const campoStatus = campos.find((c) => c.chave === "status");
+        if (campoStatus) {
+          valores[campoStatus.id] = [
+            { id: 1, valor: "Ativo" },
+            { id: 0, valor: "Inativo" },
+          ];
+        }
 
-      if (campo.tipo === 'MultiLista' && !Array.isArray(valorAtual)) {
-        valorAtual = valorAtual ? [valorAtual] : [];
-      }
+        const camposSNChaves = ["cupom_fiscal", "market_place", "indicador_escala"];
+        camposSNChaves.forEach((chave) => {
+          const campo = campos.find((c) => c.chave === chave && c.fiscal === true);
+          if (campo) {
+            valores[campo.id] = [
+              { id: "S", valor: "Sim" },
+              { id: "N", valor: "Não" },
+            ];
+          }
+        });
 
-      this.valoresSelecionados[campo.id] = valorAtual;
-      this.atualizarPayLoad(campo.chave, this.valoresSelecionados[campo.id]);
-    });
+        const campoEscala = campos.find((c) => c.chave === "indicador_escala" && c.fiscal === true);
+        if (campoEscala) {
+          valores[campoEscala.id] = [
+            { id: null, valor: "" },
+            { id: "S", valor: "Produzido em Escala Relevante" },
+            { id: "N", valor: "Produzido em Escala NÃO Relevante" },
+          ];
+          this.idIndicadorEscala = campoEscala.id;
+        } else {
+          this.idIndicadorEscala = null;
+        }
 
-    const camposSemFamilia = camposMapeados.filter(c => c.chave !== 'familia_id');
+        const campoOrigem = campos.find((c) => c.chave === "origem_mercadoria" && c.fiscal === true);
+        if (campoOrigem) {
+          valores[campoOrigem.id] = [
+            { id: "0", valor: "Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8" },
+            { id: "1", valor: "Estrangeira - Importação direta, exceto a indicada no código 6" },
+            { id: "2", valor: "Estrangeira - Adquirida no mercado interno, exceto a indicada no código 7" },
+            { id: "3", valor: "Nacional, CI > 40% e ≤ 70%" },
+            { id: "4", valor: "Nacional, PPB conforme legislações dos Ajustes" },
+            { id: "5", valor: "Nacional, CI ≤ 40%" },
+            { id: "6", valor: "Estrangeira - Importação direta, sem similar (CAMEX) e gás natural" },
+            { id: "7", valor: "Estrangeira - Mercado interno, sem similar (CAMEX) e gás natural" },
+            { id: "8", valor: "Nacional, CI > 70%" },
+          ];
+        }
 
-    this.camposPrincipais = camposPrincipaisOrdem
-      .map(chave => camposSemFamilia.find(c => c.chave === chave))
-      .filter(Boolean);
+        this.valoresSelects = valores;
 
-    this.camposOutros = camposSemFamilia.filter(c => !camposPrincipaisOrdem.includes(c.chave));
+        const camposMapeados = campos.map((campo) => ({
+          ...campo,
+          componente: this.definirComponentePorTipo(campo.tipo),
+        }));
 
-    this.camposSelects = [...this.camposPrincipais, ...this.camposOutros];
+        const stagedArr = Array.isArray(this.produto_original?.campos_dinamicos) ? this.produto_original.campos_dinamicos : this.valorCamposDinamicos || [];
 
-  } catch (error) {
-    console.error("Erro ao sincronizar campos da família:", error);
-  }
-},
+        const camposPrincipaisOrdem = ["tipoProduto_id", "cod", "desc", "und", "ncm"];
+        const camposSN = ["cupom_fiscal", "market_place", "indicador_escala"];
 
-    definirComponentePorTipo(tipo) {
-      switch (tipo) {
-        case 'Lista': return 'select';
-        case 'MultiLista': return 'multiselect';
-        case 'Texto':
-        case 'Número':
-        case 'Decimal':
-        case 'Data':
-        case 'AreaTexto':
-          return 'quill';
-        default: return 'input';
+        camposMapeados.forEach((campo) => {
+          const stagedDyn = stagedArr.find((d) => d.campo_id === campo.id);
+
+          let valorAtual;
+
+          // STAGING (dinâmicos)
+          if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+            const lista = Array.isArray(stagedDyn?.valor_id) ? stagedDyn.valor_id : [];
+            valorAtual = campo.tipo === "Lista" ? (lista.length ? lista[0] : "") : lista;
+          } else if (["Texto", "Número", "Decimal", "Data", "AreaTexto"].includes(campo.tipo)) {
+            valorAtual = stagedDyn && Object.prototype.hasOwnProperty.call(stagedDyn, "valor") ? stagedDyn.valor : null;
+          }
+
+          // fixos do produto (desc, cod, und, etc.)
+          const precisaFallback = valorAtual === undefined || valorAtual === null || (campo.tipo === "Lista" && valorAtual === "");
+
+          if (precisaFallback) {
+            const doProduto = this.produto_original[campo.chave];
+            if (doProduto !== undefined && doProduto !== null && doProduto !== "") {
+              valorAtual = doProduto;
+            }
+          }
+
+          // Ajustes e defaults
+          if (campo.chave === "status" && valorAtual !== null && valorAtual !== "") {
+            valorAtual = typeof valorAtual === "string" ? Number(valorAtual) : valorAtual;
+          }
+          if (camposSN.includes(campo.chave) && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
+            valorAtual = "N";
+          }
+          if (campo.chave === "origem_mercadoria" && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
+            valorAtual = "0";
+          }
+
+          if (campo.tipo === "MultiLista" && !Array.isArray(valorAtual)) {
+            valorAtual = valorAtual ? [valorAtual] : [];
+          }
+
+          this.valoresSelecionados[campo.id] = valorAtual;
+          this.atualizarPayLoad(campo.chave, this.valoresSelecionados[campo.id]);
+        });
+
+        const camposSemFamilia = camposMapeados.filter((c) => c.chave !== "familia_id");
+
+        this.camposPrincipais = camposPrincipaisOrdem.map((chave) => camposSemFamilia.find((c) => c.chave === chave)).filter(Boolean);
+
+        this.camposOutros = camposSemFamilia.filter((c) => !camposPrincipaisOrdem.includes(c.chave));
+
+        this.camposSelects = [...this.camposPrincipais, ...this.camposOutros];
+      } catch (error) {
+        console.error("Erro ao sincronizar campos da família:", error);
       }
     },
 
+    definirComponentePorTipo(tipo) {
+      switch (tipo) {
+        case "Lista":
+          return "select";
+        case "MultiLista":
+          return "multiselect";
+        case "Texto":
+        case "Número":
+        case "Decimal":
+        case "Data":
+        case "AreaTexto":
+          return "quill";
+        default:
+          return "input";
+      }
+    },
 
     formatarData(data) {
       if (!data) return "-";
       try {
         // const [dataParte, horaParte] = data.split('T');
-        const [dataParte] = data.split('T');
+        const [dataParte] = data.split("T");
 
-        const [ano, mes, dia] = dataParte.split('-');
+        const [ano, mes, dia] = dataParte.split("-");
         // const [hora, minuto] = horaParte.split(':');
         // return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
         return `${dia}/${mes}/${ano} `;
-
       } catch {
         return "-";
       }
     },
 
     async carregarFotosProduto() {
+      if (!this.produto_cod) return;
       try {
         const response = await serviceProdutos.listarAnexo(this.produto_cod);
-        this.fotosProduto = response.map(anexo => ({
+        this.fotosProduto = response.map((anexo) => ({
           id: anexo.id,
           url: `${urlFoto.caminhoFoto}${anexo.caminho}`,
-          nome: anexo.nome
+          nome: anexo.nome,
         }));
       } catch (error) {
         console.error("Erro ao carregar fotos do produto:", error);
@@ -547,7 +497,7 @@ async sincronizarCamposComBaseNaFamilia(familiaId) {
       }
 
       const formData = new FormData();
-      formData.append('arquivo', file);
+      formData.append("arquivo", file);
 
       try {
         await serviceProdutos.gravarAnexo(formData, this.produto_cod);
@@ -571,29 +521,29 @@ async sincronizarCamposComBaseNaFamilia(familiaId) {
       }
     },
 
-
     removerEspecificação(i) {
-      this.produto_original.especificacoes = this.produto_original.especificacoes.filter(item => item != i);
-      this.atualizarPayLoad('especificacoes', this.produto_original.especificacoes.map(i => i.id))
+      this.produto_original.especificacoes = this.produto_original.especificacoes.filter((item) => item != i);
+      this.atualizarPayLoad(
+        "especificacoes",
+        this.produto_original.especificacoes.map((i) => i.id)
+      );
     },
     adicionarEspecificação(item) {
       this.produto_original.especificacoes.push(item);
-      this.atualizarPayLoad('especificacoes', this.produto_original.especificacoes.map(i => i.id))
-
+      this.atualizarPayLoad(
+        "especificacoes",
+        this.produto_original.especificacoes.map((i) => i.id)
+      );
     },
     atualizarSelect() {
-      this.carregarNcm(),
-        this.carregarTiposProduto(),
-        this.carregarFamilias(),
-        this.carregarNcmPorId()
+      this.carregarNcm(), this.carregarTiposProduto(), this.carregarFamilias(), this.carregarNcmPorId();
     },
     async cadastrarOMIE() {
-      var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original)
+      var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original);
       if (response) {
         this.toast.success("Produto cadastrado com sucesso!");
       }
     },
-
 
     async carregarNcm() {
       try {
@@ -617,13 +567,12 @@ async sincronizarCamposComBaseNaFamilia(familiaId) {
       this.listaAbertaNcm = true;
     },
     fecharListaNcm() {
-      setTimeout(() => { this.listaAbertaNcm = false; }, 200);
+      setTimeout(() => {
+        this.listaAbertaNcm = false;
+      }, 200);
     },
     filtrarNcm() {
-      this.filteredNcm = this.ncmLista.filter(item =>
-        item.descricao.toLowerCase().includes(this.searchQueryNcm.toLowerCase()) ||
-        String(item.codigo).includes(this.searchQueryNcm)
-      );
+      this.filteredNcm = this.ncmLista.filter((item) => item.descricao.toLowerCase().includes(this.searchQueryNcm.toLowerCase()) || String(item.codigo).includes(this.searchQueryNcm));
     },
     selecionarNcm(ncm) {
       this.searchQueryNcm = `${ncm.codigo} - ${ncm.descricao}`;
@@ -639,41 +588,51 @@ async sincronizarCamposComBaseNaFamilia(familiaId) {
       }
     },
     salvarTemplate() {
-      console.log("aqui")
+      console.log("aqui");
     },
     async atualizarPayLoad(chave, valor) {
       this.payLoad[chave] = valor;
     },
-async salvarProduto() {
-  try {
-    this.errors = {};
-    const cest = this.valoresSelecionados["id_cest"];
-    const regexCest = /^\d{2}\.\d{3}\.\d{3}$/;
+    async salvarProduto() {
+      try {
+        this.errors = {};
+        const cest = this.valoresSelecionados["id_cest"];
+        const regexCest = /^\d{2}\.\d{3}\.\d{3}$/;
 
-    if (cest && !regexCest.test(cest)) {
-      this.errors["id_cest"] = "O CEST deve estar no formato 00.000.000";
-      this.toast.error(this.errors["id_cest"]);
-      return;
-    }
+        if (cest && !regexCest.test(cest)) {
+          this.errors["id_cest"] = "O CEST deve estar no formato 00.000.000";
+          this.toast.error(this.errors["id_cest"]);
+          return;
+        }
 
-    // CADASTRO de novo produto (já envia pro Omie)
-    if (this.isCadastro) {
-      this.payLoad.editavel = true;
-      this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
-      await serviceProdutos.cadastrarProdutoOMIE(this.payLoad);
-      this.toast.success("Produto enviado com sucesso!");
-      return;
-    }
+        // cadastro de novo produto (já envia pro Omie)
+        if (this.isCadastro) {
+          this.payLoad.editavel = true;
+          this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
+          await serviceProdutos.cadastrarProdutoOMIE(this.payLoad);
+          this.toast.success("Produto enviado com sucesso!");
+          return;
+        }
 
-    // EDIÇÃO de produto existente
-    if (this.produto_original.editavel) {
-      // >>>>>> SALVAR EM STAGING (local) <<<<<<
-      const payloadStaging = {
-        ...this.payLoad,
-        // IMPORTANTÍSSIMO: incluir os campos dinâmicos no staging em JSON
-        campos_dinamicos: this.camposSelects
-          .filter(campo => campo.omie !== 1)
-          .map(campo => {
+        // edição de produto existente
+        if (this.produto_original.editavel) {
+          const payloadStaging = this.buildStagingPayload();
+          await serviceProdutos.salvarLocal(this.produto_cod, payloadStaging);
+          this.toast.success("Alterações salvas (rascunho). Clique em Finalizar Atualização para aplicar.");
+          return;
+        }
+
+        // edição com editavel = false (aplica direto e já manda Omie)
+        const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
+        this.camposSelects
+          .filter((campo) => campo.omie === 1)
+          .forEach((campo) => {
+            payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
+          });
+
+        payloadAtualizar.campos_dinamicos = this.camposSelects
+          .filter((campo) => campo.omie !== 1)
+          .map((campo) => {
             const valor = this.valoresSelecionados[campo.id];
             if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
               return {
@@ -682,79 +641,37 @@ async salvarProduto() {
               };
             }
             return { campo_id: campo.id, valor: valor ?? null };
-          }),
-      };
+          });
 
-      await serviceProdutos.salvarLocal(this.produto_cod, payloadStaging);
-      this.toast.success("Alterações salvas (rascunho). Clique em Finalizar Atualização para aplicar.");
-      return;
-    }
-
-    // EDIÇÃO com editavel = false (fluxo antigo, aplica direto e já manda Omie)
-    const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
-    this.camposSelects
-      .filter(campo => campo.omie === 1)
-      .forEach(campo => {
-        payloadAtualizar[campo.chave] = this.valoresSelecionados[campo.id] ?? null;
-      });
-
-    payloadAtualizar.campos_dinamicos = this.camposSelects
-      .filter(campo => campo.omie !== 1)
-      .map(campo => {
-        const valor = this.valoresSelecionados[campo.id];
-        if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
-          return {
-            campo_id: campo.id,
-            valor_id: Array.isArray(valor) ? valor : valor ? [valor] : [],
-          };
+        await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
+        this.toast.success("Produto salvo com sucesso!");
+      } catch (error) {
+        if (error.response?.data?.errors?.id_cest) {
+          this.toast.error("CEST inválido. Use 00.000.000");
+        } else {
+          this.toast.error("Erro ao salvar produto");
         }
-        return { campo_id: campo.id, valor: valor ?? null };
-      });
-
-    await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
-    this.toast.success("Produto salvo com sucesso!");
-
-  } catch (error) {
-    if (error.response?.data?.errors?.id_cest) {
-      this.toast.error("CEST inválido. Use 00.000.000");
-    } else {
-      this.toast.error("Erro ao salvar produto");
-    }
-    console.error("Erro ao salvar produto:", error);
-  }
-},
-
-    async finalizarAtualizacao() {
-  try {
-    await serviceProdutos.finalizarAtualizacao(this.produto_cod);
-    this.toast.success("Atualização finalizada e enviada à Omie!");
-    this.$router.push({ name: "portfolioView" });
-  } catch (error) {
-    this.toast.error("Erro ao finalizar atualização");
-    console.error(error);
-  }
-},
+        console.error("Erro ao salvar produto:", error);
+      }
+    },
     async finalizarCadastro() {
       try {
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
         this.toast.success("Produto finalizado com sucesso!");
       } catch (error) {
-        this.toast.error("Erro ao finalizar produto")
+        this.toast.error("Erro ao finalizar produto");
         console.error("Erro ao salvar produto:", error);
       }
     },
     async carregarAlteracoes() {
+      if (!this.produto_cod) return;
       try {
         const response = await serviceProdutos.carregarAlteracoesOriginalEditado(this.produto_cod);
         this.produto_original = response.produto_editado;
 
-        this.valorCamposDinamicos = Array.isArray(response.produto_editado?.campos_dinamicos)
-  ? response.produto_editado.campos_dinamicos
-  : (response.campos_dinamicos || []);
+        this.valorCamposDinamicos = Array.isArray(response.produto_editado?.campos_dinamicos) ? response.produto_editado.campos_dinamicos : response.campos_dinamicos || [];
 
-        // this.produto_editado = response.produto_editado;
         this.em_edicao = response.em_edicao;
-
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
       }
@@ -769,16 +686,16 @@ async salvarProduto() {
         return;
       }
 
-      serviceAprovacao.enviarParaAprovacao(produto_cod, usuario_id)
+      serviceAprovacao
+        .enviarParaAprovacao(produto_cod, usuario_id)
         .then(() => {
           this.toast.success("Produto enviado para aprovação com sucesso!");
-          this.$router.back()
-
+          this.$router.back();
         })
         .catch((error) => {
           this.toast.error("Erro ao enviar produto para aprovação.");
           console.error("Erro ao enviar para aprovação:", error);
-          this.$router.back()
+          this.$router.back();
         });
     },
 
@@ -790,11 +707,8 @@ async salvarProduto() {
         console.error("Erro ao carregar Tipos de Produto:", error);
       }
     },
-  }
-}
-
-
-
+  },
+};
 </script>
 <style scoped>
 .grid-4,

@@ -4,8 +4,7 @@
       <v-btn class="acao-secundaria" icon="mdi-plus" v-bind="props"></v-btn>
     </template>
     <v-list>
-      <v-list-item v-for="(item, index) in opções" :key="index" @click="cadastrarProduto(item)"> {{ item }}
-      </v-list-item>
+      <v-list-item v-for="(item, index) in opções" :key="index" @click="cadastrarProduto(item)"> {{ item }} </v-list-item>
     </v-list>
   </v-menu>
 </template>
@@ -14,19 +13,12 @@ export default {
   name: "BotaoFlutuante",
   data() {
     return {
-      opções: [
-        "Produto em Processo",
-        "Produto Acabado"
-
-      ],
+      opções: ["Produto em Processo", "Produto Acabado"],
     };
   },
   methods: {
-    cadastrarProduto(index) {
-      this.$router.push({
-        name: "cadastroProduto",
-        params: { id: index.toString() },
-      });
+    cadastrarProduto() {
+      this.$router.push({ name: "cadastroProdutoNovo" });
     },
   },
 };
