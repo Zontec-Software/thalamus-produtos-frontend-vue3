@@ -12,7 +12,7 @@
         }}
       </strong>
     </div>
-    <div>
+    <div class="margem container">
       <div class="grid-4 container">
         <div class="bloco2 margem col-3">
           <div class="grid-4">
@@ -107,7 +107,7 @@
         <button class="acao-secundaria" v-if="!isReadOnly && !isCadastro && produto_original.editavel" @click="finalizarAtualizacao()">Finalizar Edição</button>
 
         <!-- Editando: botão para habilitar edição -->
-        <button data-allow-when-readonly class="acao-secundaria" v-if="!isCadastro && !produto_original.editavel" @click="enviarParaEdicao()">Enviar para Edição</button>
+        <button data-allow-when-readonly class="" v-if="!isCadastro && !produto_original.editavel" @click="enviarParaEdicao()">Enviar para Edição</button>
 
         <!-- Salvar/Cadastrar -->
         <button v-if="!isReadOnly" @click="salvarProduto()">
@@ -270,6 +270,41 @@ export default {
     }
   },
   methods: {
+    buildCamposDinamicosCadastro() {
+      return (
+        this.camposSelects
+          .filter((campo) => campo.omie !== 1) // dinâmicos
+          .map((campo) => {
+            const valor = this.valoresSelecionados[campo.id];
+            if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
+              const arr = Array.isArray(valor) ? valor : valor ? [valor] : [];
+              return { campo_id: campo.id, valor_id: arr };
+            }
+            return { campo_id: campo.id, valor: valor ?? null };
+          })
+          // não enviar campos vazios
+          .filter((c) => (c.valor_id?.length ?? 0) > 0 || (c.valor ?? "") !== "")
+      );
+    },
+
+    //Normaliza nomes
+    normalizeCadastroPayload(payload) {
+      const p = { ...payload };
+
+      if (p.peso_liquido != null) {
+        p.peso_liq = p.peso_liquido;
+        delete p.peso_liquido;
+      }
+      if (p.dias_de_crossdocking != null) {
+        p.dias_crossdocking = p.dias_de_crossdocking;
+        delete p.dias_de_crossdocking;
+      }
+
+      if ("null" in p) delete p.null;
+
+      return p;
+    },
+
     buildStagingPayload() {
       return {
         ...this.payLoad,
@@ -566,6 +601,7 @@ export default {
         this.produto_original.especificacoes.map((i) => i.id)
       );
     },
+
     adicionarEspecificação(item) {
       this.produto_original.especificacoes.push(item);
       this.atualizarPayLoad(
@@ -573,9 +609,11 @@ export default {
         this.produto_original.especificacoes.map((i) => i.id)
       );
     },
+
     atualizarSelect() {
       this.carregarNcm(), this.carregarTiposProduto(), this.carregarFamilias(), this.carregarNcmPorId();
     },
+
     async cadastrarOMIE() {
       var response = await serviceProdutos.cadastrarProdutoOMIE(this.produto_original);
       if (response) {
@@ -629,6 +667,7 @@ export default {
       console.log("aqui");
     },
     async atualizarPayLoad(chave, valor) {
+      if (!chave) return; // teste
       if (this.isReadOnly && !this.isCadastro) return;
       this.payLoad[chave] = valor;
     },
@@ -637,6 +676,7 @@ export default {
         this.toast.info("Este produto está em visualização. Clique em 'Enviar para Edição'.");
         return;
       }
+
       try {
         this.errors = {};
         const cest = this.valoresSelecionados["id_cest"];
@@ -648,11 +688,19 @@ export default {
           return;
         }
 
-        // cadastro de novo produto (já envia pro Omie)
+        // cadastro de novo produto
         if (this.isCadastro) {
-          this.payLoad.editavel = true;
-          this.payLoad.familia_id = this.produto_original.familia_id ?? this.payLoad.familia_id ?? null;
-          await serviceProdutos.cadastrarProdutoOMIE(this.payLoad);
+          const campos_dinamicos = this.buildCamposDinamicosCadastro();
+          const bruto = {
+            ...this.payLoad,
+            editavel: true,
+            familia_id: this.produto_original.familia_id ?? this.payLoad.familia_id ?? null,
+            campos_dinamicos,
+          };
+
+          const payload = this.normalizeCadastroPayload(bruto);
+
+          await serviceProdutos.cadastrarProdutoOMIE(payload);
           this.toast.success("Produto enviado com sucesso!");
           this.$router.push({ name: "CatalogoView" });
           return;

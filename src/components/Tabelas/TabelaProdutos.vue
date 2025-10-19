@@ -58,6 +58,7 @@
   <div v-if="carregando" class="loading">
     <div></div>
   </div>
+  <div v-if="!carregando && listaProdutosFiltrada.length === 0" class="estado-vazio">Nenhum produto encontrado.</div>
   <div class="alinha-centro">
     <div class="paginacao">
       <button :disabled="!prevPageUrl" @click="carregarPagina(prevPageUrl)">
@@ -70,9 +71,6 @@
         <i class="fa-solid fa-chevron-right"></i>
       </button>
     </div>
-  </div>
-  <div class="loading" v-if="produtos.length == 0">
-    <div></div>
   </div>
 </template>
 <script>
@@ -100,93 +98,120 @@ export default {
       nextPageUrl: null,
       prevPageUrl: null,
       pesquisando: false,
+      carregando: false,
+      debounceTimer: null,
+      debounceMs: 400,
+      ultimoPayloadStr: "",
     };
   },
   async mounted() {
-    this.carregarPagina();
-
-    try {
-      if (this.exibirApenasEditavel) {
-        this.produtos = await serviceProdutos.getProdutosEditaveis();
-      } else {
-        this.produtos = await serviceProdutos.getProdutos();
-      }
-      this.filtrarProdutos();
-    } catch (error) {
-      console.error("Erro ao carregar produtos:", error);
-    }
+    this.carregarPagina(1);
   },
   watch: {
     searchQuery() {
-      this.pesquisarProdutos();
+      this.dispararPesquisaDebounced();
     },
     filtro() {
-      this.filtrarProdutos();
+      this.dispararPesquisaDebounced();
     },
     filtroTipo() {
-      this.filtrarProdutos();
+      this.dispararPesquisaDebounced();
     },
     filtroFamilia() {
-      this.filtrarProdutos();
+      this.dispararPesquisaDebounced();
     },
   },
 
   methods: {
+    toListaProdutos(resp) {
+      if (Array.isArray(resp)) return resp;
+      if (resp && Array.isArray(resp.data)) return resp.data;
+      if (resp && Array.isArray(resp.data?.data)) return resp.data.data;
+      return [];
+    },
+
+    dispararPesquisaDebounced() {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        this.pesquisarProdutosGuard();
+      }, this.debounceMs);
+    },
+
+    async pesquisarProdutosGuard() {
+      const payload = {
+        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        ...(this.exibirApenasEditavel ? { editavel: true } : {}),
+      };
+      if (this.searchQuery) payload.termo = this.searchQuery;
+      else if (this.filtroTipo) payload.termo = this.filtroTipo;
+      else if (this.filtroFamilia) payload.termo = this.filtroFamilia;
+      else if (this.filtro) payload.termo = this.filtro;
+
+      const payloadStr = JSON.stringify(payload);
+      if (payloadStr === this.ultimoPayloadStr) return;
+      this.ultimoPayloadStr = payloadStr;
+
+      await this.carregarPagina(1);
+    },
+
     async pesquisarProdutos() {
-      try {
-        this.carregando = true;
-
-        let payload = {
-          tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        };
-
-        if (this.exibirApenasEditavel) {
-          payload.editavel = true;
-        }
-
-        if (this.searchQuery) {
-          payload.termo = this.searchQuery;
-        } else if (this.filtroTipo) {
-          payload.termo = this.filtroTipo;
-        } else if (this.filtroFamilia) {
-          payload.termo = this.filtroFamilia;
-        }
-
-        const response = await serviceProdutos.filtrarProdutos(payload);
-        const produtos = Array.isArray(response.data) ? response.data : response.data?.data || [];
-
-        this.produtos = produtos;
-        this.filtrarProdutos();
-      } catch (error) {
-        console.error("Erro ao pesquisar produtos:", error);
-      } finally {
-        this.carregando = false;
-      }
+      await this.carregarPagina(1);
     },
 
     async carregarPagina(pagina = 1) {
+      const reqId = (this._reqId = (this._reqId || 0) + 1);
       try {
         this.carregando = true;
-        var response = {};
 
-        if (this.exibirApenasEditavel) {
-          response = await serviceProdutos.getProdutosEditaveis(pagina);
+        let resp;
+        const temFiltro = !!this.searchQuery || !!this.filtroTipo || !!this.filtroFamilia || !!this.filtro;
+
+        if (temFiltro) {
+          const payload = { tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] };
+          if (this.exibirApenasEditavel) payload.editavel = true;
+          if (this.searchQuery) payload.termo = this.searchQuery;
+          else if (this.filtroTipo) payload.termo = this.filtroTipo;
+          else if (this.filtroFamilia) payload.termo = this.filtroFamilia;
+          else if (this.filtro) payload.termo = this.filtro;
+
+          resp = await serviceProdutos.filtrarProdutos(payload, pagina);
         } else {
-          response = await serviceProdutos.getProdutos(pagina);
+          resp = this.exibirApenasEditavel ? await serviceProdutos.getProdutosEditaveis(pagina) : await serviceProdutos.getProdutos(pagina);
         }
 
-        this.produtos = response.data;
-        this.paginaAtual = response.current_page;
-        this.ultimaPagina = response.last_page;
+        if (reqId !== this._reqId) return;
 
+        let lista = [];
+        let current = 1;
+        let last = 1;
+
+        if (Array.isArray(resp)) {
+          lista = resp;
+        } else if (resp && typeof resp === "object") {
+          const payload = resp.data && typeof resp.data === "object" && !Array.isArray(resp.data) ? resp.data : resp;
+
+          lista = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
+          current = Number(payload.current_page) || 1;
+          last = Number(payload.last_page) || 1;
+        }
+
+        this.produtos = lista;
+        this.paginaAtual = current;
+        this.ultimaPagina = last;
         this.nextPageUrl = this.paginaAtual < this.ultimaPagina ? this.paginaAtual + 1 : null;
         this.prevPageUrl = this.paginaAtual > 1 ? this.paginaAtual - 1 : null;
 
         this.filtrarProdutos();
-      } catch (error) {
-        console.error("Erro ao carregar produtos:", error);
+      } catch (e) {
+        console.error("Erro ao carregar produtos:", e);
+        this.produtos = [];
+        this.listaProdutosFiltrada = [];
+        this.paginaAtual = 1;
+        this.ultimaPagina = 1;
+        this.nextPageUrl = null;
+        this.prevPageUrl = null;
       } finally {
-        this.carregando = false;
+        if (reqId === this._reqId) this.carregando = false;
       }
     },
 
@@ -285,6 +310,12 @@ export default {
 };
 </script>
 <style>
+.estado-vazio {
+  text-align: center;
+  padding: 16px;
+  color: var(--cor-fonte-fraca);
+}
+
 .alinha-centro {
   display: flex;
   justify-content: center;
