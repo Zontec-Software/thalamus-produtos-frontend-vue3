@@ -24,6 +24,7 @@
       <router-link to="/gabarito" active-class="ativo">Gabaritos</router-link>
       <router-link to="/configurar" active-class="ativo">Campos por Família</router-link>
       <router-link to="/codificacoes" active-class="ativo">Codificação de Serviços</router-link>
+      <!-- <router-link to="/novaFicha">Nova Ficha de Produtos</router-link> -->
       <!-- <router-link to="/campos" active-class="ativo">Cadastro de Campos</router-link> -->
       <!-- <router-link to="/camposListar" active-class="ativo">Campos Listar</router-link> -->
       <!-- <router-link v-if="permissoes.includes(97)" to="/produtos" active-class="ativo">Produtos em      
