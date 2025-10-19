@@ -17,6 +17,8 @@ import CamposListar from "@/views/Produtos/CamposListar.vue";
 import ProdutosView from "@/views/Produtos/ProdutosView.vue";
 import CatalogoView from "@/views/Produtos/CatalogoView.vue";
 import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
+import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
+
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
   const buildMode = process.env.NODE_ENV;
@@ -209,6 +211,12 @@ const routes = [
   {
     path: "/login",
     redirect: "http://portal.thalamus.com.br/#/login",
+  },
+  {
+    path: '/novaFicha',
+    name: 'NovaFicha',
+    component: NovaFicha,
+    beforeEnter: guardPermissaoRoute
   },
 ];
 
