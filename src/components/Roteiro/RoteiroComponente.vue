@@ -246,8 +246,33 @@
             </div>
         </div>
         <!-- END MODAL ANEXOS INSPEÇÃO -->
-        <!-- MODAL SERVIÇO -->
         <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
+            <div class="jm margem" @click.stop>
+                <fieldset class="grid-2">
+                    <div>
+                        <label>Código do serviço</label>
+                        <input type="text" readonly v-model="novoServico.cod">
+                    </div>
+                    <div>
+                        <label>Verbo</label>
+                        <AutoCompleteComponent :substituir="false" id="ac-verbo" :opcoes="verbosOptions"
+                            @adicionarItem="selecionarVerbo" />
+                    </div>
+                    <div>
+                        <label>Objeto</label>
+                        <AutoCompleteComponent :substituir="false" id="ac-objeto" :opcoes="objetosOptions"
+                            @adicionarItem="selecionarObjeto" />
+                    </div>
+                    <div>
+                        <label>Local</label>
+                        <AutoCompleteComponent :substituir="false" id="ac-local" :opcoes="locaisOptions"
+                            @adicionarItem="selecionarLocal" />
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <!-- MODAL SERVIÇO -->
+        <!-- <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
             <div class="jm margem" @click.stop>
                 <div class="alinha-centro">
                     <h3>Adicionar Serviço</h3>
@@ -286,8 +311,82 @@
                     <button @click="adicionarServico">Adicionar</button>
                 </div>
             </div>
-        </div>
+        </div> -->
         <!-- END MODAL SERVIÇO -->
+        <div v-if="modalAdicionarServico" class="modal-mask" @click.self="fecharModais">
+            <div class="jm margem" @click.stop>
+                <div class="alinha-centro">
+                    <h3>Adicionar Serviço</h3>
+                </div>
+                <fieldset class="grid-2 compact-grid">
+                    <div>
+                        <label>Código do serviço</label>
+                        <input type="text" readonly v-model="novoServico.cod">
+                    </div>
+                    <!-- VERBO -->
+                    <div>
+                        <label>Verbo</label>
+                        <div class="dropdown-wrapper">
+                            <input type="text" v-model="searchVerbo" placeholder="Buscar Verbo" />
+                            <div class="dropdown">
+                                <RecycleScroller :items="filteredVerbosOptions" :item-size="10" key-field="id"
+                                    class="scroller scroller-sm">
+                                    <template #default="{ item }">
+                                        <div class="item" @click="selecionarVerbo(item)"> {{ item.cod }} - {{ item.desc
+                                        }} </div>
+                                    </template>
+                                </RecycleScroller>
+                            </div>
+                        </div>
+                        <label class="alinha-centro" style="color: var(--cor-sucesso);"
+                            v-if="novoServico.verbo">Selecionado: {{ pad2(novoServico.verbo.id) }} - {{
+                                novoServico.verbo.nome }}</label>
+                    </div>
+                    <!-- OBJETO -->
+                    <div>
+                        <label>Objeto</label>
+                        <div class="dropdown-wrapper">
+                            <input type="text" v-model="searchObjeto" placeholder="Buscar Objeto" />
+                            <div class="dropdown">
+                                <RecycleScroller :items="filteredObjetosOptions" :item-size="10" key-field="id"
+                                    class="scroller scroller-sm">
+                                    <template #default="{ item }">
+                                        <div class="item" @click="selecionarObjeto(item)"> {{ item.cod }} - {{ item.desc
+                                        }} </div>
+                                    </template>
+                                </RecycleScroller>
+                            </div>
+                        </div>
+                        <label class="alinha-centro" style="color: var(--cor-sucesso);"
+                            v-if="novoServico.objeto">Selecionado: {{ pad2(novoServico.objeto.id) }} - {{
+                                novoServico.objeto.nome }}</label>
+                    </div>
+                    <!-- LOCAL -->
+                    <div>
+                        <label>Local</label>
+                        <div class="dropdown-wrapper">
+                            <input type="text" v-model="searchLocal" placeholder="Buscar Local" />
+                            <div class="dropdown">
+                                <RecycleScroller :items="filteredLocaisOptions" :item-size="10" key-field="id"
+                                    class="scroller scroller-sm">
+                                    <template #default="{ item }">
+                                        <div class="item" @click="selecionarLocal(item)"> {{ item.cod }} - {{ item.desc
+                                        }} </div>
+                                    </template>
+                                </RecycleScroller>
+                            </div>
+                        </div>
+                        <label class="alinha-centro" style="color: var(--cor-sucesso);"
+                            v-if="novoServico.local">Selecionado: {{ pad2(novoServico.local.id) }} - {{
+                                novoServico.local.nome }}</label>
+                    </div>
+                </fieldset>
+                <div class="submit direita">
+                    <button @click="adicionarServico">Adicionar</button>
+                    <button class="acao-secundaria" @click="fecharModais">Fechar</button>
+                </div>
+            </div>
+        </div>
         <!--MODAL MATERIAL -->
         <div v-if="modalMaterial" class="modal-mask" @click="modalMaterial = false">
             <div class="jm margem" @click.stop>
@@ -441,6 +540,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import serviceCodificacao from '@/services/codificacoesService'
 
+
 export default {
     components: {
         draggable,
@@ -493,6 +593,43 @@ export default {
             toast
         }
     },
+    computed: {
+        verbosOptions() {
+            return [...(this.verbos || [])]
+                .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'))
+                .map(v => ({ id: v.id, cod: this.pad2(v.id), desc: v.nome }));
+        },
+        objetosOptions() {
+            return [...(this.objetos || [])]
+                .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'))
+                .map(o => ({ id: o.id, cod: this.pad2(o.id), desc: o.nome }));
+        },
+        locaisOptions() {
+            return [...(this.locais || [])]
+                .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'))
+                .map(l => ({ id: l.id, cod: this.pad2(l.id), desc: l.nome }));
+        },
+
+        // novos filtrados:
+        filteredVerbosOptions() {
+            const t = (this.searchVerbo || '').toLowerCase();
+            return (this.verbosOptions || []).filter(i =>
+                (i.desc || '').toLowerCase().includes(t) || (i.cod || '').toLowerCase().includes(t)
+            );
+        },
+        filteredObjetosOptions() {
+            const t = (this.searchObjeto || '').toLowerCase();
+            return (this.objetosOptions || []).filter(i =>
+                (i.desc || '').toLowerCase().includes(t) || (i.cod || '').toLowerCase().includes(t)
+            );
+        },
+        filteredLocaisOptions() {
+            const t = (this.searchLocal || '').toLowerCase();
+            return (this.locaisOptions || []).filter(i =>
+                (i.desc || '').toLowerCase().includes(t) || (i.cod || '').toLowerCase().includes(t)
+            );
+        },
+    },
     data() {
         return {
             caminhoFoto: urlFoto.caminhoFoto,
@@ -533,6 +670,9 @@ export default {
             verbos: [],
             objetos: [],
             locais: [],
+            searchVerbo: '',
+            searchObjeto: '',
+            searchLocal: '',
         }
     },
     async mounted() {
@@ -544,6 +684,24 @@ export default {
 
     },
     methods: {
+        selecionarVerbo(item) {
+            const v = this.verbos.find(x => x.id === item.id) || null;
+            this.novoServico.verbo = v;
+            this.searchVerbo = '';
+            this.montarCodServico();
+        },
+        selecionarObjeto(item) {
+            const o = this.objetos.find(x => x.id === item.id) || null;
+            this.novoServico.objeto = o;
+            this.searchObjeto = '';
+            this.montarCodServico();
+        },
+        selecionarLocal(item) {
+            const l = this.locais.find(x => x.id === item.id) || null;
+            this.novoServico.local = l;
+            this.searchLocal = '';
+            this.montarCodServico();
+        },
         pad2(v) {
             if (v === null || v === undefined) return '00'; const n = String(v).trim();
             return n.length === 1 ? `0${n}` : n;
@@ -1017,5 +1175,10 @@ export default {
     border: none;
     cursor: pointer;
 
+}
+
+.scroller-sm {
+    max-height: 18vh;
+    width: 22rem;
 }
 </style>
