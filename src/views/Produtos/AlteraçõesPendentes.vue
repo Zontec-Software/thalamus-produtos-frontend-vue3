@@ -453,7 +453,7 @@ export default {
           componente: this.definirComponentePorTipo(campo.tipo),
         }));
 
-        const stagedArr = Array.isArray(this.produto_original?.campos_dinamicos) ? this.produto_original.campos_dinamicos : this.valorCamposDinamicos || [];
+        const stagedArr = this.valorCamposDinamicos || [];
 
         const camposPrincipaisOrdem = ["tipoProduto_id", "cod", "desc", "und", "ncm"];
         const camposSN = ["cupom_fiscal", "market_place", "indicador_escala"];
@@ -473,7 +473,6 @@ export default {
 
           // fixos do produto (desc, cod, und, etc.)
           const precisaFallback = valorAtual === undefined || valorAtual === null || (campo.tipo === "Lista" && valorAtual === "");
-
           if (precisaFallback) {
             const doProduto = this.produto_original[campo.chave];
             if (doProduto !== undefined && doProduto !== null && doProduto !== "") {
@@ -491,7 +490,6 @@ export default {
           if (campo.chave === "origem_mercadoria" && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
             valorAtual = "0";
           }
-
           if (campo.tipo === "MultiLista" && !Array.isArray(valorAtual)) {
             valorAtual = valorAtual ? [valorAtual] : [];
           }
@@ -758,13 +756,40 @@ export default {
     },
     async carregarAlteracoes() {
       if (!this.produto_cod) return;
+
       try {
-        const response = await serviceProdutos.carregarAlteracoesOriginalEditado(this.produto_cod);
-        this.produto_original = response.produto_editado;
+        const resp = await serviceProdutos.carregarAlteracoesOriginalEditado(this.produto_cod);
 
-        this.valorCamposDinamicos = Array.isArray(response.produto_editado?.campos_dinamicos) ? response.produto_editado.campos_dinamicos : response.campos_dinamicos || [];
+        //formato os valores dos campos dinamicos
+        const toCompact = (arr = []) =>
+          arr.map((item) => {
+            const tipoLista = Array.isArray(item.valores) && item.valores.some((v) => v.valor_id !== null);
+            if (tipoLista) {
+              return {
+                campo_id: item.campo_id,
+                valor_id: item.valores.map((v) => v.valor_id).filter((v) => v != null),
+              };
+            }
+            // Texto/Decimal/AreaTexto/etc -> 1 valor (ou null)
+            const primeiroValor = Array.isArray(item.valores) ? item.valores[0]?.valor ?? null : null;
+            return { campo_id: item.campo_id, valor: primeiroValor };
+          });
 
-        this.em_edicao = response.em_edicao;
+        if (this.somenteVisualizacao) {
+          // readonly => mostrar original (fixos) + dinamicos originais
+          this.produto_original = resp.produto_original;
+          this.valorCamposDinamicos = toCompact(resp.campos_dinamicos || []);
+        } else {
+          // edição => mostrar editado (fixos)
+          this.produto_original = resp.produto_editado;
+
+          // dinâmicos: prioriza staging; se não tem, cai pro original normalizado
+          const dinStaging = Array.isArray(resp.produto_editado?.campos_dinamicos) ? resp.produto_editado.campos_dinamicos : null;
+
+          this.valorCamposDinamicos = dinStaging ?? toCompact(resp.campos_dinamicos || []);
+        }
+
+        this.em_edicao = resp.em_edicao;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
       }
