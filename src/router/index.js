@@ -16,7 +16,6 @@ import CamposView from "@/views/Produtos/CamposView.vue";
 import CamposListar from "@/views/Produtos/CamposListar.vue";
 import ProdutosView from "@/views/Produtos/ProdutosView.vue";
 import CatalogoView from "@/views/Produtos/CatalogoView.vue";
-import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
 import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
 
 // redireciona usuario para LOGIN baseado no env
@@ -83,23 +82,25 @@ const routes = [
     }),
   },
   {
-    path: "/catalogo/produto/:id", // catálogo (sempre read-only)
+    path: "/catalogo/produto/:id(\\d+)", // catálogo (sempre read-only)
     name: "catalogoProduto",
-    component: AlteraçõesPendentes,
+    component: CadastroProduto,
     beforeEnter: guardPermissaoRoute,
     props: (route) => ({
+      id: route.params.id,
       isCadastro: false,
       produto_cod: route.params.id,
       somenteVisualizacao: true,
     }),
   },
-
   {
-    path: "/catalogo",
-    name: "CatalogoView",
-    component: CatalogoView,
+    path: "/cadastroProduto/:id(\\d+)",
+    name: "cadastroProduto",
+    component: CadastroProduto,
+    props: true,
     beforeEnter: guardPermissaoRoute,
   },
+
   {
     path: "/cadastroProduto",
     name: "cadastroProdutoNovo",
@@ -109,10 +110,9 @@ const routes = [
   },
 
   {
-    path: "/cadastroProduto/:id(\\d+)",
-    name: "cadastroProduto",
-    component: CadastroProduto,
-    props: true,
+    path: "/catalogo",
+    name: "CatalogoView",
+    component: CatalogoView,
     beforeEnter: guardPermissaoRoute,
   },
 

@@ -29,7 +29,8 @@
         <!-- <th v-if="exibirAcoes" style="text-align: center">Revisão</th> -->
       </tr>
       <template v-if="!carregando">
-        <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index" @click="abrirDetalhes(item)">
+        <tr v-for="(item, index) in listaProdutosFiltrada" style="cursor: pointer" :key="index"
+          @click="abrirDetalhes(item)">
           <td>{{ item.cod }}</td>
           <td>{{ item.desc }}</td>
           <td>{{ item.tipo?.nome ?? "-" }}</td>
@@ -41,7 +42,8 @@
           <!-- teste -->
           <td @click.stop v-if="exibirAcoes">
             <div>
-              <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i class="fa-regular fa-copy"></i></span>
+              <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i
+                  class="fa-regular fa-copy"></i></span>
             </div>
           </td>
           <!--           <td v-if="exibirAcoes" style="text-align: center" @click.stop>
@@ -64,9 +66,7 @@
       <button :disabled="!prevPageUrl" @click="carregarPagina(prevPageUrl)">
         <i class="fa-solid fa-chevron-left"></i>
       </button>
-      <span
-        >Página <b>{{ paginaAtual }}</b> de <b>{{ ultimaPagina }}</b></span
-      >
+      <span>Página <b>{{ paginaAtual }}</b> de <b>{{ ultimaPagina }}</b></span>
       <button :disabled="!nextPageUrl" @click="carregarPagina(nextPageUrl)">
         <i class="fa-solid fa-chevron-right"></i>
       </button>
@@ -227,11 +227,11 @@ export default {
       this.listaProdutosFiltrada = this.produtos.filter((item) => {
         const matchQuery = this.searchQuery
           ? Object.values(item).some((valor) => {
-              if (valor && typeof valor === "object") {
-                return Object.values(valor).some((subValor) => String(subValor).toLowerCase().includes(this.searchQuery.toLowerCase()));
-              }
-              return String(valor).toLowerCase().includes(this.searchQuery.toLowerCase());
-            })
+            if (valor && typeof valor === "object") {
+              return Object.values(valor).some((subValor) => String(subValor).toLowerCase().includes(this.searchQuery.toLowerCase()));
+            }
+            return String(valor).toLowerCase().includes(this.searchQuery.toLowerCase());
+          })
           : true;
 
         const matchFiltroBotao = this.filtro ? item.tipo?.nome === this.filtro : true;
