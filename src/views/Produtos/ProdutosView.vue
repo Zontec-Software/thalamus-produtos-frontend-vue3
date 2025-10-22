@@ -14,8 +14,11 @@
     <div class="margem container">
       <div class="bloco margem">
         <div class="alinha-v" style="display: flex; justify-content: space-between"></div>
-        <v-btn class="acao-secundaria direita" icon="mdi-plus" @click="cadastrarProduto()" title="Clique para cadastrar um novo produto"></v-btn>
-        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo" :filtroFamilia="filtroFamilia" :exibirApenasEditavel="true" :exibirAcoes="true" :somenteVisualizacao="false" />
+        <v-btn class="acao-secundaria direita" icon="mdi-plus" @click="cadastrarProduto()"
+          title="Clique para cadastrar um novo produto"></v-btn>
+        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
+          :filtroFamilia="filtroFamilia" :exibirApenasEditavel="true" :exibirAcoes="true"
+          :somenteVisualizacao="false" />
         <!-- <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos> -->
       </div>
     </div>
