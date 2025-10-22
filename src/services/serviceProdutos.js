@@ -146,11 +146,11 @@ const funções = {
         searchQuery && searchQuery.trim()
           ? { ...base, termo: searchQuery.trim() }
           : {
-              ...base,
-              ...(filtroFamilia ? { familia: filtroFamilia } : {}),
-              paginacao: 1,
-              page: pagina,
-            };
+            ...base,
+            ...(filtroFamilia ? { familia: filtroFamilia } : {}),
+            paginacao: 1,
+            page: pagina,
+          };
 
       const { data } = await api.get("/produto-filtrar", { params });
 
@@ -226,6 +226,16 @@ const funções = {
       return response.data;
     } catch (error) {
       console.error("Erro ao listar ncm");
+      throw error;
+    }
+  },
+
+  async getCategoriasOrcamento() {
+    try {
+      const response = await api.post(`dre/estrutura/listar`);
+      return response.data;
+    } catch (error) {
+      console.error("Erro ao listar categorias orçamento");
       throw error;
     }
   },

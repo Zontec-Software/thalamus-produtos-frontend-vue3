@@ -88,23 +88,6 @@
       </div>
     </div>
     <div class="section">
-      <div class="section__title">📷 GALERIA DE FOTOS</div>
-      <div class="gallery">
-        <div v-if="fotoAtualUrl" class="gallery__card">
-          <img :src="fotoAtualUrl" :alt="fotosProduto[indiceAtual]?.nome || 'Foto atual'" />
-          <div class="legend">Pré-visualização</div>
-        </div>
-        <div v-else class="gallery__empty">Sem fotos cadastradas</div>
-        <div v-for="(foto, idx) in fotosProduto" :key="foto.id || idx" class="gallery__card gallery__card--thumb"
-          :class="{ 'is-active': indiceAtual === idx }" @click="indiceAtual = idx" v-show="fotosProduto.length > 1">
-          <img :src="foto.url" :alt="foto.nome" />
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn btn--ghost" type="button" @click="showModalFotos = true">Gerenciar Fotos</button>
-      </div>
-    </div>
-    <div class="section">
       <div class="section__title">⚙️ INFORMAÇÕES TÉCNICAS</div>
       <div class="grid-4">
         <div v-for="campo in camposFiscaisVisiveis" :key="campo.id" class="field">
@@ -151,6 +134,23 @@
             :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
             :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
         </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section__title">📷 GALERIA DE FOTOS</div>
+      <div class="gallery">
+        <div v-if="fotoAtualUrl" class="gallery__card">
+          <img :src="fotoAtualUrl" :alt="fotosProduto[indiceAtual]?.nome || 'Foto atual'" />
+          <div class="legend">Pré-visualização</div>
+        </div>
+        <div v-else class="gallery__empty">Sem fotos cadastradas</div>
+        <div v-for="(foto, idx) in fotosProduto" :key="foto.id || idx" class="gallery__card gallery__card--thumb"
+          :class="{ 'is-active': indiceAtual === idx }" @click="indiceAtual = idx" v-show="fotosProduto.length > 1">
+          <img :src="foto.url" :alt="foto.nome" />
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn--ghost" type="button" @click="showModalFotos = true">Gerenciar Fotos</button>
       </div>
       <div class="submit m-b direita">
         <!-- <button class="acao-secundaria" @click="encerrarCadastro()" v-if="!isCadastro && produto_original.editavel"> {{
