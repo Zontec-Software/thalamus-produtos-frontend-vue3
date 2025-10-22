@@ -1,16 +1,14 @@
 <template>
   <div class="titulo">
-    <div class="margem container" style="display: flex; align-items: center; justify-content: space-between">
+    <div class="margem " style="display: flex; align-items: center; justify-content: space-between">
       <div style="display: flex; align-items: center; gap: 0.5rem">
-        <div class="m-icone esquerda"><a @click="this.$router.back()" style="cursor: pointer" class="icone-voltar m-d"></a></div>
-        <h2 style="margin: 0">{{ tiposProduto.includes(this.id) ? `Cadastro` : "Editar Produto" }}</h2>
-        <i
-          class="fa-solid fa-circle"
-          :style="{
-            color: produto?.status == 1 ? 'var(--cor-sucesso)' : 'var(--cor-erro)',
-            fontSize: '12px',
-          }"
-        >
+        <div class="m-icone esquerda"><a @click="this.$router.back()" style="cursor: pointer"
+            class="icone-voltar m-d"></a></div>
+        <h2 style="margin: 0">{{ tiposProduto.includes(this.id) ? `Cadastro` : "Produto" }}</h2>
+        <i class="fa-solid fa-circle" :style="{
+          color: produto?.status == 1 ? 'var(--cor-sucesso)' : 'var(--cor-erro)',
+          fontSize: '12px',
+        }">
         </i>
       </div>
       <div style="display: flex; align-items: center; gap: 0.5rem">
@@ -21,10 +19,13 @@
       </div>
     </div>
   </div>
-  <div class="margem container">
+  <div>
     <div style="display: flex; flex-flow: column" v-if="produto">
-      <div class="bloco margem">
-        <AlteraçõesPendentes :produto_cod="isEdicao ? produto.produto_cod : null" :isCadastro="!isEdicao" />
+      <div class="bloco2 margem">
+        <AlteraçõesPendentes v-if="!somenteVisualizacao" :produto_cod="isEdicao ? produto.produto_cod : null"
+          :isCadastro="!isEdicao" :isTemplate="isTemplate" :somenteVisualizacao="somenteVisualizacao" />
+        <AlteraçõesPendentes_new v-else :produto_cod="produto.produto_cod" :somenteVisualizacao="true"
+          :isCadastro="false" :isTemplate="isTemplate" />
       </div>
       <!-- <div class="bloco margem">
           <header class="alinha-centro">
@@ -32,26 +33,30 @@
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-      <div class="bloco margem" v-if="exibirEstruturaERoteiro">
-        <header class="alinha-centro">
-          <h2>Estrutura</h2>
-        </header>
-        <br />
-        <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
-          <div class="legenda-item"><span class="produto-tipo-indicador materia-prima"></span>Matéria Prima</div>
-          <div class="legenda-item"><span class="produto-tipo-indicador produto-processo"></span>Produto em Processo</div>
-          <div class="legenda-item"><span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado</div>
-        </div>
-        <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto" @atualizar="getEstrutura" :editavel="false" :unidades="unidades" />
-        <div class="alinha-centro" v-else>
-          <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
+      <div class="bloco2 sheet margem " v-if="exibirEstruturaERoteiro">
+        <div class="section">
+          <div class="section__title">🏗️ ESTRUTURA DO PRODUTO</div>
+          <br />
+          <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
+            <div class="legenda-item"><span class="produto-tipo-indicador materia-prima"></span>Matéria Prima</div>
+            <div class="legenda-item"><span class="produto-tipo-indicador produto-processo"></span>Produto em Processo
+            </div>
+            <div class="legenda-item"><span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado</div>
+          </div>
+          <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto"
+            @atualizar="getEstrutura" :editavel="false" :unidades="unidades" />
+          <div class="alinha-centro" v-else>
+            <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
+          </div>
         </div>
       </div>
-      <div class="bloco margem" v-if="exibirEstruturaERoteiro">
-        <div class="alinha-centro">
-          <h2>Roteiro</h2>
+      <div class="bloco2 sheet margem" v-if="exibirEstruturaERoteiro">
+        <div class="section">
+          <div>
+            <div class="section__title">🛠️ ROTEIRO DE PRODUÇÃO</div>
+            <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" />
+          </div>
         </div>
-        <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" />
       </div>
     </div>
     <div class="loading" v-else>
@@ -69,6 +74,7 @@ import { getUnidades } from "@/services/serviceUnidades";
 import serviceProdutos from "@/services/serviceProdutos";
 import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
 import { sso } from "roboflex-thalamus-sso-lib";
+import AlteraçõesPendentes_new from "./AlteraçõesPendentes_new.vue";
 
 export default {
   name: "CadastroProduto",
@@ -76,9 +82,18 @@ export default {
     AlteraçõesPendentes,
     EstruturaComponent,
     RoteiroComponente,
+    AlteraçõesPendentes_new
     // ListaComponent
   },
-  props: ["id"],
+  props: {
+    id: { required: true },
+    produto_cod: { type: String, required: false, default: null },
+    isTemplate: { required: false },
+    isCadastro: { required: true },
+    somenteVisualizacao: { type: Boolean, default: false },
+  },
+
+
   data() {
     return {
       tiposProduto: ["Produto em Processo", "Produto Acabado"],
@@ -259,5 +274,24 @@ export default {
 
 .produto-acabado {
   background-color: #00ff15;
+}
+
+.section {
+  background: var(--cor-bg);
+  border: 1px solid var(--cor-primaria);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.section__title {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid var(--cor-primaria-media);
+  font-weight: 800;
+}
+
+.sheet {
+  padding: 16px;
 }
 </style>
