@@ -2,15 +2,10 @@
   <div v-if="isLoading" class="loading">
     <div></div>
   </div>
-
-  <section v-readonly="isReadOnly" v-else>
-    <div class="margem" style="text-align: right">
-      <strong>
-        {{
-          `Atualizado em: ${formatarData(produto_original.updated_at) ?? "?"} - por:
-        ${produto_original.editadoPor ?? "??"}`
-        }}
-      </strong>
+  <section class="bloco" v-readonly="isReadOnly" v-else>
+    <div class=" margem" style="text-align: right">
+      <strong> {{ `Atualizado em: ${formatarData(produto_original.updated_at) ?? "?"} - por:
+        ${produto_original.editadoPor ?? "??"}` }} </strong>
     </div>
     <div class="margem container">
       <div class="grid-4 container">
@@ -19,8 +14,7 @@
             <div>
               <label>Família</label>
               <select v-model="produto_original.familia_id"
-                @change="atualizarPayLoad('familia_id', produto_original.familia_id)"
-                :disabled="aguardandoAprovaçãoFiscal">
+                @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
                 <option disabled value="">Selecione uma família</option>
                 <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome.toUpperCase() }}</option>
               </select>
@@ -127,19 +121,16 @@
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
               </option>
             </select>
-
             <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
               :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
               </option>
             </select>
-
             <div v-else-if="campo.chave === 'id_cest'">
               <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
                 @input="mascaraCest(campo.id)" maxlength="11" placeholder="00.000.000"
                 :disabled="aguardandoAprovaçãoFiscal" />
             </div>
-
             <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
               :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
               :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
@@ -150,19 +141,14 @@
         <!-- Editando e em modo de edição: pode finalizar -->
         <button class="acao-secundaria" v-if="!isReadOnly && !isCadastro && produto_original.editavel"
           @click="finalizarAtualizacao()">Finalizar Edição</button>
-
         <!-- Editando: botão para habilitar edição -->
         <button data-allow-when-readonly class="" v-if="!isCadastro && !produto_original.editavel"
           @click="enviarParaEdicao()">Enviar para Edição</button>
-
         <!-- Salvar/Cadastrar -->
-        <button v-if="!isReadOnly" @click="salvarProduto()">
-          {{ isCadastro ? "Cadastrar Produto" : "Salvar" }}
-        </button>
+        <button v-if="!isReadOnly" @click="salvarProduto()"> {{ isCadastro ? "Cadastrar Produto" : "Salvar" }} </button>
       </div>
     </div>
   </section>
-
   <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
     @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
   <!-- MODAL FOTOS -->

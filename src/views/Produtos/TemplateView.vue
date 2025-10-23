@@ -18,7 +18,7 @@
     </section>
 </template>
 <script>
-import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes.vue";
+import AlteraçõesPendentes from "@/views/Produtos/AlteraçõesPendentes_new.vue";
 import serviceProdutos from "@/services/serviceProdutos";
 
 export default {
