@@ -1,6 +1,6 @@
 <template>
     <select :value="modelValue ?? ''" @change="onChange" :required="!modelValue">
-        <option value="" disabled hidden v-if="modelValue == null || modelValue == ''">Selecione uma categoria</option>
+        <option value="" disabled hidden v-if="modelValue == null || modelValue == ''"></option>
         <option v-for="opt in flatOptions" :key="opt.id" :value="opt.type === 'category' ? opt.id : ''"
             :disabled="opt.type !== 'category'">
             {{ opt.label }}
