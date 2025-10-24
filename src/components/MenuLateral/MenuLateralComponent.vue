@@ -18,7 +18,7 @@
 106 Montagem | Indicadores 
 107 Montagem | Separar Materiais -->
     <nav class="nav-maior separador">
-      <router-link to="/" active-class="ativo">Produtos</router-link>
+      <router-link to="/" active-class="ativo">Produtos em Edição</router-link>
       <router-link to="/catalogo" active-class="ativo">Catálogo de Produtos</router-link>
       <!-- <router-link to="/aprovacao" active-class="ativo">Aprovação</router-link> -->
       <router-link to="/parametrosTeste" active-class="ativo">Parametros de Teste</router-link>
