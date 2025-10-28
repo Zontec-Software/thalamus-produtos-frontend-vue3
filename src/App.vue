@@ -1,6 +1,6 @@
 <template>
   <body>
-    <!-- <HeaderComponent :moduleName="$moduleName" :buildMode="envMode" /> -->
+    <HeaderComponent :moduleName="$moduleName" :buildMode="envMode" />
     <!-- class="esconde" -->
     <main id="main">
       <aside>
@@ -15,7 +15,7 @@
   <!-- <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo" @fecharModal="fecharModal" /> -->
 </template>
 <script>
-// import { HeaderComponent } from "roboflex-thalamus-componentes-vue3-lib";
+import { HeaderComponent } from "roboflex-thalamus-componentes-vue3-lib";
 import MenuLateralComponent from "./components/MenuLateral/MenuLateralComponent.vue";
 // import ModalEditarCombo from "./components/Modais/ModalEditarCombo.vue";
 // import serviceProdutos from '@/services/serviceProdutos';
@@ -31,7 +31,7 @@ export default {
   },
   components: {
     MenuLateralComponent,
-    // HeaderComponent,
+    HeaderComponent,
     // ModalEditarCombo
   },
   methods: {
