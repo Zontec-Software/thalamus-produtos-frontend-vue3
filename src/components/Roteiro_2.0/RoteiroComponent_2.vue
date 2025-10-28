@@ -1,5 +1,5 @@
 <template>
-    <section v-readonly="readonly">
+    <section v-readonly="readonly" v-if="roteiro">
         <div v-if="!loading">
             <table class="tabela">
                 <tbody>
@@ -51,6 +51,12 @@
         <ModalInstrucao v-if="etapaDestacada" :readonly="readonly" :etapa="etapaDestacada" :produto="roteiro.produto"
             @fechar="etapaDestacada = null" />
     </section>
+    <div v-else-if="!readonly && !loading" class="alinha-centro">
+        <button @click="criarRoteiro()">Criar Roteiro</button>
+    </div>
+    <div class="loading" v-else>
+        <div></div>
+    </div>
 </template>
 
 <script>
@@ -93,6 +99,12 @@ export default {
     },
 
     methods: {
+        async criarRoteiro(){
+            this.loading = true;
+            await service.criarRoteiro(this.produto_cod);
+            this.getRoteiro()
+        },
+
         async getRoteiro() {
             this.loading = true
             this.roteiro = await service.getRoteiro(this.produto_cod);

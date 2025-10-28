@@ -14,6 +14,18 @@ export default {
         }
     },
 
+    async criarRoteiro(produto_cod) {
+        try {
+            const response = await api.post(`roteiro_2/cadastrar`, {
+                "produto_cod": produto_cod
+            });
+            return response.data[0]
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
     async getRoteiro(produto_cod) {
         try {
             const response = await api.get(`roteiro_2/buscar/${produto_cod}`);

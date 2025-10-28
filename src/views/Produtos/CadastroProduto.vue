@@ -56,6 +56,7 @@
             <div class="section__title">🛠️ ROTEIRO DE PRODUÇÃO</div>
             <!-- <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" /> -->
             <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="somenteVisualizacao"/>
+
           </div>
         </div>
       </div>
