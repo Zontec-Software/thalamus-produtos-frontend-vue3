@@ -36,3 +36,21 @@ jobs:
     - name: Push imagem docker Producao
       if: github.ref == 'refs/heads/producao'
       run: docker push devroboflex/thalamus-produtos-frontend:latest
+
+    - name: Setup kubeconfig
+      if: github.ref == 'refs/heads/producao'
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+        chmod 600 $HOME/.kube/config
+    
+    - name: Install kubectl
+      if: github.ref == 'refs/heads/producao'
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Deploy
+      if: github.ref == 'refs/heads/producao'
+      run: |
+        kubectl -n thalamus-prd rollout restart deployment/thalamus-produtos

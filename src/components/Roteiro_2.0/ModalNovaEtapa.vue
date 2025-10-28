@@ -1,0 +1,80 @@
+<template>
+    <div class="modal-mask" @click.self="$emit('fecharModal', false)">
+        <div class="jm margem">
+            <fieldset class="grid-3">
+                <div>
+                    <label>Setor</label>
+                    <select :required="!novaEtapa.setor_id" v-model="novaEtapa.setor_id">
+                        <option hidden></option>
+                        <option v-for="s in setores" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Etapa</label>
+                    <select :required="!novaEtapa.tipo_etapa_id" v-model="novaEtapa.tipo_etapa_id">
+                        <option hidden></option>
+                        <option v-for="tipo in tiposEtapa" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}</option>
+                    </select>
+                </div>
+                <div><label>Código da Operação</label><input :required="!novaEtapa.cod_operacao"
+                        v-model="novaEtapa.cod_operacao" type="text"></div>
+                <div><label>Operação</label><input :required="!novaEtapa.operacao" type="text"
+                        v-model="novaEtapa.operacao"></div>
+                <div><label>Tempo Padrão</label><input type="text" v-model="novaEtapa.tempo"></div>
+            </fieldset>
+            <div class="submit direita">
+                <button class="acao-secundaria" @click="$emit('fecharModal', false)">Cancelar</button>
+                <button @click="cadastrarEtapa()" :disabled="camposVazio"
+                    :title="camposVazio ? 'Preencha os campos destacados!' : ''">Salvar</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+import service from '@/services/serviceRoteiro3';
+
+export default {
+    name: 'ModalNovaEtapa',
+
+    props: {
+        setores: {
+            type: Array
+        },
+        tiposEtapa: {
+            type: Array
+        },
+        roteiro_id: {
+            required: true
+        }
+    },
+
+    computed: {
+        camposVazio() {
+            var camposObrigatorios = ['setor_id', 'tipo_etapa_id', 'cod_operacao', 'operacao']
+
+            return camposObrigatorios.some(campo => {
+                const valor = this.novaEtapa[campo]
+                return !valor
+            })
+        }
+    },
+
+    data() {
+        return {
+            novaEtapa: {}
+        }
+    },
+
+    methods: {
+        async cadastrarEtapa() {
+            var payload = this.novaEtapa;
+            payload.roteiro_id = this.roteiro_id
+            await service.cadastrarEtapa(payload);
+            this.$emit('fecharModal', true)
+        }
+    },
+}
+</script>
+
+<style scoped></style>

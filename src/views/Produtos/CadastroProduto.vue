@@ -54,7 +54,9 @@
         <div class="section">
           <div>
             <div class="section__title">🛠️ ROTEIRO DE PRODUÇÃO</div>
-            <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" />
+            <!-- <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" /> -->
+            <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="somenteVisualizacao"/>
+
           </div>
         </div>
       </div>
@@ -72,17 +74,19 @@ import EstruturaComponent from "@/components/EstruturaArvore/EstruturaComponent.
 // import ListaComponent from "@/components/ListaMateriais/ListaComponente.vue"
 import { getUnidades } from "@/services/serviceUnidades";
 import serviceProdutos from "@/services/serviceProdutos";
-import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
+// import RoteiroComponente from "@/components/Roteiro/RoteiroComponente.vue";
 import { sso } from "roboflex-thalamus-sso-lib";
 import AlteraçõesPendentes_new from "./AlteraçõesPendentes_new.vue";
+import RoteiroComponent_2 from "@/components/Roteiro_2.0/RoteiroComponent_2.vue";
 
 export default {
   name: "CadastroProduto",
   components: {
     AlteraçõesPendentes,
     EstruturaComponent,
-    RoteiroComponente,
-    AlteraçõesPendentes_new
+    // RoteiroComponente,
+    AlteraçõesPendentes_new,
+    RoteiroComponent_2
     // ListaComponent
   },
   props: {
