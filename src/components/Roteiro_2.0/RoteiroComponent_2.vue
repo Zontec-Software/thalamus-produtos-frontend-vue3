@@ -48,7 +48,9 @@
         </div>
         <ModalNovaEtapa :setores="setores" :tiposEtapa="tiposEtapa" :roteiro_id="roteiro.id" v-if="modalCadastrar"
             @fecharModal="fecharModal" />
-        <ModalInstrucao v-if="etapaDestacada" :readonly="readonly" :etapa="etapaDestacada" :produto="roteiro.produto"
+        <ModalInstrucao v-if="!readonly && etapaDestacada" :readonly="readonly" :etapa="etapaDestacada" :produto="roteiro.produto"
+            @fechar="etapaDestacada = null" />
+        <ModalVisualizacaoInstrucao v-if="readonly && etapaDestacada" :etapa="etapaDestacada" :produto="roteiro.produto"
             @fechar="etapaDestacada = null" />
     </section>
     <div v-else-if="!readonly && !loading" class="alinha-centro">
@@ -63,13 +65,15 @@
 import service from '@/services/serviceRoteiro3';
 import ModalNovaEtapa from './ModalNovaEtapa.vue';
 import ModalInstrucao from './ModalInstrucao.vue';
+import ModalVisualizacaoInstrucao from './ModalVisualizacaoInstrucao.vue';
 
 export default {
     name: 'RoteiroComponent_2',
 
     components: {
         ModalNovaEtapa,
-        ModalInstrucao
+        ModalInstrucao,
+        ModalVisualizacaoInstrucao
     },
 
     props: {
@@ -99,7 +103,7 @@ export default {
     },
 
     methods: {
-        async criarRoteiro(){
+        async criarRoteiro() {
             this.loading = true;
             await service.criarRoteiro(this.produto_cod);
             this.getRoteiro()
