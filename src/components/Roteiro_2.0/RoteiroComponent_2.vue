@@ -54,7 +54,7 @@
     <div v-else-if="!readonly && !loading" class="alinha-centro">
         <button @click="criarRoteiro()">Criar Roteiro</button>
     </div>
-    <div class="loading" v-else>
+    <div class="loading" v-else-if="loading">
         <div></div>
     </div>
 </template>
