@@ -2,7 +2,6 @@
     <div class="modal-mask" @click.self="$emit('fechar')">
         <div class="jm margem" style="max-width: 80vw; min-width: 50vw">
             <h2>Instrução técnica - {{ etapa.operacao }}</h2>
-
             <div class="bloco2 margem">
                 <fieldset class="grid-4">
                     <div><label>Código da instrução</label><input type="text" v-model="instrucao.codigo"
@@ -13,7 +12,6 @@
                     </div>
                 </fieldset>
             </div>
-
             <table class="tabela" v-if="instrucao.id">
                 <tbody>
                     <tr>
@@ -47,7 +45,7 @@
                         <td colspan="4">
                             <div class="alinha-v" style="gap: .5rem;">
                                 <textarea placeholder="Nova Orientação" v-model="novaOrientacao"></textarea>
-                                <button @click="cadastrarOrientacao()" :disabled="!novaOrientacao">Salvar</button>
+                                <button @click="cadastrarOrientacao()" :disabled="!novaOrientacao">Adicionar</button>
                             </div>
                         </td>
                     </tr>
@@ -95,7 +93,7 @@ export default {
     methods: {
         async cadastrarOrientacao() {
             var payload = {
-                nome: `00${(this.instrucao.orientacoes.length) + 1}`,
+                nome: `${(this.instrucao.orientacoes.length) + 1}`,
                 descricao: this.novaOrientacao,
                 instrucao_id: this.instrucao.id
             }
