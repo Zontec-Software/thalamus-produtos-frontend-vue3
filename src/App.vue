@@ -24,7 +24,7 @@ export default {
 
   data() {
     return {
-      envMode: process.env.NODE_ENV,
+      envMode: 'production',
       // itemEditado: null,
       // showModalEditarCombo: false
     }
