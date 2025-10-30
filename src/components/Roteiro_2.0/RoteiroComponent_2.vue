@@ -27,29 +27,34 @@
                                 </option>
                             </select>
                         </td>
-                        <td><input type="text" v-model="e.cod_operacao"
-                                @focusout="atualizarEtapa(e.id, { cod_operacao: e.cod_operacao })"></td>
-                        <td><input type="text" v-model="e.operacao"
-                                @focusout="atualizarEtapa(e.id, { operacao: e.operacao })"></td>
-                        <td><button data-allow-when-readonly class="acao-secundaria" @click="etapaDestacada = e">Inst.
-                                Técnica</button></td>
-                        <td><input type="text" v-model="e.tempo" @focusout="atualizarEtapa(e.id, { tempo: e.tempo })">
-                        </td>
-                        <td v-if="!readonly"><i class="bi-trash-fill" @click="excluirEtapa(e.id)"></i></td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="alinha-centro" v-if="!readonly">
-                <button class="acao-secundaria" @click="modalCadastrar = true">Adicionar Etapa</button>
-            </div>
+                        <td>
+                            <!-- <input type="text" v-model="e.cod_operacao"
+                                @focusout="atualizarEtapa(e.id, { cod_operacao: e.cod_operacao })"> -->
+                            <div style="border: 1px solid var(--cor-separador); height: 3rem; padding: 6px 12px; align-content: center;
+                                border-radius: 6px; width: 100% !important;">
+                                {{ e.id }}
+        </div>
+        </td>
+        <td><input type="text" v-model="e.operacao" @focusout="atualizarEtapa(e.id, { operacao: e.operacao })"></td>
+        <td><button data-allow-when-readonly class="acao-secundaria" @click="etapaDestacada = e">Inst.
+                Técnica</button></td>
+        <td><input type="text" v-model="e.tempo" @focusout="atualizarEtapa(e.id, { tempo: e.tempo })">
+        </td>
+        <td v-if="!readonly"><i class="bi-trash-fill" @click="excluirEtapa(e.id)"></i></td>
+        </tr>
+        </tbody>
+        </table>
+        <div class="alinha-centro" v-if="!readonly">
+            <button class="acao-secundaria" @click="modalCadastrar = true">Adicionar Etapa</button>
+        </div>
         </div>
         <div class="loading" v-else>
             <div></div>
         </div>
         <ModalNovaEtapa :setores="setores" :tiposEtapa="tiposEtapa" :roteiro_id="roteiro.id" v-if="modalCadastrar"
             @fecharModal="fecharModal" />
-        <ModalInstrucao v-if="!readonly && etapaDestacada" :readonly="readonly" :etapa="etapaDestacada" :produto="roteiro.produto"
-            @fechar="etapaDestacada = null" />
+        <ModalInstrucao v-if="!readonly && etapaDestacada" :readonly="readonly" :etapa="etapaDestacada"
+            :produto="roteiro.produto" @fechar="etapaDestacada = null" />
         <ModalVisualizacaoInstrucao v-if="readonly && etapaDestacada" :etapa="etapaDestacada" :produto="roteiro.produto"
             @fechar="etapaDestacada = null" />
     </section>

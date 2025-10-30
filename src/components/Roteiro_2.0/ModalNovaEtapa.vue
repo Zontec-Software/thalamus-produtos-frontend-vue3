@@ -16,8 +16,8 @@
                         <option v-for="tipo in tiposEtapa" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}</option>
                     </select>
                 </div>
-                <div><label>Código da Operação</label><input :required="!novaEtapa.cod_operacao"
-                        v-model="novaEtapa.cod_operacao" type="text"></div>
+                <!-- <div><label>Código da Operação</label><input :required="!novaEtapa.cod_operacao"
+                        v-model="novaEtapa.cod_operacao" type="text"></div> -->
                 <div><label>Operação</label><input :required="!novaEtapa.operacao" type="text"
                         v-model="novaEtapa.operacao"></div>
                 <div><label>Tempo Padrão</label><input type="text" v-model="novaEtapa.tempo"></div>
@@ -51,7 +51,12 @@ export default {
 
     computed: {
         camposVazio() {
-            var camposObrigatorios = ['setor_id', 'tipo_etapa_id', 'cod_operacao', 'operacao']
+            var camposObrigatorios = [
+                'setor_id',
+                'tipo_etapa_id',
+                // 'cod_operacao', 
+                'operacao'
+            ]
 
             return camposObrigatorios.some(campo => {
                 const valor = this.novaEtapa[campo]

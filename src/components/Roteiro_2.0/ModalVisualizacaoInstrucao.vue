@@ -2,8 +2,7 @@
     <div class="modal-mask" @click.self="$emit('fechar')">
         <div class="jm margem">
             <fieldset class="grid-2 margem bloco2" style="background-color: var(--cor-primaria-fraca);">
-                <div><label>Código da instrução</label><input type="text" v-model="instrucao.codigo"
-                        :readonly="etapa.instrucoes.length > 0" @focusout="criarInstrucao()"></div>
+                <div><label>Código da instrução</label><input type="text" :value="instrucao.id" readonly></div>
                 <div><label>Setor</label><input type="text" :value="etapa?.setor?.nome" readonly></div>
                 <div><label>Etapa</label><input type="text" :value="etapa?.tipo?.nome" readonly></div>
                 <div><label>Produto</label><input type="text" :value="`${produto.cod} - ${produto.desc}`" readonly>
@@ -22,8 +21,9 @@
                             {{ o.descricao }}
                         </div>
                         <div class="anexos">
-                            <div v-for="(anexo, index) in o.anexos" :key="index">
-                                <a v-if="isImage(anexo)" class="anexo" :href="`${this.storageUrl}${anexo.caminho}`" target="_blank">
+                            <div v-for="(anexo, index) in o.anexos" :key="index" class="anexo" >
+                                <a v-if="isImage(anexo)" :href="`${this.storageUrl}${anexo.caminho}`"
+                                    target="_blank">
                                     <img :src="getAnexoUrl(anexo)" alt="Anexo" />
                                     <span>{{ anexo.nome_original }}</span>
                                 </a>
@@ -86,7 +86,7 @@ export default {
 .jm {
     max-width: 80vw;
     min-width: 50vw;
-    max-height: 70vh;
+    max-height: 80vh;
     overflow: auto;
 }
 
@@ -121,27 +121,40 @@ export default {
         border-radius: 6px;
         padding: .5rem;
         margin: .5rem 0;
+        white-space: normal;
+        overflow: hidden;
+        word-wrap: break-word;
     }
 
     .anexos {
         display: flex;
-        justify-content: space-around;
+        flex-wrap: wrap;
+        justify-content: center;
         align-items: center;
-        cursor: pointer;
+        gap: 1rem;
+        width: 100%;
+    }
 
-        .anexo {
-            img {
-                max-width: 200px;
-                border-radius: 8px;
-                margin: 5px;
-            }
+    .anexo {
+        flex: 1 1 0;
+        min-width: 200px;
+        max-width: 100%;
+        max-width: 500px;
+        text-align: center;
+    }
 
-            span {
-                display: flex;
-                flex-flow: column;
-                text-align: center;
-            }
-        }
+    .anexo img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .anexo span {
+        display: block;
+        margin-top: 4px;
+        font-size: 14px;
+        word-break: break-word;
     }
 }
 </style>
