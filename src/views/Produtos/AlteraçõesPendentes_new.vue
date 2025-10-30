@@ -6,7 +6,7 @@
     <!-- BANNER SUPERIOR -->
     <div class="banner">
       <h2>📋 FICHA DE PRODUTO</h2>
-      <h4>Cadastro e Especificações Técnicas</h4>
+      <h3>Cadastro e Especificações Técnicas</h3>
       <span class="updated"> 🗓️ Atualizado em: {{ formatarData(produto_original.updated_at) ?? '?' }} — por: {{
         produto_original.editadoPor ?? '??' }} </span>
     </div>
@@ -860,8 +860,8 @@ export default {
   padding: 18px 20px 26px;
   box-shadow: 0 10px 30px var(--cor-cinza);
   text-align: center;
-  background-color: var(--cor-primaria);
-  color: white;
+  background-color: var(--cor-primaria-fraca);
+  /* color: white; */
   border: 3px solid var(--cor-primaria);
 
 }
@@ -891,7 +891,8 @@ export default {
 
 .code-card {
   background: var(--cor-primaria-fraca);
-  border: 3px solid var(--cor-primaria);
+  /* border: 3px solid var(--cor-primaria); */
+  border: 0.5px solid var(--cor-primaria);
   border-radius: 14px;
   padding: 14px;
   margin-bottom: 14px;
