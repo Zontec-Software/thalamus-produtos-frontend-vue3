@@ -21,9 +21,8 @@
                             {{ o.descricao }}
                         </div>
                         <div class="anexos">
-                            <div v-for="(anexo, index) in o.anexos" :key="index" class="anexo" >
-                                <a v-if="isImage(anexo)" :href="`${this.storageUrl}${anexo.caminho}`"
-                                    target="_blank">
+                            <div v-for="(anexo, index) in o.anexos" :key="index" class="anexo">
+                                <a v-if="isImage(anexo)" :href="`${this.storageUrl}${anexo.caminho}`" target="_blank">
                                     <img :src="getAnexoUrl(anexo)" alt="Anexo" />
                                     <span>{{ anexo.nome_original }}</span>
                                 </a>
@@ -136,18 +135,17 @@ export default {
 
     .anexo {
         flex: 1 1 0;
-        min-width: 200px;
-        width: 100%;
-        max-width: 600px;
-        height: auto;
+        min-width: 200px !important;
+        width: 100% !important;
+        max-width: 600px !important;
+        height: auto !important; 
         text-align: center;
-        border: 1px solid red;
     }
 
-    .anexo img {
-        width: 100%;
-        height: auto;
-        object-fit: contain;
+    img {
+        width: 100% !important;
+        height: auto !important;
+        object-fit: contain !important;
         border-radius: 8px;
     }
 
