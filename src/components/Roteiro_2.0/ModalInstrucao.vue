@@ -28,6 +28,7 @@
                                 <textarea v-model="o.descricao" :readonly="readonly"
                                     @focusout="atualizarOrientacao(o.id, { descricao: o.descricao })"></textarea>
                             </td>
+                            <!--  -->
                             <td>
                                 <ul class="listaAnexo">
                                     <li v-for="a in o.anexos" :key="a.id"><a :href="storageUrl + a.caminho"
