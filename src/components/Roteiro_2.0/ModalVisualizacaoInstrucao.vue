@@ -36,7 +36,6 @@
                     </div>
                 </div>
             </div>
-            <!-- {{ instrucao }} -->
         </div>
     </div>
 </template>
