@@ -38,3 +38,9 @@ function flattenHierarchy(data) {
 
     return setores;
 }
+
+export default {
+  getSetores,
+  getSetoresHieraquico
+};
+
