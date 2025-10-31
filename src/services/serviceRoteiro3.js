@@ -29,7 +29,7 @@ export default {
     async getRoteiro(produto_cod) {
         try {
             const response = await api.get(`roteiro_2/buscar/${produto_cod}`);
-            return response.data[0]
+            return response.data
         } catch (error) {
             console.error(error);
             throw error;
