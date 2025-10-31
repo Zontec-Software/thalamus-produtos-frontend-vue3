@@ -145,7 +145,6 @@ export default {
         },
 
         abrirInput(id, idx) {
-            console.log('teste')
             this.idOrientaçãoEditada = id
             const el = this.$refs.inputAnexo?.[idx]
             if (el) el.click()
