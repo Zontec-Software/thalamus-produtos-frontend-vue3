@@ -31,6 +31,9 @@
       <!-- <router-link v-if="permissoes.includes(97)" to="/produtos" active-class="ativo">Produtos em      
                 Edição</router-link> -->
     </nav>
+    <nav class="nav-maior separador">
+      <router-link to="/etapas" active-class="ativo">Cadastro de Etapas</router-link>
+    </nav>
     <!-- <nav class="nav-maior separador">
             <a @click="$emit('abrirModal', 'modelo')">Modelo</a>
             <a @click="$emit('abrirModal', 'fixacao')">Fixação</a>

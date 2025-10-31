@@ -35,7 +35,7 @@
         </div> -->
       <div class="bloco2 sheet margem " v-if="exibirEstruturaERoteiro">
         <div class="section">
-          <div class="section__title">🏗️ ESTRUTURA DO PRODUTO</div>
+          <div class="section__title">ESTRUTURA DO PRODUTO</div>
           <br />
           <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
             <div class="legenda-item"><span class="produto-tipo-indicador materia-prima"></span>Matéria Prima</div>
@@ -53,9 +53,9 @@
       <div class="bloco2 sheet margem" v-if="exibirEstruturaERoteiro">
         <div class="section">
           <div>
-            <div class="section__title">🛠️ ROTEIRO DE PRODUÇÃO</div>
+            <div class="section__title">ROTEIRO DE PRODUÇÃO</div>
             <!-- <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" /> -->
-            <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="somenteVisualizacao"/>
+            <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="somenteVisualizacao" />
             <!-- <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="false"/> -->
           </div>
         </div>
