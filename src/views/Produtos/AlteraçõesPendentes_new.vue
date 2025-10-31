@@ -851,6 +851,8 @@ export default {
 <style scoped>
 .sheet {
   padding: 16px;
+  background-color: var(--cor-bg);
+  ;
 }
 
 .banner {
