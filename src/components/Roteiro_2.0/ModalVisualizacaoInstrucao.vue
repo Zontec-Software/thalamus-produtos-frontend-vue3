@@ -12,7 +12,7 @@
                 <h2 class="alinha-centro">
                     Instruções de Montagem
                 </h2>
-                <div class="orientaçoes">
+                <div class="orientacoes">
                     <div class="bloco2 orientacao" v-for="o in instrucao.orientacoes" :key="o">
                         <div class="nome">
                             {{ o.nome }}
@@ -89,7 +89,7 @@ export default {
     overflow: auto;
 }
 
-.orientaçoes {
+.orientacoes {
     display: flex;
     flex-flow: column;
     gap: 1rem;
