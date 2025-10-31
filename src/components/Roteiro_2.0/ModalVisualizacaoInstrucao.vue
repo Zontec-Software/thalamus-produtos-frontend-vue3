@@ -137,10 +137,11 @@ export default {
     .anexo {
         flex: 1 1 0;
         min-width: 200px;
-        max-width: 100%;
+        width: 100%;
         max-width: 600px;
         height: auto;
         text-align: center;
+        border: 1px solid red;
     }
 
     .anexo img {
