@@ -138,7 +138,8 @@ export default {
         flex: 1 1 0;
         min-width: 200px;
         max-width: 100%;
-        max-width: 500px;
+        max-width: 600px;
+        height: auto;
         text-align: center;
     }
 
