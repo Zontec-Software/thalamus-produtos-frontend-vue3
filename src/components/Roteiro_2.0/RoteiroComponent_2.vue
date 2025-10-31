@@ -4,49 +4,55 @@
             <table class="tabela">
                 <tbody>
                     <tr>
-                        <th>Setor</th>
-                        <th>Etapa</th>
-                        <th>Cod operação</th>
+                        <th style="text-align: center;">Setor</th>
+                        <th style="text-align: center;">Etapa</th>
+                        <th style="text-align: center;">Cod operação</th>
                         <th>Operação</th>
                         <th>Instrução técnica</th>
                         <th>Tempo Padrão</th>
                         <th v-if="!readonly"></th>
                     </tr>
-                    <tr v-for="e in roteiro.etapas" :key="e.id">
-                        <td>
-                            <select v-model="e.setor_id" @change="atualizarEtapa(e.id, { setor_id: e.setor_id })">
-                                <option :value="null" hidden></option>
-                                <option v-for="s in setores" :key="s.id" :value="s.id">{{ s.nome }}</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select v-model="e.tipo_etapa_id"
-                                @change="atualizarEtapa(e.id, { tipo_etapa_id: e.tipo_etapa_id })">
-                                <option hidden></option>
-                                <option v-for="tipo in tiposEtapa" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}
-                                </option>
-                            </select>
-                        </td>
-                        <td>
-                            <!-- <input type="text" v-model="e.cod_operacao"
-                                @focusout="atualizarEtapa(e.id, { cod_operacao: e.cod_operacao })"> -->
-                            <div style="border: 1px solid var(--cor-separador); height: 3rem; padding: 6px 12px; align-content: center;
-                                border-radius: 6px; width: 100% !important;">
-                                {{ e.id }}
-        </div>
-        </td>
-        <td><input type="text" v-model="e.operacao" @focusout="atualizarEtapa(e.id, { operacao: e.operacao })"></td>
-        <td><button data-allow-when-readonly class="acao-secundaria" @click="etapaDestacada = e">Inst.
-                Técnica</button></td>
-        <td><input type="text" v-model="e.tempo" @focusout="atualizarEtapa(e.id, { tempo: e.tempo })">
-        </td>
-        <td v-if="!readonly"><i class="bi-trash-fill" @click="excluirEtapa(e.id)"></i></td>
-        </tr>
-        </tbody>
-        </table>
-        <div class="alinha-centro" v-if="!readonly">
-            <button class="acao-secundaria" @click="modalCadastrar = true">Adicionar Etapa</button>
-        </div>
+                    <template v-for="(setor, si) in grupos" :key="setor.setorId ?? ('sem-setor-' + si)">
+                        <template v-for="(tipo, ti) in setor.tipos" :key="tipo.tipoId ?? ('sem-tipo-' + ti)">
+                            <tr v-for="(e, ei) in tipo.etapas" :key="e.id">
+                                <td style="text-align: center;" v-if="ti === 0 && ei === 0"
+                                    :rowspan="setor.tipos.reduce((acc, t) => acc + t.etapas.length, 0)">
+                                    <h3>{{ setor.setorNome }}</h3>
+                                </td>
+                                <td style="text-align: center;" v-if="ei === 0" :rowspan="tipo.etapas.length">
+                                    <h4>{{ tipo.tipoNome }}</h4>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="chip bg-cinza" style="font-size: 14px;">
+                                        {{ e.id }}
+                                </span>
+                                </td>
+
+                                <td>
+                                    <input type="text" v-model="e.operacao"
+                                        @focusout="atualizarEtapa(e.id, { operacao: e.operacao })" />
+                                </td>
+                                <td>
+                                    <button data-allow-when-readonly class="acao-secundaria"
+                                        @click="etapaDestacada = e">
+                                        Inst. Técnica
+                                    </button>
+                                </td>
+                                <td>
+                                    <input type="text" v-model="e.tempo"
+                                        @focusout="atualizarEtapa(e.id, { tempo: e.tempo })" />
+                                </td>
+                                <td v-if="!readonly">
+                                    <i class="bi-trash-fill" @click="excluirEtapa(e.id)"></i>
+                                </td>
+                            </tr>
+                        </template>
+                    </template>
+                </tbody>
+            </table>
+            <div class="alinha-centro" v-if="!readonly">
+                <button class="acao-secundaria" @click="modalCadastrar = true">Adicionar Etapa</button>
+            </div>
         </div>
         <div class="loading" v-else>
             <div></div>
@@ -72,6 +78,29 @@ import ModalNovaEtapa from './ModalNovaEtapa.vue';
 import ModalInstrucao from './ModalInstrucao.vue';
 import ModalVisualizacaoInstrucao from './ModalVisualizacaoInstrucao.vue';
 
+function groupRoteiroBySetorTipo(roteiro) {
+    const etapas = roteiro?.etapas ?? [];
+    const setorMap = new Map();
+    for (const etapa of etapas) {
+        const sKey = etapa?.setor?.id ?? 'SEM_SETOR';
+        const sId = sKey === 'SEM_SETOR' ? null : sKey;
+        const sNome = etapa?.setor?.nome?.trim() || 'Sem setor';
+        if (!setorMap.has(sKey)) setorMap.set(sKey, { setorId: sId, setorNome: sNome, tipoMap: new Map() });
+        const setorEntry = setorMap.get(sKey);
+        const tKey = etapa?.tipo?.id ?? 'SEM_TIPO';
+        const tId = tKey === 'SEM_TIPO' ? null : tKey;
+        const tNome = etapa?.tipo?.nome?.trim() || 'Sem tipo';
+        if (!setorEntry.tipoMap.has(tKey)) setorEntry.tipoMap.set(tKey, { tipoId: tId, tipoNome: tNome, etapas: [] });
+        setorEntry.tipoMap.get(tKey).etapas.push(etapa);
+    }
+    return Array.from(setorMap.values())
+        .map(({ setorId, setorNome, tipoMap }) => ({
+            setorId,
+            setorNome,
+            tipos: Array.from(tipoMap.values()).sort((a, b) => a.tipoNome.localeCompare(b.tipoNome, 'pt-BR')),
+        }))
+        .sort((a, b) => a.setorNome.localeCompare(b.setorNome, 'pt-BR'));
+}
 export default {
     name: 'RoteiroComponent_2',
 
@@ -98,6 +127,12 @@ export default {
             roteiro: {},
             tiposEtapa: [],
             etapaDestacada: null
+        }
+    },
+
+    computed: {
+        grupos() {
+            return groupRoteiroBySetorTipo(this.roteiro);
         }
     },
 

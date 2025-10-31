@@ -2,17 +2,17 @@
   <div v-if="isLoading" class="loading">
     <div></div>
   </div>
-  <section v-readonly="isReadOnly" v-else class="sheet">
+  <section v-readonly="isReadOnly" v-else :class="['sheet', { readonly: isReadOnly }]">
     <!-- BANNER SUPERIOR -->
     <div class="banner">
-      <h2>📋 FICHA DE PRODUTO</h2>
+      <h2>FICHA DE PRODUTO</h2>
       <h3>Cadastro e Especificações Técnicas</h3>
       <span class="updated"> 🗓️ Atualizado em: {{ formatarData(produto_original.updated_at) ?? '?' }} — por: {{
         produto_original.editadoPor ?? '??' }} </span>
     </div>
     <!-- INFORMAÇÕES PRINCIPAIS -->
     <div class="section">
-      <div class="section__title">🎯 INFORMAÇÕES PRINCIPAIS</div>
+      <div class="section__title"> INFORMAÇÕES PRINCIPAIS</div>
       <!-- Código -->
       <div class="code-card">
         <div class="code-card__title">CÓDIGO DO PRODUTO</div>
@@ -21,19 +21,22 @@
       <div class="grid-5">
         <!-- Família -->
         <div class="field col-2">
-          <label>📦 Família</label>
-          <select v-model="produto_original.familia_id"
+          <label> Família</label>
+          <select v-model="produto_original.familia_id" :title="labelFamiliaSelecionada"
             @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
             <option value="">Selecione uma família</option>
-            <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome.toUpperCase() }} </option>
+            <option v-for="item in familias" :key="item.id" :value="item.id" :title="item.nome"> {{
+              item.nome.toUpperCase() }} </option>
           </select>
         </div>
         <!-- Campos básicos dinâmicos -->
         <template v-for="campo in camposBasicos" :key="campo.id">
           <!-- Lista STATUS (número) -->
           <div class="field" v-if="campo.tipo === 'Lista' && campo.chave === 'status'">
-            <label>✅ {{ campo.label }}</label>
+            <label>{{ campo.label }}</label>
+            <!-- STATUS -->
             <select v-model.number="valoresSelecionados[campo.id]"
+              :title="getLabel(campo.id, valoresSelecionados[campo.id])"
               :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
               @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
               <option value="">Selecione</option>
@@ -43,28 +46,31 @@
           </div>
           <!-- Lista -->
           <div class="field" v-else-if="campo.tipo === 'Lista'">
-            <label>🏷️ {{ campo.label }}</label>
-            <select v-model="valoresSelecionados[campo.id]"
+            <label>{{ campo.label }}</label>
+            <!-- Lista -->
+            <select v-model="valoresSelecionados[campo.id]" :title="getLabel(campo.id, valoresSelecionados[campo.id])"
               :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
               @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
               <option value="">Selecione</option>
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-              </option>
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id" :title="opcao.valor">
+                {{ opcao.valor }} </option>
             </select>
           </div>
           <!-- MultiLista -->
           <div class="field" v-else-if="campo.tipo === 'MultiLista'">
-            <label>📚 {{ campo.label }}</label>
+            <label>{{ campo.label }}</label>
+            <!-- MultiLista -->
             <select v-model="valoresSelecionados[campo.id]" multiple
+              :title="getLabel(campo.id, valoresSelecionados[campo.id])"
               :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
               @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-              </option>
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id" :title="opcao.valor">
+                {{ opcao.valor }} </option>
             </select>
           </div>
           <!-- Texto / Número / Decimal / Data -->
           <div class="field" v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)">
-            <label>📝 {{ campo.label }}</label>
+            <label>{{ campo.label }}</label>
             <input v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
               :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
               @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
@@ -72,7 +78,7 @@
         </template>
         <!-- Orçamento -->
         <div class="field col-1">
-          <label>🏷️ Categoria do Orçamento</label>
+          <label>Categoria do Orçamento</label>
           <SelectCategoriaOrcamento v-model="produto_original.id_categoria_orcamento" :dreTree="categoriasOrçamento"
             @update:modelValue="atualizarPayLoad('id_categoria_orcamento', $event)" />
         </div>
@@ -88,7 +94,7 @@
       </div>
     </div>
     <div class="section">
-      <div class="section__title">📷 GALERIA DE FOTOS</div>
+      <div class="section__title">GALERIA DE FOTOS</div>
       <div class="gallery">
         <div v-if="fotoAtualUrl" class="gallery__card">
           <img :src="fotoAtualUrl" :alt="fotosProduto[indiceAtual]?.nome || 'Foto atual'" />
@@ -106,10 +112,10 @@
     </div>
     <!-- INFORMAÇÕES TÉCNICAS (FISCAIS) -->
     <div class="section">
-      <div class="section__title">⚙️ INFORMAÇÕES TÉCNICAS</div>
+      <div class="section__title">INFORMAÇÕES TÉCNICAS</div>
       <div class="grid-4">
         <div v-for="campo in camposFiscaisVisiveis" :key="campo.id" class="field">
-          <label>📝 {{ campo.label }}</label>
+          <label>{{ campo.label }}</label>
           <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
             @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
             :disabled="aguardandoAprovaçãoFiscal">
@@ -119,8 +125,8 @@
           <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
             :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
             :disabled="aguardandoAprovaçãoFiscal">
-            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
-            </option>
+            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id" :title="opcao.valor"> {{
+              opcao.valor }} </option>
           </select>
           <div v-else-if="campo.chave === 'id_cest'">
             <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
@@ -135,10 +141,10 @@
     </div>
     <!-- INFORMAÇÕES ADICIONAIS -->
     <div class="section">
-      <div class="section__title">ℹ️ INFORMAÇÕES ADICIONAIS</div>
+      <div class="section__title">INFORMAÇÕES ADICIONAIS</div>
       <div class="grid-3">
         <div v-for="campo in camposAdicionais" :key="campo.id" class="field">
-          <label>📝 {{ campo.label }}</label>
+          <label>{{ campo.label }}</label>
           <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
             @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
             <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id"> {{ opcao.valor }}
@@ -314,6 +320,11 @@ export default {
       const f = this.fotosProduto?.[this.indiceAtual];
       return f ? f.url : null;
     },
+
+    labelFamiliaSelecionada() {
+      const f = this.familias.find(x => String(x.id) === String(this.produto_original.familia_id));
+      return f ? f.nome : "";
+    },
   },
   async created() {
     this.funcionalidades = await getPermissao();
@@ -331,6 +342,15 @@ export default {
     }
   },
   methods: {
+    getLabel(campoId, value) {
+      const lista = this.valoresSelects?.[campoId] || [];
+      if (Array.isArray(value)) {
+        const map = new Map(lista.map(o => [String(o.id), o.valor]));
+        return value.map(v => map.get(String(v))).filter(Boolean).join(", ");
+      }
+      const found = lista.find(o => String(o.id) === String(value));
+      return found ? found.valor : "";
+    },
     async carregarCategoriasOrcamento() {
       try {
         const response = await serviceProdutos.getCategoriasOrcamento();
@@ -849,6 +869,39 @@ export default {
 };
 </script>
 <style scoped>
+.sheet.readonly select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: none !important;
+  padding-right: 10px;
+  cursor: default;
+}
+
+.sheet.readonly select::-ms-expand {
+  display: none !important;
+}
+
+
+.sheet.readonly :where(select):disabled,
+.sheet.readonly :where(input):disabled,
+.sheet.readonly input[readonly] {
+  opacity: 1 !important;
+  background: var(--cor-bg) !important;
+  color: var(--cor-fonte) !important;
+  border-color: var(--cor-separador) !important;
+  -webkit-text-fill-color: var(--cor-fonte) !important;
+  filter: none !important;
+  pointer-events: none;
+}
+
+.sheet.readonly select:focus,
+.sheet.readonly input:focus {
+  outline: none !important;
+  border-color: var(--cor-separador) !important;
+  box-shadow: none !important;
+}
+
 .sheet {
   padding: 16px;
   background-color: var(--cor-bg);
@@ -945,6 +998,7 @@ select,
   border-radius: 10px;
   padding: 8px 10px;
   transition: border-color 0.15s, box-shadow 0.15s;
+  color: var(--cor-fonte);
 }
 
 input::placeholder {
@@ -1125,7 +1179,6 @@ select::-ms-expand {
 }
 
 .icon-btn {
-  /* background: var(--cor-bg); */
   border: 1px solid var(--cor-separador);
   border-radius: 10px;
   padding: 6px 8px;
@@ -1186,16 +1239,23 @@ select::-ms-expand {
 
 :where(select):disabled {
   opacity: 1 !important;
-  /* volta ao 100% */
   background: var(--cor-bg) !important;
   color: var(--cor-fonte) !important;
-  /* Firefox/Chromium */
   -webkit-text-fill-color: var(--cor-fonte) !important;
-  /* Safari */
   border-color: var(--cor-separador) !important;
   filter: none !important;
   cursor: default;
-  /* opcional: garante que não abra o dropdown */
+  pointer-events: none;
+}
+
+:where(input):disabled {
+  opacity: 1 !important;
+  background: var(--cor-bg) !important;
+  color: var(--cor-fonte) !important;
+  -webkit-text-fill-color: var(--cor-fonte) !important;
+  border-color: var(--cor-separador) !important;
+  filter: none !important;
+  cursor: default;
   pointer-events: none;
 }
 

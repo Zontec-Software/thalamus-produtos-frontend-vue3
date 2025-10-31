@@ -2,8 +2,8 @@
   <div v-if="isLoading" class="loading">
     <div></div>
   </div>
-  <section class="bloco" v-readonly="isReadOnly" v-else>
-    <div class=" margem" style="text-align: right">
+  <section class="bloco section" v-readonly="isReadOnly" v-else>
+    <div class=" margem " style="text-align: right">
       <strong> {{ `Atualizado em: ${formatarData(produto_original.updated_at) ?? "?"} - por:
         ${produto_original.editadoPor ?? "??"}` }} </strong>
     </div>
@@ -876,6 +876,14 @@ export default {
 };
 </script>
 <style scoped>
+.section {
+  background: var(--cor-bg);
+  border: 1px solid var(--cor-primaria);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
 .grid-4,
 .container,
 fieldset {
