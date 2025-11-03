@@ -17,6 +17,7 @@ import CamposListar from "@/views/Produtos/CamposListar.vue";
 import ProdutosView from "@/views/Produtos/ProdutosView.vue";
 import CatalogoView from "@/views/Produtos/CatalogoView.vue";
 import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
+import EtapasView from '@/views/Produtos/EtapasView.vue'
 
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
@@ -216,6 +217,12 @@ const routes = [
     path: '/novaFicha',
     name: 'NovaFicha',
     component: NovaFicha,
+    beforeEnter: guardPermissaoRoute
+  },
+    {
+    path: '/etapas',
+    name: 'EtapasView',
+    component: EtapasView,
     beforeEnter: guardPermissaoRoute
   },
 ];
