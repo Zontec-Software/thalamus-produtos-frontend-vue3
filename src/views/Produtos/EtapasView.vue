@@ -8,18 +8,18 @@
         <div class="margem container">
             <div>
                 <label>Selecione o Setor:</label>
-                <select v-model.number="setorSelecionado" @change="carregarEtapas">
+                <select v-model="setorSelecionadoId" @change="carregarEtapas">
                     <option :value="null" disabled>Selecione</option>
-                    <option v-for="s in setores" :key="s.id" :value="s.id"> {{ s.nome }} </option>
+                    <option v-for="s in setores" :key="s.id" :value="s.id">{{ s.nome }}</option>
                 </select>
             </div>
             <br>
             <div class="bloco2 margem">
-                <div class="submit m-b" v-if="setorSelecionado">
+                <div class="submit m-b" v-if="setorSelecionadoId">
                     <button @click="abrirModalEtapa()">Cadastrar Etapa</button>
                 </div>
                 <div class="bloco2 margem">
-                    <div v-if="!setorSelecionado"> Selecione um setor para visualizar as etapas. </div>
+                    <div v-if="!setorSelecionadoId"> Selecione um setor para visualizar as etapas. </div>
                     <div v-else-if="isLoading" class="loading">
                         <div></div>
                     </div>
@@ -33,10 +33,11 @@
                         </thead>
                         <tbody>
                             <tr v-for="etapa in etapas" :key="etapa.id">
-                                <td>{{ etapa.descricao }}</td>
+                                <td>{{ etapa.nome }}</td>
                                 <td style="display:flex; justify-content:center;">
                                     <div style="display: flex;">
-                                        <a class="icone-editar" title="Editar" @click="abrirModalEtapa(etapa)"></a>
+                                        <a style="transform: scale(0.8)" class="icone-editar" title="Editar"
+                                            @click="abrirModalEtapa(etapa)"></a>
                                         <a class="icone-lixeira" title="Excluir" @click="abrirModalExcluir(etapa)"></a>
                                     </div>
                                 </td>
@@ -48,14 +49,14 @@
         </div>
         <!-- MODAL CRIAR/EDITAR -->
         <div class="modal-mask" v-if="showEtapaModal" @click="fecharModalFora">
-            <div class="modal-container" style="height:min-content; width:40rem;">
+            <div class="jm margem" style="min-width: 30vw">
                 <h3 style="text-align:center;"> {{ etapaForm.id ? 'Editar Etapa' : 'Cadastrar Etapa' }} </h3>
                 <div class="modal-body">
                     <div class="form-linha">
                         <label>Descrição</label>
-                        <input v-model="etapaForm.descricao" type="text" placeholder="Descrição da etapa" />
+                        <input v-model="etapaForm.nome" type="text" placeholder="Descrição da etapa" />
                     </div>
-                    <div class="modal-footer">
+                    <div class="direita margem submit">
                         <button @click="salvarEtapa" :disabled="salvando"> {{ salvando ? 'Salvando...' : 'Salvar' }}
                         </button>
                         <button class="acao-secundaria" @click="fecharModalEtapa">Cancelar</button>
@@ -65,10 +66,10 @@
         </div>
         <!-- MODAL EXCLUIR -->
         <div class="modal-mask" v-if="showDeleteModal" @click="fecharModalFora">
-            <div class="modal-container" style="height:min-content; width:40rem;">
+            <div class="jm margem" style="min-width: 30vw">
                 <div class="modal-body">
-                    <p>Deseja excluir a etapa <strong>{{ descricaoToDelete }}</strong>?</p>
-                    <div class="modal-footer">
+                    <span>Deseja excluir a etapa <strong>{{ descricaoToDelete }}</strong>?</span>
+                    <div class="direita margem submit">
                         <button @click="confirmarExclusao" :disabled="excluindo"> {{ excluindo ? 'Excluindo...' :
                             'Confirmar' }} </button>
                         <button class="acao-secundaria" @click="fecharModal">Cancelar</button>
@@ -80,20 +81,19 @@
 </template>
 <script>
 import { useToast } from 'vue-toastification'
-import serviceSetores from '@/services/serviceSetores'
+import serviceRoteiro3 from '@/services/serviceRoteiro3';
 
 export default {
     data() {
         return {
             setores: [],
             setorSelecionado: null,
-
+            setorSelecionadoId: null,
             etapas: [],
             carregandoEtapas: false,
-
             showEtapaModal: false,
             showDeleteModal: false,
-            etapaForm: { id: null, descricao: '' },
+            etapaForm: { id: null, nome: '' },
             descricaoToDelete: '',
             idToDelete: null,
             salvando: false,
@@ -119,7 +119,7 @@ export default {
     methods: {
         async carregarSetores() {
             try {
-                this.setores = await serviceSetores.getSetoresHieraquico()
+                this.setores = await serviceRoteiro3.getSetoresRoteiro()
             } catch (e) {
                 console.error('Erro ao carregar setores:', e)
                 this.toast.error('Erro ao carregar setores')
@@ -128,30 +128,96 @@ export default {
         },
 
         async carregarEtapas() {
-
+            if (!this.setorSelecionadoId) {
+                this.etapas = []
+                return
+            }
+            this.carregandoEtapas = true
+            try {
+                const lista = await serviceRoteiro3.getTiposEtapa()
+                const sid = Number(this.setorSelecionadoId)
+                this.etapas = Array.isArray(lista)
+                    ? lista.filter(e => Number(e.setor_id) === sid)
+                    : []
+            } catch (e) {
+                console.error('Erro ao carregar etapas:', e)
+                this.toast.error('Erro ao carregar etapas')
+                this.etapas = []
+            } finally {
+                this.carregandoEtapas = false
+            }
         },
 
-        abrirModalEtapa() {
 
+        abrirModalEtapa(etapa) {
+            if (etapa) {
+                this.etapaForm = { id: etapa.id, nome: etapa.nome }
+            } else {
+                this.etapaForm = { id: null, nome: '' }
+            }
+            this.showEtapaModal = true
         },
 
         async salvarEtapa() {
+            if (!this.setorSelecionadoId) {
+                this.toast.warning('Selecione um setor antes de salvar.')
+                return
+            }
+            const nome = this.etapaForm?.nome?.trim()
+            if (!nome) {
+                this.toast.warning('Informe o nome da etapa.')
+                return
+            }
 
+            this.salvando = true
+            const payload = { nome, setor_id: Number(this.setorSelecionadoId) }
+
+            try {
+                if (this.etapaForm.id) {
+                    await serviceRoteiro3.atualizarEtapa(this.etapaForm.id, payload)
+                    this.toast.success('Etapa atualizada com sucesso!')
+                } else {
+                    await serviceRoteiro3.cadastrarEtapa(payload)
+                    this.toast.success('Etapa cadastrada com sucesso!')
+                }
+                this.fecharModalEtapa()
+                await this.carregarEtapas()
+            } catch (e) {
+                console.error('Erro ao salvar etapa:', e)
+                this.toast.error('Erro ao salvar etapa')
+            } finally {
+                this.salvando = false
+            }
         },
+
+
 
         abrirModalExcluir(etapa) {
             this.showDeleteModal = true
             this.idToDelete = etapa.id
-            this.descricaoToDelete = etapa.descricao
+            this.descricaoToDelete = etapa.nome
         },
 
         async confirmarExclusao() {
+            if (!this.idToDelete) return
+            this.excluindo = true
+            try {
+                await serviceRoteiro3.excluirEtapa(this.idToDelete)
+                this.toast.success('Etapa excluída com sucesso!')
+                this.fecharModal()
+                await this.carregarEtapas()
+            } catch (e) {
 
+                console.error('Erro ao excluir etapa:', e)
+
+            } finally {
+                this.excluindo = false
+            }
         },
 
         fecharModalEtapa() {
             this.showEtapaModal = false
-            this.etapaForm = { id: null, descricao: '' }
+            this.etapaForm = { id: null, nome: '' }
         },
         fecharModal() {
             this.showDeleteModal = false
@@ -167,36 +233,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-.form-linha {
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-}
-
-.m-b {
-    margin-bottom: 1.5rem;
-}
-
-/* Spinner baseado no snippet solicitado */
-.loading {
-    display: flex;
-    justify-content: center;
-    padding: 1.5rem 0;
-}
-
-.loading>div {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 4px solid #ccc;
-    border-top-color: #6aa9ff;
-    animation: spin 0.9s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-</style>
+<style scoped></style>

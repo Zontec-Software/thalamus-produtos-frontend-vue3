@@ -32,7 +32,7 @@
                 Edição</router-link> -->
     </nav>
     <nav class="nav-maior separador">
-      <router-link to="/etapas" active-class="ativo">Cadastro de Etapas</router-link>
+      <router-link to="/etapas" active-class="ativo">Configuração de Etapas</router-link>
     </nav>
     <!-- <nav class="nav-maior separador">
             <a @click="$emit('abrirModal', 'modelo')">Modelo</a>

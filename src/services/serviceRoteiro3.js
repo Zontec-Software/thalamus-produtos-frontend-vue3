@@ -3,7 +3,7 @@ import { api } from "roboflex-thalamus-request-handler";
 export default {
     async getSetoresRoteiro() {
         try {
-            const response = await api.get('/setor/montagem');
+            const response = await api.get('setor/montagem');
             return response.data.map(setor => ({
                 ...setor,
                 nome: setor.nome.replace(/^\d+\.\s*/, '')
@@ -36,6 +36,37 @@ export default {
         }
     },
 
+     async cadastrarEtapa(payload) {
+        try {
+            const response = await api.post(`roteiro_2/tipo`,payload);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+         async excluirEtapa(id) {
+        try {
+            const response = await api.delete(`roteiro_2/tipo/${id}`);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+             async atualizarEtapa(id, payload) {
+        try {
+            const response = await api.put(`roteiro_2/tipo/${id}`, payload);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+
     async getTiposEtapa() {
         try {
             const response = await api.get(`roteiro_2/tipo`);
@@ -46,7 +77,7 @@ export default {
         }
     },
 
-    async cadastrarEtapa(payload) {
+    async cadastrarEtapaRoteiro(payload) {
         try {
             const response = await api.post(`roteiro_2/etapa`, payload);
             return response.data
@@ -56,7 +87,7 @@ export default {
         }
     },
 
-    async atualizarEtapa(id, payload) {
+    async atualizarEtapaRoteiro(id, payload) {
         try {
             const response = await api.patch(`roteiro_2/etapa/${id}`, payload);
             return response.data
@@ -66,7 +97,7 @@ export default {
         }
     },
 
-    async excluirEtapa(id) {
+    async excluirEtapaRoteiro(id) {
         try {
             const response = await api.delete(`roteiro_2/etapa/${id}`);
             return response.data
