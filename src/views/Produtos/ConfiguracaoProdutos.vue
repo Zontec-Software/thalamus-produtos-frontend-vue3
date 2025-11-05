@@ -122,7 +122,7 @@
                 </fieldset>
                 <br />
                 <div class="tabela-scroll">
-                    <table class="tabela margem alinha-centro">
+                    <table class="tabela margem tabela-vertical">
                         <thead>
                             <tr>
                                 <th>Valor</th>
@@ -132,25 +132,23 @@
                         <tbody>
                             <tr v-for="valor in modalCampo.dados" :key="valor.id">
                                 <td v-if="modalCampo.editandoId !== valor.id">{{ valor.valor }}</td>
-                                <td v-else>
-                                    <input v-model="modalCampo.valorEdicao" />
-                                </td>
+                                <td v-else><input v-model="modalCampo.valorEdicao" /></td>
                                 <td>
-                                    <a style="transform: scale(0.8)" @click="editarValor(valor)"
-                                        title="Clique para editar valor" class="icone-editar"></a>
+                                    <a style="transform: scale(0.8)" @click="editarValor(valor)" title="Editar"
+                                        class="icone-editar"></a>
                                     <button v-if="modalCampo.editandoId === valor.id"
                                         @click="salvarValorEditado">Salvar</button>
                                     <button v-if="modalCampo.editandoId === valor.id"
                                         @click="cancelarEdicaoValor">Cancelar</button>
-                                    <a @click="excluirValorCampo(valor.id)" title="Clique para excluir valor"
-                                        class="icone-lixeira" style="color: red"></a>
+                                    <a @click="excluirValorCampo(valor.id)" title="Excluir" class="icone-lixeira "
+                                        style="color: red"></a>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="direita margem submit">
+            <div class="alinha-direita margem submit">
                 <button class="acao-secundaria" @click="modalCampo.aberto = false">Fechar</button>
                 <button @click="cadastrarValoresCampo">Salvar</button>
             </div>
@@ -595,6 +593,30 @@ export default {
 };
 </script>
 <style scoped>
+.tabela-vertical {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    gap: 0.5rem 1rem;
+    align-items: start;
+}
+
+.tabela-vertical thead,
+.tabela-vertical tbody,
+.tabela-vertical tr {
+    display: contents;
+}
+
+.tabela-vertical th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabela-vertical td {
+    padding: 0.3rem 0;
+}
+
 .cabecalho-campos-lista {
     display: flex;
     justify-content: space-between;
@@ -650,6 +672,7 @@ i:hover {
     font-size: 16px;
     cursor: pointer;
 }
+
 
 .obrigatorio {
     cursor: not-allowed !important;
