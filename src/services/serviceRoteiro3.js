@@ -1,6 +1,17 @@
 import { api } from "roboflex-thalamus-request-handler";
 
 export default {
+    async reordenarEtapas(payload) {
+        try {
+            const response = await api.post('roteiro_2/editarOrdem', { etapas: payload });
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+
+    },
+
     async getSetoresRoteiro() {
         try {
             const response = await api.get('setor/montagem');
@@ -36,9 +47,9 @@ export default {
         }
     },
 
-     async cadastrarEtapa(payload) {
+    async cadastrarEtapa(payload) {
         try {
-            const response = await api.post(`roteiro_2/tipo`,payload);
+            const response = await api.post(`roteiro_2/tipo`, payload);
             return response.data
         } catch (error) {
             console.error(error);
@@ -46,7 +57,7 @@ export default {
         }
     },
 
-         async excluirEtapa(id) {
+    async excluirEtapa(id) {
         try {
             const response = await api.delete(`roteiro_2/tipo/${id}`);
             return response.data
@@ -56,7 +67,7 @@ export default {
         }
     },
 
-             async atualizarEtapa(id, payload) {
+    async atualizarEtapa(id, payload) {
         try {
             const response = await api.put(`roteiro_2/tipo/${id}`, payload);
             return response.data
