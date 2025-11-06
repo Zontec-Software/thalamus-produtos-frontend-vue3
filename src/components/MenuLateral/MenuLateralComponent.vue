@@ -18,44 +18,16 @@
 106 Montagem | Indicadores 
 107 Montagem | Separar Materiais -->
     <nav class="nav-maior separador">
-      <router-link to="/" active-class="ativo">Produtos em Edição</router-link>
-      <router-link to="/catalogo" active-class="ativo">Catálogo de Produtos</router-link>
-      <!-- <router-link to="/aprovacao" active-class="ativo">Aprovação</router-link> -->
+      <router-link to="/" :class="{ ativo: isProdutosActive }"> Produtos em Edição </router-link>
+      <router-link to="/catalogo" :class="{ ativo: isCatalogoActive }"> Catálogo de Produtos </router-link>
       <router-link to="/parametrosTeste" active-class="ativo">Parametros de Teste</router-link>
       <router-link to="/gabarito" active-class="ativo">Gabaritos</router-link>
       <router-link to="/configurar" active-class="ativo">Campos por Família</router-link>
       <router-link to="/codificacoes" active-class="ativo">Codificação de Serviços</router-link>
-      <!-- <router-link to="/novaFicha">Nova Ficha de Produtos</router-link> -->
-      <!-- <router-link to="/campos" active-class="ativo">Cadastro de Campos</router-link> -->
-      <!-- <router-link to="/camposListar" active-class="ativo">Campos Listar</router-link> -->
-      <!-- <router-link v-if="permissoes.includes(97)" to="/produtos" active-class="ativo">Produtos em      
-                Edição</router-link> -->
     </nav>
     <nav class="nav-maior separador">
       <router-link to="/etapas" active-class="ativo">Configuração de Etapas</router-link>
     </nav>
-    <!-- <nav class="nav-maior separador">
-            <a @click="$emit('abrirModal', 'modelo')">Modelo</a>
-            <a @click="$emit('abrirModal', 'fixacao')">Fixação</a>
-            <a @click="$emit('abrirModal', 'tamanho')">Tamanho</a>
-            <a @click="$emit('abrirModal', 'linha')">Linha Device</a>
-            <a @click="$emit('abrirModal', 'modeloDevice')">Modelo Device</a>
-            <a @click="$emit('abrirModal', 'cor')">Cor</a>
-            <a @click="$emit('abrirModal', 'versaoProduto')">Versão Produto</a>
-            <a @click="$emit('abrirModal', 'especificacao')">Especificação Técnica</a>
-        </nav> -->
-    <!-- <nav class="nav-maior separador">
-            <router-link to="/cadastro/unidadeMedida" active-class="ativo">Unidade Medida</router-link>
-            <router-link to="/cadastro/fixacao" active-class="ativo">Fixação</router-link>
-            <router-link to="/cadastro/linha" active-class="ativo">Linha</router-link>
-            <router-link to="/cadastro/modelo" active-class="ativo">Modelo</router-link>
-            <router-link to="/cadastro/tamanho" active-class="ativo">Tamanho</router-link>
-            <router-link to="/cadastro/cor" active-class="ativo">Cor</router-link>
-            <router-link to="/cadastro/versaoModelo" active-class="ativo">Versão Produto</router-link>
-            <router-link to="/cadastro/especificacao" active-class="ativo">Especificação </router-link>
-            <router-link to="/cadastro/linhaDevice" active-class="ativo">Linha Device *</router-link>
-            <router-link to="/cadastro/modeloDevice" active-class="ativo">Modelo Device *</router-link>
-        </nav> -->
   </aside>
 </template>
 <script>
@@ -64,10 +36,20 @@ import { getPermissao } from "@/services/permissao-service";
 export default {
   name: "menuLateralComponent",
 
+  computed: {
+    isProdutosActive() {
+      const p = this.$route.path || "/";
+      return p === "/" || p.startsWith("/cadastroProduto/");
+    },
+    isCatalogoActive() {
+      const p = this.$route.path || "/";
+      return p === "/catalogo" || p.startsWith("/catalogo/produto/");
+
+    },
+  },
+
   data() {
-    return {
-      permissoes: "",
-    };
+    return { permissoes: "" };
   },
 
   async created() {
