@@ -44,8 +44,7 @@
               </select>
               <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)"
                 v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-                @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="onInputDecimal($event, campo)" />
             </div>
             <div class="col-2">
               <label>Categoria do Orçamento</label>
@@ -106,8 +105,8 @@
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
               </option>
             </select>
-            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-              :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" :value="valoresSelecionados[campo.id] ?? ''"
+              :required="campo.obrigatorio" @input="onInputDecimal($event, campo)"
               :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
           </div>
         </fieldset>
@@ -132,7 +131,7 @@
                 :disabled="aguardandoAprovaçãoFiscal" />
             </div>
             <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-              :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+              :required="campo.obrigatorio" @input="onInputDecimal($event, campo)"
               :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
         </fieldset>
@@ -307,6 +306,19 @@ export default {
     }
   },
   methods: {
+    onInputDecimal(e, campo) {
+      let v = e.target.value ?? '';
+
+      v = v.replace(/,/g, '.');
+
+
+      e.target.value = v;
+
+      this.valoresSelecionados[campo.id] = v;
+
+      this.atualizarPayLoad(campo.chave, v);
+    },
+
     buildCamposDinamicosCadastro() {
       return (
         this.camposSelects

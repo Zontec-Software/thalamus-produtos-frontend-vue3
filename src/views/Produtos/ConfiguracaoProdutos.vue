@@ -8,9 +8,9 @@
         <div class="bloco2 margem">
             <div>
                 <label for="familia">Selecione a Família:</label>
-                <select v-model="filtro.familia_id" @change="verificarCarregamento">
+                <select v-model="filtro.familia_id">
                     <option disabled value="">Selecione</option>
-                    <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome.toUpperCase() }}
+                    <option v-for="item in familias" :key="item.id" :value="item.id"> {{ item.nome.toUpperCase() }}
                     </option>
                 </select>
             </div>
@@ -107,6 +107,7 @@
             </div>
         </div>
     </div>
+    <!-- MODAL VALORES -->
     <div class="modal-mask" v-if="modalCampo.aberto" @click="modalCampo.aberto = false">
         <div class="jm margem modal-valores" @click.stop>
             <div class="modal-scroll">
@@ -122,7 +123,7 @@
                 </fieldset>
                 <br />
                 <div class="tabela-scroll">
-                    <table class="tabela margem alinha-centro">
+                    <table class="tabela margem tabela-vertical">
                         <thead>
                             <tr>
                                 <th>Valor</th>
@@ -132,32 +133,30 @@
                         <tbody>
                             <tr v-for="valor in modalCampo.dados" :key="valor.id">
                                 <td v-if="modalCampo.editandoId !== valor.id">{{ valor.valor }}</td>
-                                <td v-else>
-                                    <input v-model="modalCampo.valorEdicao" />
-                                </td>
+                                <td v-else><input v-model="modalCampo.valorEdicao" /></td>
                                 <td>
-                                    <a style="transform: scale(0.8)" @click="editarValor(valor)"
-                                        title="Clique para editar valor" class="icone-editar"></a>
+                                    <a style="transform: scale(0.8)" @click="editarValor(valor)" title="Editar"
+                                        class="icone-editar"></a>
                                     <button v-if="modalCampo.editandoId === valor.id"
                                         @click="salvarValorEditado">Salvar</button>
                                     <button v-if="modalCampo.editandoId === valor.id"
                                         @click="cancelarEdicaoValor">Cancelar</button>
-                                    <a @click="excluirValorCampo(valor.id)" title="Clique para excluir valor"
-                                        class="icone-lixeira" style="color: red"></a>
+                                    <a @click="excluirValorCampo(valor.id)" title="Excluir" class="icone-lixeira "
+                                        style="color: red"></a>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="direita margem submit">
+            <div class="alinha-direita margem submit">
                 <button class="acao-secundaria" @click="modalCampo.aberto = false">Fechar</button>
                 <button @click="cadastrarValoresCampo">Salvar</button>
             </div>
         </div>
     </div>
     <!-- END MODAL -->
-    <!-- MODAL -->
+    <!-- MODAL NOVO CAMPO -->
     <div class="modal-mask" v-if="showModal" @click="showModal = false">
         <div class="jm margem" style="min-width: 30vw" @click.stop>
             <div class="alinha-centro">
@@ -215,8 +214,8 @@
             </div>
         </div>
     </div>
-    <!-- END MODAL -->
-    <!-- MODAL DE EDIÇÃO -->
+    <!-- END MODAL NOVO CAMPO -->
+    <!-- MODAL EDIÇÃO CAMPO -->
     <div class="modal-mask" v-if="showModalEditarCampo" @click="cancelarEdicaoCampo">
         <div class="jm margem" style="min-width: 30vw" @click.stop>
             <div class="alinha-centro">
@@ -274,7 +273,7 @@
             </div>
         </div>
     </div>
-    <!-- END MODAL -->
+    <!-- END MODAL EDIÇÃO CAMPO -->
     <!-- MODAL CONFIRMAÇÃO DE EXCLUSÃO -->
     <div class="modal-mask" v-if="modalConfirmacaoExclusao.visivel" @click="modalConfirmacaoExclusao.visivel = false">
         <div class="jm margem" style="min-width: 30vw" @click.stop>
@@ -289,21 +288,24 @@
             </div>
         </div>
     </div>
+    <!-- END MODAL CONFIRMAÇÃO DE EXCLUSÃO -->
 </template>
 <script>
 import associacaoService from "@/services/camposPorFamilia-service";
-import { useToast } from 'vue-toastification'
+import { useToast } from "vue-toastification";
 
+const STORAGE_KEY_FAMILIA = "config_campos_familia_id";
 
 export default {
     name: "ConfigurarCamposPorTipo",
+
     data() {
         return {
             tipoSelecionado: "",
             listaCampos: {
                 primeira_parte: [],
                 segunda_parte: [],
-                terceira_parte: []
+                terceira_parte: [],
             },
             familias: [],
             camposSelecionados: [],
@@ -317,7 +319,7 @@ export default {
                 descricao: "",
                 obrigatorio: false,
                 fiscal: false,
-                adicional: false
+                adicional: false,
             },
             modalCampo: {
                 aberto: false,
@@ -336,7 +338,7 @@ export default {
                 descricao: "",
                 obrigatorio: false,
                 fiscal: false,
-                adicional: false
+                adicional: false,
             },
             showModalEditarCampo: false,
             modalConfirmacaoExclusao: {
@@ -348,7 +350,8 @@ export default {
 
     computed: {
         nomeFamiliaSelecionada() {
-            const familia = this.familias.find((f) => f.id === this.filtro.familia_id);
+            const familiaId = String(this.filtro.familia_id ?? "");
+            const familia = this.familias.find((f) => String(f.id) === familiaId);
             return familia ? familia.nome : "";
         },
     },
@@ -356,6 +359,20 @@ export default {
     setup() {
         const toast = useToast();
         return { toast };
+    },
+
+    watch: {
+        "filtro.familia_id": {
+            handler(novo) {
+                if (novo) {
+                    localStorage.setItem(STORAGE_KEY_FAMILIA, JSON.stringify(novo));
+                    this.verificarCarregamento();
+                } else {
+                    localStorage.removeItem(STORAGE_KEY_FAMILIA);
+                }
+            },
+            immediate: false,
+        },
     },
 
     methods: {
@@ -393,7 +410,7 @@ export default {
                 descricao: "",
                 obrigatorio: false,
                 fiscal: false,
-                adicional: false
+                adicional: false,
             };
         },
 
@@ -401,22 +418,41 @@ export default {
             try {
                 const nomeEditado = this.campoEdicao.label.trim().toLowerCase();
 
-                const todosCampos = [...this.listaCampos.primeira_parte, ...this.listaCampos.segunda_parte];
+                const todosCampos = [
+                    ...this.listaCampos.primeira_parte,
+                    ...this.listaCampos.segunda_parte,
+                ];
 
-                const nomeExistente = todosCampos.some((c) => c.id !== this.campoEdicao.id && c.label.trim().toLowerCase() === nomeEditado);
+                const nomeExistente = todosCampos.some(
+                    (c) =>
+                        c.id !== this.campoEdicao.id &&
+                        c.label.trim().toLowerCase() === nomeEditado
+                );
 
                 if (nomeExistente) {
                     this.toast.error("Já existe um campo com este nome.");
                     return;
                 }
 
-                const camposOmie = ["tipo do produto", "família", "ncm", "unidade", "código do produto", "descrição"];
+                const camposOmie = [
+                    "tipo do produto",
+                    "família",
+                    "ncm",
+                    "unidade",
+                    "código do produto",
+                    "descrição",
+                ];
                 if (camposOmie.includes(nomeEditado)) {
-                    this.toast.error("Não é permitido editar para um nome de campo padrão do OMIE.");
+                    this.toast.error(
+                        "Não é permitido editar para um nome de campo padrão do OMIE."
+                    );
                     return;
                 }
 
-                await associacaoService.atualizarCampo(this.campoEdicao.id, this.campoEdicao);
+                await associacaoService.atualizarCampo(
+                    this.campoEdicao.id,
+                    this.campoEdicao
+                );
                 this.toast.success("Campo atualizado com sucesso!");
                 this.cancelarEdicaoCampo();
                 await this.buscarCampos();
@@ -443,18 +479,25 @@ export default {
             this.modalCampo.editandoId = null;
             await this.buscarValoresDoCampo();
         },
+
         async buscarValoresDoCampo() {
             const payload = {
                 campo_id: this.modalCampo.id,
                 familia_id: this.filtro.familia_id,
             };
-            this.modalCampo.dados = await associacaoService.listarDadosdoCampo(payload);
+            this.modalCampo.dados = await associacaoService.listarDadosdoCampo(
+                payload
+            );
         },
+
         adicionarNovoValor() {
             this.modalCampo.novosValores.push("");
         },
+
         async cadastrarValoresCampo() {
-            const valores = this.modalCampo.novosValores.map((v) => v.trim()).filter((v) => v);
+            const valores = this.modalCampo.novosValores
+                .map((v) => v.trim())
+                .filter((v) => v);
             if (!valores.length) return;
             const payload = {
                 campo_id: this.modalCampo.id,
@@ -465,14 +508,17 @@ export default {
             this.modalCampo.novosValores = [""];
             await this.buscarValoresDoCampo();
         },
+
         editarValor(dado) {
             this.modalCampo.editandoId = dado.id;
             this.modalCampo.valorEdicao = dado.valor;
         },
+
         cancelarEdicaoValor() {
             this.modalCampo.editandoId = null;
             this.modalCampo.valorEdicao = "";
         },
+
         async salvarValorEditado() {
             await associacaoService.atualizarValor(this.modalCampo.editandoId, {
                 valor: this.modalCampo.valorEdicao.trim(),
@@ -480,6 +526,7 @@ export default {
             this.cancelarEdicaoValor();
             await this.buscarValoresDoCampo();
         },
+
         async excluirValorCampo(id) {
             await associacaoService.excluirValores({ ids: [id] });
             await this.buscarValoresDoCampo();
@@ -510,47 +557,61 @@ export default {
                     opcional_omie_outro: { habilitarToggle: true },
                     opcional_usuario_outro: { habilitarToggle: true },
 
-                    opcional_usuario_fiscal: { habilitarToggle: true }
+                    opcional_usuario_fiscal: { habilitarToggle: true },
                 };
 
-                ['primeira_parte', 'segunda_parte', 'terceira_parte'].forEach(parte => {
-                    Object.entries(dados[parte]).forEach(([categoria, itens]) => {
-                        itens.forEach(c => {
-                            const rule = regras[categoria] || {};
-                            const sel = c.associado || rule.sempreAtivo;
-                            if (sel) this.camposSelecionados.push(c.id);
-                            const destino = ['Lista', 'MultiLista'].includes(c.tipo) ? lista.primeira_parte : lista.segunda_parte;
-                            destino.push({ ...c, disabled: !!rule.disabled, habilitarToggle: !!rule.habilitarToggle, sempreAtivo: !!rule.sempreAtivo, categoria });
+                ["primeira_parte", "segunda_parte", "terceira_parte"].forEach(
+                    (parte) => {
+                        Object.entries(dados[parte]).forEach(([categoria, itens]) => {
+                            itens.forEach((c) => {
+                                const rule = regras[categoria] || {};
+                                const sel = c.associado || rule.sempreAtivo;
+                                if (sel) this.camposSelecionados.push(c.id);
+                                const destino = ["Lista", "MultiLista"].includes(c.tipo)
+                                    ? lista.primeira_parte
+                                    : lista.segunda_parte;
+                                destino.push({
+                                    ...c,
+                                    disabled: !!rule.disabled,
+                                    habilitarToggle: !!rule.habilitarToggle,
+                                    sempreAtivo: !!rule.sempreAtivo,
+                                    categoria,
+                                });
+                            });
                         });
-                    });
-                });
+                    }
+                );
             } catch {
                 this.toast.error("Erro ao buscar campos");
             }
         },
+
         toggleCampo(id) {
             let campo;
-            ['primeira_parte', 'segunda_parte'].some(p => (campo = this.listaCampos[p].find(x => x.id === id)));
+            ["primeira_parte", "segunda_parte"].some(
+                (p) => (campo = this.listaCampos[p].find((x) => x.id === id))
+            );
             if (!campo || campo.disabled) return;
             const idx = this.camposSelecionados.indexOf(id);
-            idx >= 0 ? this.camposSelecionados.splice(idx, 1) : this.camposSelecionados.push(id);
+            idx >= 0
+                ? this.camposSelecionados.splice(idx, 1)
+                : this.camposSelecionados.push(id);
         },
+
         async salvarConfiguracao() {
             try {
-                await associacaoService.sincronizarCamposFamilia({ familia_id: this.filtro.familia_id, campo_ids: this.camposSelecionados });
+                await associacaoService.sincronizarCamposFamilia({
+                    familia_id: this.filtro.familia_id,
+                    campo_ids: this.camposSelecionados,
+                });
                 this.toast.success("Configuração salva com sucesso!");
             } catch {
                 this.toast.error("Erro ao salvar configuração.");
             }
         },
 
-
-
-
         async cadastrarCampos() {
             try {
-
-
                 if (!this.novoCampo.nome || !this.novoCampo.tipo) {
                     this.toast.error("Preencha o nome e tipo do campo.");
                     return;
@@ -562,14 +623,21 @@ export default {
                     descricao: this.novoCampo.descricao,
                     obrigatorio: this.novoCampo.obrigatorio,
                     fiscal: this.novoCampo.fiscal,
-                    adicional: this.novoCampo.adicional
+                    adicional: this.novoCampo.adicional,
                 };
 
                 await associacaoService.gravarCampo(payload);
                 this.toast.success("Campo criado com sucesso!");
 
                 this.showModal = false;
-                this.novoCampo = { nome: "", tipo: "", descricao: "", obrigatorio: false, fiscal: false, adicional: false };
+                this.novoCampo = {
+                    nome: "",
+                    tipo: "",
+                    descricao: "",
+                    obrigatorio: false,
+                    fiscal: false,
+                    adicional: false,
+                };
 
                 await this.buscarCampos();
             } catch (e) {
@@ -577,24 +645,70 @@ export default {
                     e?.response?.data?.errors?.label &&
                     e.response.data.errors.label.includes("validation.unique")
                 ) {
-                    this.toast.error("Já existe um campo com esse nome. Por favor, escolha outro nome.");
+                    this.toast.error(
+                        "Já existe um campo com esse nome. Por favor, escolha outro nome."
+                    );
                 } else {
                     this.toast.error("Erro ao criar campo.");
                 }
             }
         },
     },
+
     async mounted() {
         try {
             const familiasResponse = await associacaoService.listarFamilia();
-            this.familias = familiasResponse.sort((a, b) => a.nome.localeCompare(b.nome));
+            this.familias = familiasResponse.sort((a, b) =>
+                a.nome.localeCompare(b.nome)
+            );
+
+            const salvo = localStorage.getItem(STORAGE_KEY_FAMILIA);
+            if (salvo) {
+                const recuperado = JSON.parse(salvo);
+                const existe = this.familias.some(
+                    (f) => String(f.id) === String(recuperado)
+                );
+                if (existe) {
+                    this.filtro.familia_id = recuperado;
+                } else {
+                    localStorage.removeItem(STORAGE_KEY_FAMILIA);
+                }
+            }
         } catch (e) {
             console.error("Erro ao carregar tipos e famílias", e);
         }
     },
+
+    unmounted() {
+        localStorage.removeItem(STORAGE_KEY_FAMILIA);
+    },
 };
 </script>
 <style scoped>
+.tabela-vertical {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    gap: 0.5rem 1rem;
+    align-items: start;
+}
+
+.tabela-vertical thead,
+.tabela-vertical tbody,
+.tabela-vertical tr {
+    display: contents;
+}
+
+.tabela-vertical th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabela-vertical td {
+    padding: 0.3rem 0;
+}
+
 .cabecalho-campos-lista {
     display: flex;
     justify-content: space-between;
