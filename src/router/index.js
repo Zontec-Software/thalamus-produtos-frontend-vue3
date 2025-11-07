@@ -18,6 +18,7 @@ import ProdutosView from "@/views/Produtos/ProdutosView.vue";
 import CatalogoView from "@/views/Produtos/CatalogoView.vue";
 import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
 import EtapasView from '@/views/Produtos/EtapasView.vue'
+import FamiliaView from '@/views/Produtos/FamiliasView.vue'
 
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
@@ -219,10 +220,16 @@ const routes = [
     component: NovaFicha,
     beforeEnter: guardPermissaoRoute
   },
-    {
+  {
     path: '/etapas',
     name: 'EtapasView',
     component: EtapasView,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/familia',
+    name: 'FamiliaView',
+    component: FamiliaView,
     beforeEnter: guardPermissaoRoute
   },
 ];
