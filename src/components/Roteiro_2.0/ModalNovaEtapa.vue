@@ -4,9 +4,16 @@
             <fieldset class="grid-3">
                 <div>
                     <label>Setor</label>
-                    <select :required="!novaEtapa.setor_id" v-model="novaEtapa.setor_id">
+                    <select :required="!novaEtapa.setor_id" v-model="novaEtapa.setor_id" @change="definirFilhos">
                         <option hidden></option>
                         <option v-for="s in setores" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                    </select>
+                </div>
+                <div v-if="filhos.length > 0">
+                    <label>SubSetor</label>
+                    <select v-model="novaEtapa.sub_setor_id">
+                        <option hidden></option>
+                        <option v-for="s in filhos" :key="s.id" :value="s.id">{{ s.nome }}</option>
                     </select>
                 </div>
                 <div>
@@ -67,11 +74,16 @@ export default {
 
     data() {
         return {
-            novaEtapa: {}
+            novaEtapa: {},
+            filhos: []
         }
     },
 
     methods: {
+        definirFilhos() {
+            var setor = this.setores.find(s => s.id == this.novaEtapa.setor_id);
+            this.filhos = setor.filho
+        },
         async cadastrarEtapa() {
             var payload = this.novaEtapa;
             payload.roteiro_id = this.roteiro_id

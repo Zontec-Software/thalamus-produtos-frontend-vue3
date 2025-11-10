@@ -20,8 +20,9 @@
     <nav class="nav-maior separador">
       <router-link to="/" :class="{ ativo: isProdutosActive }"> Produtos em Edição </router-link>
       <router-link to="/catalogo" :class="{ ativo: isCatalogoActive }"> Catálogo de Produtos </router-link>
-      <router-link to="/parametrosTeste" active-class="ativo">Parametros de Teste</router-link>
-      <router-link to="/gabarito" active-class="ativo">Gabaritos</router-link>
+      <!-- <router-link to="/parametrosTeste" active-class="ativo">Parametros de Teste</router-link>
+      <router-link to="/gabarito" active-class="ativo">Gabaritos</router-link> -->
+      <router-link to="/familia" active-class="ativo">Famílias</router-link>
       <router-link to="/configurar" active-class="ativo">Campos por Família</router-link>
       <router-link to="/codificacoes" active-class="ativo">Codificação de Serviços</router-link>
     </nav>
