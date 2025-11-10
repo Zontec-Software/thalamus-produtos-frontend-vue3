@@ -24,7 +24,7 @@
                         <div></div>
                     </div>
                     <div v-else-if="etapas.length === 0"> Nenhuma etapa cadastrada para este setor. </div>
-                    <table v-else class="tabela alinha-centro">
+                    <table v-else class="tabela">
                         <thead>
                             <tr>
                                 <th style="cursor: pointer;">Descrição</th>
@@ -174,10 +174,10 @@ export default {
 
             try {
                 if (this.etapaForm.id) {
-                    await serviceRoteiro3.atualizarEtapa(this.etapaForm.id, payload)
+                    await serviceRoteiro3.atualizarTipo(this.etapaForm.id, payload)
                     this.toast.success('Etapa atualizada com sucesso!')
                 } else {
-                    await serviceRoteiro3.cadastrarEtapa(payload)
+                    await serviceRoteiro3.cadastrarTipo(payload)
                     this.toast.success('Etapa cadastrada com sucesso!')
                 }
                 this.fecharModalEtapa()
@@ -202,7 +202,7 @@ export default {
             if (!this.idToDelete) return
             this.excluindo = true
             try {
-                await serviceRoteiro3.excluirEtapa(this.idToDelete)
+                await serviceRoteiro3.excluirTipo(this.idToDelete)
                 this.toast.success('Etapa excluída com sucesso!')
                 this.fecharModal()
                 await this.carregarEtapas()
