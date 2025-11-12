@@ -232,16 +232,19 @@ export default {
         async getRoteiro() {
             this.loading = true
             this.roteiro = await service.getRoteiro(this.produto_cod);
-            this.roteiro.etapas.sort((a, b) => {
-                if (a.ordem !== null && b.ordem !== null) {
-                    return a.ordem - b.ordem;
-                }
-                if (a.ordem !== null) return -1;
-                if (b.ordem !== null) return 1;
-                return 0;
-            });
+            this.loading = false;
 
-            this.loading = false
+            if(this.roteiro?.etapas){
+                this.roteiro.etapas.sort((a, b) => {
+                    if (a.ordem !== null && b.ordem !== null) {
+                        return a.ordem - b.ordem;
+                    }
+                    if (a.ordem !== null) return -1;
+                    if (b.ordem !== null) return 1;
+                    return 0;
+                });
+            }
+
         },
         atualizarEtapa(id, payload) {
             service.atualizarEtapa(id, payload)
