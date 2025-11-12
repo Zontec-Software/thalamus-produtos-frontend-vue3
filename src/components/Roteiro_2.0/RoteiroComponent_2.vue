@@ -3,19 +3,66 @@
         <div v-if="!loading">
             <div class="table-wrapper">
                 <table class="tabela">
-                    <tbody>
+                    <thead>
                         <tr>
-                            <th class="sticky-col sticky-1" style="text-align:center;">Setor</th>
-                            <th class="sticky-col sticky-2" style="text-align:center;">Etapa</th>
-                            <th style="width:40px;"></th> <!-- ícone -->
-                            <th style="text-align:center;">Cod operação</th>
+                            <th style="width:40px;"></th>
+                            <th>Setor</th>
+                            <th>SubSetor</th>
+                            <th>Etapa</th>
+                            <th>Cod operação</th>
                             <th>Operação</th>
                             <th>Instrução técnica</th>
                             <th>Tempo Padrão</th>
                             <th v-if="!readonly"></th>
                         </tr>
+                    </thead>
+                    <draggable v-model="roteiro.etapas" tag="tbody" handle=".handle" animation="200" @end="salvarOrdem">
+                        <template #item="{ element }">
+                            <tr>
+                                <td style="text-align:center" class="handle">
+                                    <i class="bi-list drag-handle"></i>
+                                </td>
+                                <td>
+                                    <select v-model="element.setor_id"
+                                        @change="atualizarEtapa(element.id, { setor_id: element.setor_id })">
+                                        <option :value="null" hidden></option>
+                                        <option v-for="s in setores" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select v-model="element.sub_setor_id"
+                                        @change="atualizarEtapa(element.id, { sub_setor_id: element.sub_setor_id })">
+                                        <option :value="null" hidden></option>
+                                        <option v-for="s in element.setor.filho" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select v-model="element.tipo_etapa_id"
+                                        @change="atualizarEtapa(element.id, { tipo_etapa_id: element.tipo_etapa_id })">
+                                        <option hidden></option>
+                                        <option v-for="tipo in tiposEtapa" :key="tipo.id" :value="tipo.id">
+                                            {{ tipo.nome }}
+                                        </option>
+                                    </select>
+                                </td>
+                                <td style="text-align:center;">
+                                    <span class="chip bg-cinza" style="font-size:14px;">{{ element.id }}</span>
+                                </td>
+                                <td><input type="text" v-model="element.operacao"
+                                        @focusout="atualizarEtapa(element.id, { operacao: element.operacao })"></td>
+                                <td><button data-allow-when-readonly class="acao-secundaria"
+                                        @click="etapaDestacada = element">Inst.
+                                        Técnica</button></td>
+                                <td><input type="text" v-model="element.tempo"
+                                        @focusout="atualizarEtapa(element.id, { tempo: element.tempo })">
+                                </td>
+                                <td v-if="!readonly"><i class="bi-trash-fill" @click="excluirEtapa(element.id)"></i>
+                                </td>
+                            </tr>
+                        </template>
+                    </draggable>
 
-                        <template v-for="(setor, si) in grupos" :key="setor.setorId ?? ('sem-setor-' + si)">
+                    <!-- <template v-for="(setor, si) in grupos" :key="setor.setorId ?? ('sem-setor-' + si)">
                             <template v-for="(tipo, ti) in setor.tipos" :key="tipo.tipoId ?? ('sem-tipo-' + ti)">
                                 <tr v-for="(e, ei) in tipo.etapas" :key="e.id"
                                     @dragover.prevent="onDragOver(si, ti, ei)" @drop.prevent="onDrop(si, ti, ei)"
@@ -55,8 +102,7 @@
                                     </td>
                                 </tr>
                             </template>
-                        </template>
-                    </tbody>
+</template> -->
                 </table>
             </div>
             <div class="alinha-centro" v-if="!readonly">
@@ -86,6 +132,8 @@ import service from '@/services/serviceRoteiro3';
 import ModalNovaEtapa from './ModalNovaEtapa.vue';
 import ModalInstrucao from './ModalInstrucao.vue';
 import ModalVisualizacaoInstrucao from './ModalVisualizacaoInstrucao.vue';
+import draggable from 'vuedraggable'
+
 
 function groupRoteiroBySetorTipo(roteiro) {
     const etapas = roteiro?.etapas ?? [];
@@ -137,7 +185,8 @@ export default {
     components: {
         ModalNovaEtapa,
         ModalInstrucao,
-        ModalVisualizacaoInstrucao
+        ModalVisualizacaoInstrucao,
+        draggable
     },
 
     props: {
@@ -183,6 +232,15 @@ export default {
         async getRoteiro() {
             this.loading = true
             this.roteiro = await service.getRoteiro(this.produto_cod);
+            this.roteiro.etapas.sort((a, b) => {
+                if (a.ordem !== null && b.ordem !== null) {
+                    return a.ordem - b.ordem;
+                }
+                if (a.ordem !== null) return -1;
+                if (b.ordem !== null) return 1;
+                return 0;
+            });
+
             this.loading = false
         },
         atualizarEtapa(id, payload) {
@@ -199,6 +257,14 @@ export default {
                 this.getRoteiro()
             }
         },
+        salvarOrdem() {
+            var payload = this.roteiro.etapas.map((i, index) => ({
+                id: i.id,
+                ordem: index + 1
+            }));
+            service.reordenarEtapas(payload)
+        },
+
         // ------- DnD -------
         onDragStart(si, ti, ei) {
             this.drag.from = { si, ti, ei };
@@ -247,6 +313,10 @@ export default {
 </script>
 
 <style scoped>
+th {
+    text-align: center !important;
+}
+
 .table-wrapper {
     overflow-x: auto;
 }
@@ -279,7 +349,7 @@ th.sticky-col {
 
 .drag-handle {
     cursor: grab;
-    font-size: 18px;
+    font-size: 20px;
     color: var(--cor-cinza-escuro);
 }
 

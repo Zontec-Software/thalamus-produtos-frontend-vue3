@@ -49,7 +49,7 @@ export default {
 
     async cadastrarEtapa(payload) {
         try {
-            const response = await api.post(`roteiro_2/tipo`, payload);
+            const response = await api.post(`roteiro_2/etapa`, payload);
             return response.data
         } catch (error) {
             console.error(error);
@@ -59,7 +59,7 @@ export default {
 
     async excluirEtapa(id) {
         try {
-            const response = await api.delete(`roteiro_2/tipo/${id}`);
+            const response = await api.delete(`roteiro_2/etapa/${id}`);
             return response.data
         } catch (error) {
             console.error(error);
@@ -69,7 +69,7 @@ export default {
 
     async atualizarEtapa(id, payload) {
         try {
-            const response = await api.put(`roteiro_2/tipo/${id}`, payload);
+            const response = await api.put(`roteiro_2/etapa/${id}`, payload);
             return response.data
         } catch (error) {
             console.error(error);
@@ -186,5 +186,35 @@ export default {
             console.error(error);
             throw error;
         }
-    }
+    },
+
+    async excluirTipo(id) {
+        try {
+            const response = await api.delete(`roteiro_2/tipo/${id}`);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async atualizarTipo(id, payload) {
+        try {
+            const response = await api.put(`roteiro_2/tipo/${id}`, payload);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async cadastrarTipo(payload) {
+        try {
+            const response = await api.post(`roteiro_2/tipo`, payload);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
 }
