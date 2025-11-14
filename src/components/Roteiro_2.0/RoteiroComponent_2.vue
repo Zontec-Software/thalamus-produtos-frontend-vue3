@@ -1,5 +1,5 @@
 <template>
-    <section v-readonly="readonly" v-if="roteiro">
+    <section v-readonly="readonly" v-if="roteiro.id">
         <div v-if="!loading">
             <div class="table-wrapper">
                 <table class="tabela">
@@ -33,7 +33,8 @@
                                     <select v-model="element.sub_setor_id"
                                         @change="atualizarEtapa(element.id, { sub_setor_id: element.sub_setor_id })">
                                         <option :value="null" hidden></option>
-                                        <option v-for="s in element.setor.filho" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                                        <option v-for="s in element.setor.filho" :key="s.id" :value="s.id">{{ s.nome }}
+                                        </option>
                                     </select>
                                 </td>
                                 <td>
@@ -109,7 +110,7 @@
                 <button class="acao-secundaria" @click="modalCadastrar = true">Adicionar Etapa</button>
             </div>
         </div>
-        <div class="loading" v-else>
+        <div class="loading" v-else-if="loading">
             <div></div>
         </div>
         <ModalNovaEtapa :setores="setores" :tiposEtapa="tiposEtapa" :roteiro_id="roteiro.id" v-if="modalCadastrar"
@@ -121,9 +122,6 @@
     </section>
     <div v-else-if="!readonly && !loading" class="alinha-centro">
         <button @click="criarRoteiro()">Criar Roteiro</button>
-    </div>
-    <div class="loading" v-else-if="loading">
-        <div></div>
     </div>
 </template>
 
@@ -234,7 +232,7 @@ export default {
             this.roteiro = await service.getRoteiro(this.produto_cod);
             this.loading = false;
 
-            if(this.roteiro?.etapas){
+            if (this.roteiro?.etapas) {
                 this.roteiro.etapas.sort((a, b) => {
                     if (a.ordem !== null && b.ordem !== null) {
                         return a.ordem - b.ordem;
