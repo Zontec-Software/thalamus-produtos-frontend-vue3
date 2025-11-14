@@ -23,10 +23,11 @@
                                     <i class="bi-list drag-handle"></i>
                                 </td>
                                 <td>
-                                    <select v-model="element.setor_id"
-                                        @change="atualizarEtapa(element.id, { setor_id: element.setor_id })">
+                                    <select v-model="element.setor"
+                                        @change="atualizarEtapa(element.id, { setor_id: element.setor.id })">
                                         <option :value="null" hidden></option>
-                                        <option v-for="s in setores" :key="s.id" :value="s.id">{{ s.nome }}</option>
+                                        <option hidden :value="element.setor">{{ element.setor.nome }}</option>
+                                        <option v-for="s in setores" :key="s.id" :value="s">{{ s.nome }}</option>
                                     </select>
                                 </td>
                                 <td>
