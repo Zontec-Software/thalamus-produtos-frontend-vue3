@@ -24,7 +24,7 @@
       <router-link to="/gabarito" active-class="ativo">Gabaritos</router-link> -->
       <router-link to="/familia" active-class="ativo">Famílias</router-link>
       <router-link to="/configurar" active-class="ativo">Campos por Família</router-link>
-      <router-link to="/codificacoes" active-class="ativo">Codificação de Serviços</router-link>
+      <!-- <router-link to="/codificacoes" active-class="ativo">Codificação de Serviços</router-link> -->
     </nav>
     <nav class="nav-maior separador">
       <router-link to="/etapas" active-class="ativo">Configuração de Etapas</router-link>
