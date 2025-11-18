@@ -9,7 +9,7 @@
                         <a class="icone-pesquisa" title="Pesquisar"></a>
                     </div>
                 </div>
-                <h2>Serviços Internos e Externos</h2>
+                <h2>Famílias de Serviços</h2>
             </div>
         </div>
         <div class="margem container">
