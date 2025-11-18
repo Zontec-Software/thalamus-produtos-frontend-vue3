@@ -19,6 +19,9 @@ import CatalogoView from "@/views/Produtos/CatalogoView.vue";
 import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
 import EtapasView from '@/views/Produtos/EtapasView.vue'
 import FamiliaView from '@/views/Produtos/FamiliasView.vue'
+import ServicosView from '@/views/Serviço/ServicosView.vue'
+import CadastroServico from "@/views/Serviço/CadastroServico.vue";
+
 
 // redireciona usuario para LOGIN baseado no env
 function enviarUsuarioLogin() {
@@ -232,6 +235,20 @@ const routes = [
     component: FamiliaView,
     beforeEnter: guardPermissaoRoute
   },
+    {
+    path: '/servicos',
+    name: 'ServicosView',
+    component: ServicosView,
+    beforeEnter: guardPermissaoRoute
+  },
+      {
+    path: '/cadastrar/servico',
+    name: 'CadastrarServico',
+    component: CadastroServico,
+    beforeEnter: guardPermissaoRoute
+  },
+
+
 ];
 
 const router = createRouter({
