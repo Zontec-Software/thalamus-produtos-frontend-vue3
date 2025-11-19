@@ -4,7 +4,7 @@
             <div style="display: flex; align-items: center; gap: 0.5rem">
                 <div class="m-icone esquerda"><a @click="this.$router.back()" style="cursor: pointer"
                         class="icone-voltar m-d"></a></div>
-                <h2 style="margin: 0">Cadastro de Serviço</h2>
+                <h2 style="margin: 0">Cadastro Família de Serviço</h2>
                 <!-- <i class="fa-solid fa-circle" :style="{
                     color: servico?.status == 1 ? 'var(--cor-sucesso)' : 'var(--cor-erro)',
                     fontSize: '12px',
@@ -37,26 +37,8 @@
                                 <input type="text">
                             </div>
                             <div>
-                                <label>Setor</label>
-                                <select></select>
-                            </div>
-                            <div>
                                 <label>Tipo</label>
                                 <select></select>
-                            </div>
-                            <div>
-                                <label>SLA / Prazo Médio</label>
-                                <input type="text">
-                            </div>
-                            <div><label> Contato Fornecedor </label>
-                                <input type="text">
-                            </div>
-                            <div><label>Dados Contratuais</label>
-                                <textarea></textarea>
-                            </div>
-                            <div>
-                                <label>Observação</label>
-                                <textarea></textarea>
                             </div>
                         </div>
                     </div>
