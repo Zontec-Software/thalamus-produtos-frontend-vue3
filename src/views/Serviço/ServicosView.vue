@@ -19,7 +19,7 @@
                     <tbody>
                         <tr>
                             <th>Código</th>
-                            <th>Nome</th>
+                            <th>Descrição</th>
                             <th>Tipo</th>
                             <!-- <th>Setor</th>
                             <th>Fornecedor (se aplicar)</th> -->
@@ -128,15 +128,17 @@ export default {
     computed: {
         filteredServicos() {
             const q = this.searchQuery.trim().toLowerCase()
+
             if (!q) return this.servicos
 
             return this.servicos.filter((s) => {
+                const codigo = String(s.codigo || "").toLowerCase()
+                const nome = String(s.nome || "").toLowerCase()
+                const tipo = (s.tipo || "").toLowerCase()
                 return (
-                    s.codigo.toLowerCase().includes(q) ||
-                    s.nome.toLowerCase().includes(q) ||
-                    s.setor.toLowerCase().includes(q) ||
-                    (s.fornecedor || "").toLowerCase().includes(q) ||
-                    (s.tipo === "interno" ? "interno" : "externo").includes(q)
+                    codigo.includes(q) ||
+                    nome.includes(q) ||
+                    tipo.includes(q)
                 )
             })
         },
@@ -173,7 +175,7 @@ export default {
                 this.servicos = this.servicos.filter(
                     (s) => s.id !== this.idToDelete
                 )
-                this.toast.success("Serviço removido (mock)!")
+                this.toast.success("Serviço removido com sucesso!")
                 this.fecharModal()
             }, 300)
         },
