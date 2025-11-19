@@ -44,7 +44,8 @@
               </select>
               <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)"
                 v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="onInputDecimal($event, campo)" />
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
+                @input="onInputDecimal($event, campo)" />
             </div>
             <div class="col-2">
               <label>Categoria do Orçamento</label>
@@ -759,7 +760,7 @@ export default {
 
           await serviceProdutos.cadastrarProdutoOMIE(payload);
           this.toast.success("Produto enviado com sucesso!");
-          this.$router.push({ name: "CatalogoView" });
+          // this.$router.push({ name: "CatalogoView" });
           return;
         }
 
