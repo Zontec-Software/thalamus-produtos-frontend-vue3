@@ -312,8 +312,13 @@ export default {
 
       v = v.replace(/,/g, '.');
 
+      if (/^\d+(\.\d{3,})$/.test(v)) {
+        this.toast.error("O valor não pode ter mais de duas casas decimais.");
 
-      e.target.value = v;
+        v = v.replace(/^(\d+\.\d{0,2}).*$/, '$1');
+
+        e.target.value = v;
+      }
 
       this.valoresSelecionados[campo.id] = v;
 
