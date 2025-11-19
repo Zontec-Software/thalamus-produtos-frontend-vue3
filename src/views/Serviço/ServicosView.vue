@@ -1,6 +1,5 @@
 <template>
     <section>
-        <!-- TÍTULO E PESQUISA -->
         <div class="titulo">
             <div class="margem container">
                 <div class="m-icone direita">
@@ -22,8 +21,8 @@
                             <th>Código</th>
                             <th>Nome</th>
                             <th>Tipo</th>
-                            <th>Setor</th>
-                            <th>Fornecedor (se aplicar)</th>
+                            <!-- <th>Setor</th>
+                            <th>Fornecedor (se aplicar)</th> -->
                             <th>Ações</th>
                         </tr>
                         <tr v-for="servico in filteredServicos" :key="servico.id">
@@ -36,8 +35,8 @@
                                     externo: servico.tipo === 'externo'
                                 }"> {{ servico.tipo === 'interno' ? 'Interno' : 'Externo / Terceirizado' }} </span>
                             </td>
-                            <td>{{ servico.setor }}</td>
-                            <td> {{ servico.tipo === 'externo' ? servico.fornecedor : '-' }} </td>
+                            <!-- <td>{{ servico.setor }}</td> -->
+                            <!-- <td> {{ servico.tipo === 'externo' ? servico.fornecedor : '-' }} </td> -->
                             <td style="justify-content:center;">
                                 <div style="display:flex;">
                                     <a style="transform: scale(0.8)" class="icone-editar"
@@ -84,15 +83,14 @@ export default {
                 {
                     id: 1,
                     codigo: "SVC-001",
-                    nome: "Soldagem",
+                    nome: "Manutenção Industrial ",
                     tipo: "interno",
-                    setor: "Produção",
-                    fornecedor: null,
+
                 },
                 {
                     id: 2,
                     codigo: "SVC-045",
-                    nome: "Contratação Colaborador",
+                    nome: "Assistência Técnica ",
                     tipo: "interno",
                     setor: "RH",
                     fornecedor: "",
@@ -100,26 +98,23 @@ export default {
                 {
                     id: 3,
                     codigo: "SVC-077",
-                    nome: "Pintura Eletrostática",
+                    nome: "Instalação e/ou Montagem Externa",
                     tipo: "externo",
-                    setor: "-",
-                    fornecedor: "ColorMax Industrial",
+
                 },
-                {
-                    id: 4,
-                    codigo: "SVC-014",
-                    nome: "Montagem Final",
-                    tipo: "interno",
-                    setor: "Montagem",
-                    fornecedor: null,
-                },
+                // {
+                //     id: 4,
+                //     codigo: "SVC-014",
+                //     nome: "Montagem Final",
+                //     tipo: "interno",
+
+                // },
                 {
                     id: 5,
                     codigo: "SVC-120",
-                    nome: "Tratamento Térmico",
-                    tipo: "externo",
-                    setor: "-",
-                    fornecedor: "Aço Forte LTDA",
+                    nome: "Reciclagem",
+                    tipo: "interno",
+
                 },
             ],
         }
