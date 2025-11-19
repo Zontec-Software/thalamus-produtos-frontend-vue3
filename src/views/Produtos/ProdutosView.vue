@@ -4,7 +4,7 @@
       <div class="margem container">
         <div class="m-icone direita">
           <div class="pesquisa">
-            <input type="text" placeholder="Pesquise aqui" v-model="searchQuery" />
+            <input type="text" placeholder="Pesquisar produtos" v-model="searchQuery" />
             <a class="icone-pesquisa" title="Pesquise"></a>
           </div>
         </div>

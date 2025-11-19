@@ -2,14 +2,19 @@
     <section>
         <div class="titulo">
             <div class="margem container">
-                <h2>Gerenciamento de Família</h2>
+                <div class="m-icone direita">
+                    <div class="pesquisa">
+                        <input type="text" placeholder="Pesquisar famílias" v-model="searchQuery" />
+                        <a class="icone-pesquisa" title="Pesquise"></a>
+                    </div>
+                </div>
+                <h2>Famílias de Produtos</h2>
             </div>
         </div>
         <div class="margem container">
-            <div class="margem">
-                <button class="acao-secundaria" @click="abrirModalAdicionar"> Adicionar Família </button>
-            </div>
             <div class="bloco margem">
+                <v-btn class="acao-secundaria direita" icon="mdi-plus" @click="abrirModalAdicionar()"
+                    title="Clique para cadastrar um novo produto"></v-btn>
                 <table class="tabela">
                     <tbody>
                         <tr>
@@ -17,7 +22,7 @@
                             <th>Nome</th>
                             <th>Ações</th>
                         </tr>
-                        <tr v-for="familia in familias" :key="familia.id">
+                        <tr v-for="familia in filteredFamilias" :key="familia.id">
                             <td>{{ familia.id }}</td>
                             <td>{{ familia.nome }}</td>
                             <td style=" justify-content:center;">
@@ -93,7 +98,8 @@ export default {
                 abreviacao: "",
                 status: 1,
             },
-            showDeleteModal: ''
+            showDeleteModal: '',
+            searchQuery: "",
         };
     },
 
@@ -106,7 +112,28 @@ export default {
         this.carregarFamilias();
     },
 
+    computed: {
+        filteredFamilias() {
+            const q = this.searchQuery.trim().toLowerCase();
+
+            if (!q) return this.familias;
+
+            return this.familias.filter(f => {
+                const nome = (f.familia_nome || f.nome || "").toLowerCase();
+                const abreviacao = (f.abreviacao || "").toLowerCase();
+                const id = String(f.id || "").toLowerCase();
+
+                return (
+                    nome.includes(q) ||
+                    abreviacao.includes(q) ||
+                    id.includes(q)
+                );
+            });
+        },
+    },
+
     methods: {
+
         async carregarFamilias() {
             try {
                 const response = await serviceFamilia.listarFamilias();
