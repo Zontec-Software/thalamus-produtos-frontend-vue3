@@ -312,10 +312,12 @@ export default {
 
       v = v.replace(/,/g, '.');
 
+
       if (/^\d+(\.\d{4,})$/.test(v)) {
         this.toast.error("O valor não pode ter mais de três casas decimais.");
 
         v = v.replace(/^(\d+\.\d{0,3}).*$/, '$1');
+
 
         e.target.value = v;
       }
