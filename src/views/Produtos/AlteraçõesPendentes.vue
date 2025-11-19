@@ -312,10 +312,10 @@ export default {
 
       v = v.replace(/,/g, '.');
 
-      if (/^\d+(\.\d{3,})$/.test(v)) {
-        this.toast.error("O valor não pode ter mais de duas casas decimais.");
+      if (/^\d+(\.\d{4,})$/.test(v)) {
+        this.toast.error("O valor não pode ter mais de três casas decimais.");
 
-        v = v.replace(/^(\d+\.\d{0,2}).*$/, '$1');
+        v = v.replace(/^(\d+\.\d{0,3}).*$/, '$1');
 
         e.target.value = v;
       }
@@ -324,6 +324,7 @@ export default {
 
       this.atualizarPayLoad(campo.chave, v);
     },
+
 
     buildCamposDinamicosCadastro() {
       return (
