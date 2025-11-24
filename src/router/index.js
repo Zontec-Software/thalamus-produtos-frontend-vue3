@@ -20,8 +20,8 @@ import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
 import EtapasView from '@/views/Produtos/EtapasView.vue'
 import FamiliaView from '@/views/Produtos/FamiliasView.vue'
 //Serviços
-import ServicosView from '@/views/Serviço/ServicosView.vue'
-import CadastroServico from "@/views/Serviço/CadastroServicos.vue";
+import ServicosView from '@/views/Serviços/ServicosView.vue'
+import CadastroServico from "@/views/Serviços/CadastroServicos.vue";
 import CatalogoServicos from "@/views/Serviços/CatalogoServicos.vue";
 import ConfiguracaoServicos from "@/views/Serviços/ConfiguracaoServicos.vue";
 import ServicosEmEdicao from "@/views/Serviços/SevicosEmEdicao.vue";
