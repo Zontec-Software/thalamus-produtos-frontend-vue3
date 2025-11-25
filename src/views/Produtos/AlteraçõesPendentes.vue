@@ -357,7 +357,6 @@ export default {
       }
 
       if ("null" in p) delete p.null;
-
       return p;
     },
 
@@ -773,7 +772,7 @@ export default {
         // edição de produto existente
         if (this.produto_original.editavel) {
           const payloadStaging = this.buildStagingPayload();
-          await serviceProdutos.salvarLocal(this.produto_cod, payloadStaging);
+          await serviceProdutos.salvarLocal(this.produto_cod, this.normalizeCadastroPayload(payloadStaging));
           this.toast.success("Alterações salvas Localmente.");
           this.$router.push({ name: "ProdutosView" });
           return;
@@ -800,7 +799,7 @@ export default {
             return { campo_id: campo.id, valor: valor ?? null };
           });
 
-        await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
+        await serviceProdutos.finalizarCadastro(this.produto_cod, this.normalizeCadastroPayload(payloadAtualizar));
         this.toast.success("Produto salvo com sucesso!");
       } catch (error) {
         if (error.response?.data?.errors?.id_cest) {
