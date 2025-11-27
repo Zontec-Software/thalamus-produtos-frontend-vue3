@@ -4,8 +4,8 @@
       <div class="margem container">
         <div class="m-icone direita">
           <div class="pesquisa">
-            <input type="text" placeholder="Pesquise aqui" v-model="searchQuery" />
-            <a class="icone-pesquisa" title="Pesquise"></a>
+            <input type="text" placeholder="Pesquisar produtos" v-model="searchQuery" />
+            <a class="icone-pesquisa" title="Pesquisar"></a>
           </div>
         </div>
         <h2>Catálogo de Produtos</h2>
@@ -14,7 +14,9 @@
     <div class="margem container">
       <div class="bloco margem">
         <div class="alinha-v" style="display: flex; justify-content: space-between"></div>
-        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo" :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" :exibirAcoes="false" :somenteVisualizacao="true" />
+        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
+          :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" :exibirAcoes="false"
+          :somenteVisualizacao="true" />
         <!-- <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos> -->
       </div>
     </div>
