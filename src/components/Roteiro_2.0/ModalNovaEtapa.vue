@@ -29,10 +29,13 @@
                         v-model="novaEtapa.operacao"></div>
                 <div><label>Tempo Padrão</label><input type="text" v-model="novaEtapa.tempo"></div>
             </fieldset>
-            <div class="submit direita">
+            <div class="submit direita" v-if="!loading">
                 <button class="acao-secundaria" @click="$emit('fecharModal', false)">Cancelar</button>
                 <button @click="cadastrarEtapa()" :disabled="camposVazio"
                     :title="camposVazio ? 'Preencha os campos destacados!' : ''">Salvar</button>
+            </div>
+            <div v-else class="loading">
+                <div></div>
             </div>
         </div>
     </div>
@@ -75,7 +78,8 @@ export default {
     data() {
         return {
             novaEtapa: {},
-            filhos: []
+            filhos: [],
+            loading: false
         }
     },
 
@@ -85,9 +89,11 @@ export default {
             this.filhos = setor.filho
         },
         async cadastrarEtapa() {
+            this.loading = true
             var payload = this.novaEtapa;
             payload.roteiro_id = this.roteiro_id
             await service.cadastrarEtapa(payload);
+            this.loading = false
             this.$emit('fecharModal', true)
         }
     },

@@ -1,11 +1,11 @@
 <template>
-    <section v-readonly="readonly" v-if="roteiro.id">
+    <section v-readonly="readonly || !versaoEdicao" v-if="roteiro.id">
         <div v-if="!loading">
             <div class="table-wrapper">
                 <table class="tabela">
                     <thead>
                         <tr>
-                            <th style="width:40px;"></th>
+                            <th v-if="!readonly && versaoEdicao" style="width:40px;"></th>
                             <th>Setor</th>
                             <th>SubSetor</th>
                             <th>Etapa</th>
@@ -19,7 +19,7 @@
                     <draggable v-model="roteiro.etapas" tag="tbody" handle=".handle" animation="200" @end="salvarOrdem">
                         <template #item="{ element }">
                             <tr>
-                                <td style="text-align:center" class="handle">
+                                <td style="text-align:center" class="handle" v-if="!readonly && versaoEdicao">
                                     <i class="bi-list drag-handle"></i>
                                 </td>
                                 <td>
@@ -58,7 +58,8 @@
                                 <td><input type="text" v-model="element.tempo"
                                         @focusout="atualizarEtapa(element.id, { tempo: element.tempo })">
                                 </td>
-                                <td v-if="!readonly"><i class="bi-trash-fill" @click="excluirEtapa(element.id)"></i>
+                                <td v-if="!readonly && versaoEdicao"><i class="bi-trash-fill"
+                                        @click="excluirEtapa(element.id)"></i>
                                 </td>
                             </tr>
                         </template>
@@ -107,8 +108,14 @@
 </template> -->
                 </table>
             </div>
-            <div class="alinha-centro" v-if="!readonly">
+            <div v-if="!readonly && versaoEdicao" class="botoes-container">
                 <button class="acao-secundaria" @click="modalCadastrar = true">Adicionar Etapa</button>
+                <button @click="publicarVersao()">Publicar Versão</button>
+            </div>
+            <div v-else-if="!readonly" class="alinha-centro">
+                <button data-allow-when-readonly @click="iniciarEdicao()">
+                    Iniciar Nova Versão
+                </button>
             </div>
         </div>
         <div class="loading" v-else-if="loading">
@@ -116,10 +123,10 @@
         </div>
         <ModalNovaEtapa :setores="setores" :tiposEtapa="tiposEtapa" :roteiro_id="roteiro.id" v-if="modalCadastrar"
             @fecharModal="fecharModal" />
-        <ModalInstrucao v-if="!readonly && etapaDestacada" :readonly="readonly" :etapa="etapaDestacada"
+        <ModalInstrucao v-if="(!readonly && versaoEdicao) && etapaDestacada" :readonly="readonly"
+            :etapa="etapaDestacada" :produto="roteiro.produto" @fechar="etapaDestacada = null" />
+        <ModalVisualizacaoInstrucao v-if="(readonly || !versaoEdicao) && etapaDestacada" :etapa="etapaDestacada"
             :produto="roteiro.produto" @fechar="etapaDestacada = null" />
-        <ModalVisualizacaoInstrucao v-if="readonly && etapaDestacada" :etapa="etapaDestacada" :produto="roteiro.produto"
-            @fechar="etapaDestacada = null" />
     </section>
     <div v-else-if="!readonly && !loading" class="alinha-centro">
         <button @click="criarRoteiro()">Criar Roteiro</button>
@@ -132,6 +139,7 @@ import ModalNovaEtapa from './ModalNovaEtapa.vue';
 import ModalInstrucao from './ModalInstrucao.vue';
 import ModalVisualizacaoInstrucao from './ModalVisualizacaoInstrucao.vue';
 import draggable from 'vuedraggable'
+import { useToast } from 'vue-toastification'
 
 
 function groupRoteiroBySetorTipo(roteiro) {
@@ -205,7 +213,9 @@ export default {
             roteiro: {},
             tiposEtapa: [],
             etapaDestacada: null,
-            drag: { from: null, over: null }
+            drag: { from: null, over: null },
+            toast: useToast(),
+            versaoEdicao: false
         }
     },
 
@@ -222,6 +232,18 @@ export default {
     },
 
     methods: {
+        async iniciarEdicao() {
+            await service.iniciarEdicao(this.produto_cod);
+            this.getRoteiro()
+        },
+
+        async publicarVersao() {
+            await service.publicarVersaoRoteiro(this.roteiro.id);
+            this.versaoEdicao = false;
+            this.toast.success("Versão publicada com sucesso!");
+            this.getRoteiro()
+        },
+
         async criarRoteiro() {
             this.loading = true;
             await service.criarRoteiro(this.produto_cod);
@@ -230,7 +252,17 @@ export default {
 
         async getRoteiro() {
             this.loading = true
-            this.roteiro = await service.getRoteiro(this.produto_cod);
+            if (this.readonly) {
+                this.roteiro = await service.getRoteiroOficial(this.produto_cod);
+            } else {
+                var response = await service.getRoteiroEdicao(this.produto_cod);
+                if (!response.id) {
+                    this.roteiro = await service.getRoteiroOficial(this.produto_cod);
+                } else {
+                    this.roteiro = response
+                    this.versaoEdicao = true
+                }
+            }
             this.loading = false;
 
             if (this.roteiro?.etapas) {
@@ -246,6 +278,9 @@ export default {
 
         },
         atualizarEtapa(id, payload) {
+            if (this.readonly || !this.versaoEdicao) {
+                return
+            }
             service.atualizarEtapa(id, payload)
         },
         excluirEtapa(id) {
@@ -260,6 +295,7 @@ export default {
             }
         },
         salvarOrdem() {
+            if(this.readonly || !this.versaoEdicao)
             var payload = this.roteiro.etapas.map((i, index) => ({
                 id: i.id,
                 ordem: index + 1
@@ -315,6 +351,19 @@ export default {
 </script>
 
 <style scoped>
+.botoes-container {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.botoes-container button:last-child {
+    position: absolute;
+    right: 0;
+}
+
 th {
     text-align: center !important;
 }

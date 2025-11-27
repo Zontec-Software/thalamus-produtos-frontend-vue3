@@ -19,8 +19,12 @@ import CatalogoView from "@/views/Produtos/CatalogoView.vue";
 import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
 import EtapasView from '@/views/Produtos/EtapasView.vue'
 import FamiliaView from '@/views/Produtos/FamiliasView.vue'
-import ServicosView from '@/views/Serviço/ServicosView.vue'
-import CadastroServico from "@/views/Serviço/CadastroServico.vue";
+//Serviços
+import ServicosView from '@/views/Serviços/ServicosView.vue'
+import CadastroServico from "@/views/Serviços/CadastroServicos.vue";
+import CatalogoServicos from "@/views/Serviços/CatalogoServicos.vue";
+import ConfiguracaoServicos from "@/views/Serviços/ConfiguracaoServicos.vue";
+import ServicosEmEdicao from "@/views/Serviços/SevicosEmEdicao.vue";
 
 
 // redireciona usuario para LOGIN baseado no env
@@ -87,7 +91,7 @@ const routes = [
     }),
   },
   {
-    path: "/catalogo/produto/:id(\\d+)", // catálogo (sempre read-only)
+    path: "/catalogo/produto/:id(\\d+)", 
     name: "catalogoProduto",
     component: CadastroProduto,
     beforeEnter: guardPermissaoRoute,
@@ -235,18 +239,38 @@ const routes = [
     component: FamiliaView,
     beforeEnter: guardPermissaoRoute
   },
-    {
+  //Serviços
+  {
     path: '/servicos',
     name: 'ServicosView',
     component: ServicosView,
     beforeEnter: guardPermissaoRoute
   },
-      {
+  {
+    path: '/servicos/edicao',
+    name: 'ServicosEmEdicao',
+    component: ServicosEmEdicao,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
     path: '/cadastrar/servico',
     name: 'CadastrarServico',
     component: CadastroServico,
     beforeEnter: guardPermissaoRoute
   },
+  {
+    path: '/catalogo/servicos',
+    name: 'CatalogoServico',
+    component: CatalogoServicos,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/configurar/servicos',
+    name: 'ConfigurarServico',
+    component: ConfiguracaoServicos,
+    beforeEnter: guardPermissaoRoute
+  },
+
 
 
 ];
