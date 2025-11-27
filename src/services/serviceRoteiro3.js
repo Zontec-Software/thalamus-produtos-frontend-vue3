@@ -37,9 +37,39 @@ export default {
         }
     },
 
-    async getRoteiro(produto_cod) {
+    async publicarVersaoRoteiro(id) {
         try {
-            const response = await api.get(`roteiro_2/buscar/${produto_cod}`);
+            const response = await api.post(`/roteiro_2/${id}/publicar`);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async iniciarEdicao(produto_cod) {
+        try {
+            const response = await api.post(`/roteiro_2/${produto_cod}/iniciar-edicao`);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async getRoteiroEdicao(produto_cod) {
+        try {
+            const response = await api.get(`roteiro_2/buscar/${produto_cod}/edicao`);
+            return response.data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async getRoteiroOficial(produto_cod) {
+        try {
+            const response = await api.get(`roteiro_2/buscar/${produto_cod}/oficial`);
             return response.data
         } catch (error) {
             console.error(error);
