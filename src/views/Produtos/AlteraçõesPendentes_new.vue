@@ -416,7 +416,7 @@ export default {
         await serviceProdutos.salvarLocal(this.produto_cod, payloadStaging);
         await serviceProdutos.finalizarAtualizacao(this.produto_cod);
         this.toast.success("Atualização finalizada e enviada ao Omie!");
-        this.$router.push({ name: "ProdutosView" });
+        // this.$router.push({ name: "ProdutosView" });
       } catch (error) {
         this.toast.error("Erro ao finalizar atualização");
         console.error(error);
@@ -432,7 +432,7 @@ export default {
         await serviceProdutos.setEditavel(this.produto_cod, true);
         this.produto_original.editavel = true;
         this.toast.success("Produto habilitado para edição.");
-        this.$router.push({ name: "CatalogoView" });
+        // this.$router.push({ name: "CatalogoView" });
       } catch (e) {
         this.toast.error("Não foi possível habilitar edição.");
         console.error(e);
@@ -751,15 +751,15 @@ export default {
           const payload = this.normalizeCadastroPayload(bruto);
           await serviceProdutos.cadastrarProdutoOMIE(payload);
           this.toast.success("Produto enviado com sucesso!");
-          this.$router.push({ name: "CatalogoView" });
+          // this.$router.push({ name: "CatalogoView" });
           return;
         }
 
         if (this.produto_original.editavel) {
           const payloadStaging = this.buildStagingPayload();
           await serviceProdutos.salvarLocal(this.produto_cod, payloadStaging);
-          this.toast.success("Alterações salvas Localmente.");
-          this.$router.push({ name: "ProdutosView" });
+          this.toast.success("Alterações salvas localmente.");
+          // this.$router.push({ name: "ProdutosView" });
           return;
         }
 
@@ -848,12 +848,12 @@ export default {
         .enviarParaAprovacao(produto_cod, usuario_id)
         .then(() => {
           this.toast.success("Produto enviado para aprovação com sucesso!");
-          this.$router.back();
+          // this.$router.back();
         })
         .catch((error) => {
           this.toast.error("Erro ao enviar produto para aprovação.");
           console.error("Erro ao enviar para aprovação:", error);
-          this.$router.back();
+          // this.$router.back();
         });
     },
 
