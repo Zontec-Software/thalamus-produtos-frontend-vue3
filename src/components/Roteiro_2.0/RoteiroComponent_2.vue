@@ -295,12 +295,12 @@ export default {
             }
         },
         salvarOrdem() {
-            if(this.readonly || !this.versaoEdicao)
-            var payload = this.roteiro.etapas.map((i, index) => ({
-                id: i.id,
+            if(this.readonly || !this.versaoEdicao) return;
+            const payload = this.roteiro.etapas.map((etapa, index) => ({
+                id: etapa.id,
                 ordem: index + 1
             }));
-            service.reordenarEtapas(payload)
+            service.reordenarEtapas(payload);
         },
 
         // ------- DnD -------
