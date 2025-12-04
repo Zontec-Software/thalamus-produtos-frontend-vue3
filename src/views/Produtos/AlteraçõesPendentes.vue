@@ -128,7 +128,7 @@
             </select>
             <div v-else-if="campo.chave === 'id_cest'">
               <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-                @input="mascaraCest(campo.id)" maxlength="11" placeholder="00.000.000"
+                @input="mascaraCest(campo.id)" maxlength="9" placeholder="00.000.00"
                 :disabled="aguardandoAprovaçãoFiscal" />
             </div>
             <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
@@ -423,11 +423,11 @@ export default {
       if (valor.length > 2) {
         valor = valor.replace(/^(\d{2})(\d)/, "$1.$2");
       }
-      if (valor.length > 6) {
+      if (valor.length > 5) {
         valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
       }
 
-      valor = valor.substring(0, 10);
+      valor = valor.substring(0, 9);
       this.valoresSelecionados[campoId] = valor;
       this.atualizarPayLoad("id_cest", valor);
     },
@@ -742,11 +742,12 @@ export default {
 
       try {
         this.errors = {};
-        const cest = this.valoresSelecionados["id_cest"];
-        const regexCest = /^\d{2}\.\d{3}\.\d{3}$/;
+        const campoCest = this.camposSelects.find(c => c.chave === 'id_cest');
+        const cest = campoCest ? this.valoresSelecionados[campoCest.id] : null;
+        const regexCest = /^\d{2}\.\d{3}\.\d{2}$/;
 
         if (cest && !regexCest.test(cest)) {
-          this.errors["id_cest"] = "O CEST deve estar no formato 00.000.000";
+          this.errors["id_cest"] = "O CEST deve estar no formato 00.000.00";
           this.toast.error(this.errors["id_cest"]);
           return;
         }
@@ -803,7 +804,7 @@ export default {
         this.toast.success("Produto salvo com sucesso!");
       } catch (error) {
         if (error.response?.data?.errors?.id_cest) {
-          this.toast.error("CEST inválido. Use 00.000.000");
+          this.toast.error("CEST inválido. Use 00.000.00");
         } else {
           this.toast.error("Erro ao salvar produto");
         }
