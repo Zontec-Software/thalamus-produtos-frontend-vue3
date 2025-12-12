@@ -4,9 +4,9 @@ module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
     allowedHosts: "all",
-    host: 'localhost.thalamus.ind.br',
+    host: "0.0.0.0",
     client: {
-      webSocketURL: 'ws://localhost.thalamus.ind.br:8080/ws',
+      webSocketURL: "ws://localhost.thalamus.ind.br:8080/ws",
     },
   },
 });

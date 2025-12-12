@@ -47,7 +47,10 @@ const funções = {
   async getProdutos(pagina = 1) {
     try {
       const payload = {
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        // temp produtos acabados e em processo
+        //tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        tipo: [4, 5],
+        aprovado: true,
         paginacao: 1,
         page: pagina,
         //editavel: false, //comentado para nova lógica
@@ -64,7 +67,9 @@ const funções = {
   async getProdutosEditaveis(pagina = 1) {
     try {
       const payload = {
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        // temp produtos acabados e em processo
+        //tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        tipo: [4, 5],
         paginacao: 1,
         page: pagina,
         editavel: true,
@@ -146,11 +151,11 @@ const funções = {
         searchQuery && searchQuery.trim()
           ? { ...base, termo: searchQuery.trim() }
           : {
-            ...base,
-            ...(filtroFamilia ? { familia: filtroFamilia } : {}),
-            paginacao: 1,
-            page: pagina,
-          };
+              ...base,
+              ...(filtroFamilia ? { familia: filtroFamilia } : {}),
+              paginacao: 1,
+              page: pagina,
+            };
 
       const { data } = await api.get("/produto-filtrar", { params });
 
