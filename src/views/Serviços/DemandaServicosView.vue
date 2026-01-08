@@ -23,11 +23,6 @@
                         <option v-for="familia in familias" :key="familia.id" :value="familia.id"> {{ familia.codigo }}
                             - {{ familia.nome }} </option>
                     </select>
-                    <select v-model="filtros.executor_id" @change="aplicarFiltros"
-                        style="padding: 8px; min-width: 200px;">
-                        <option value="">Todos os executores</option>
-                        <option v-for="setor in setores" :key="setor.id" :value="setor.id"> {{ setor.nome }} </option>
-                    </select>
                 </div>
                 <table class="tabela">
                     <tbody>
@@ -44,7 +39,7 @@
                                 <td>{{ servico.codigo_servico }}</td>
                                 <td>{{ servico.descricao_servico }}</td>
                                 <td>{{ servico.familia?.codigo || '-' }}</td>
-                                <td>{{ servico.executor?.nome || '-' }}</td>
+                                <td>{{ obterExecutor(servico) || '-' }}</td>
                                 <td>{{ servico.categoria_orcamento?.descricao || '-' }}</td>
                                 <td>
                                     <div style="display: flex;">
@@ -84,14 +79,6 @@
                             <option value="">Selecione uma família</option>
                             <option v-for="familia in familias" :key="familia.id" :value="familia.id"> {{ familia.codigo
                                 }} - {{ familia.nome }} </option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Executor</label>
-                        <select v-model="servicoSelecionado.executor_id">
-                            <option value="">Selecione um executor</option>
-                            <option v-for="setor in setores" :key="setor.id" :value="setor.id"> {{ setor.nome }}
-                            </option>
                         </select>
                     </div>
                     <div>
@@ -135,7 +122,6 @@ export default {
         return {
             servicos: [],
             familias: [],
-            setores: [],
             categoriasOrcamento: [],
             showModal: false,
             modoAdicao: true,
@@ -143,14 +129,12 @@ export default {
                 codigo_servico: "",
                 descricao_servico: "",
                 familia_id: "",
-                executor_id: "",
                 orcamento_id: "",
             },
             showDeleteModal: false,
             searchQuery: "",
             filtros: {
                 familia_id: "",
-                executor_id: "",
                 search: "",
             },
             idToDelete: null,
@@ -175,7 +159,6 @@ export default {
             await Promise.all([
                 this.carregarServicos(),
                 this.carregarFamilias(),
-                this.carregarSetores(),
                 this.carregarCategoriasOrcamento(),
             ]);
         },
@@ -213,15 +196,6 @@ export default {
                 this.familias = response.data || response;
             } catch (error) {
                 console.error("Erro ao listar famílias:", error);
-            }
-        },
-
-        async carregarSetores() {
-            try {
-                const response = await serviceDemandaServicos.listarSetores();
-                this.setores = response.data || response;
-            } catch (error) {
-                console.error("Erro ao listar setores:", error);
             }
         },
 
@@ -273,13 +247,27 @@ export default {
             }
         },
 
+        obterExecutor(servico) {
+            // O executor é retornado via accessor do backend
+            if (servico.executor) {
+                return servico.executor.nome;
+            }
+            // Fallback: busca através dos vínculos da categoria
+            if (servico.categoria_orcamento?.vinculos_setores) {
+                const executor = servico.categoria_orcamento.vinculos_setores.find(
+                    v => v.tipo === 'Executor' && v.setor
+                );
+                return executor?.setor?.nome || null;
+            }
+            return null;
+        },
+
         abrirModalAdicionar() {
             this.modoAdicao = true;
             this.servicoSelecionado = {
                 codigo_servico: "",
                 descricao_servico: "",
                 familia_id: "",
-                executor_id: "",
                 orcamento_id: "",
             };
             this.showModal = true;
@@ -291,7 +279,6 @@ export default {
                 codigo_servico: servico.codigo_servico,
                 descricao_servico: servico.descricao_servico,
                 familia_id: servico.familia_id || "",
-                executor_id: servico.executor_id || "",
                 orcamento_id: servico.orcamento_id || "",
             };
             this.servicoId = servico.id;
@@ -310,7 +297,6 @@ export default {
                     codigo_servico: this.servicoSelecionado.codigo_servico,
                     descricao_servico: this.servicoSelecionado.descricao_servico,
                     familia_id: this.servicoSelecionado.familia_id,
-                    executor_id: this.servicoSelecionado.executor_id || null,
                     orcamento_id: this.servicoSelecionado.orcamento_id || null,
                 };
 
