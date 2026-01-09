@@ -48,8 +48,8 @@ const funções = {
     try {
       const payload = {
         // temp produtos acabados e em processo
-        //tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        tipo: [4, 5],
+        //tipo: [4, 5],
+        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         aprovado: true,
         paginacao: 1,
         page: pagina,
@@ -68,8 +68,8 @@ const funções = {
     try {
       const payload = {
         // temp produtos acabados e em processo
-        //tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        tipo: [4, 5],
+        //tipo: [4, 5],
+        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         paginacao: 1,
         page: pagina,
         editavel: true,
