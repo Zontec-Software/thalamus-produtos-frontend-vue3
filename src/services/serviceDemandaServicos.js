@@ -50,8 +50,10 @@ function listarServicos(filtros = {}) {
         if (filtros.familia_id) params.append('familia_id', filtros.familia_id);
         if (filtros.orcamento_id) params.append('orcamento_id', filtros.orcamento_id);
         if (filtros.categoria_orcamento_id) params.append('categoria_orcamento_id', filtros.categoria_orcamento_id);
+        if (filtros.executor_id) params.append('executor_id', filtros.executor_id);
         if (filtros.search) params.append('search', filtros.search);
         if (filtros.per_page) params.append('per_page', filtros.per_page);
+        if (filtros.page) params.append('page', filtros.page);
 
         const queryString = params.toString();
         const url = `demanda/servicos/listar${queryString ? '?' + queryString : ''}`;
@@ -113,6 +115,14 @@ function listarCategoriasOrcamento(ano = null) {
     });
 }
 
+function listarSetores() {
+    return new Promise((resolve, reject) => {
+        return api.get('setor')
+            .then(response => resolve(response))
+            .catch(error => reject(error));
+    });
+}
+
 export default {
     // Famílias
     listarFamilias,
@@ -128,6 +138,7 @@ export default {
     excluirServico,
     importarServicos,
     // Auxiliares
-    listarCategoriasOrcamento
+    listarCategoriasOrcamento,
+    listarSetores
 };
 

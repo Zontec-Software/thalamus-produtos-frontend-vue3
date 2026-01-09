@@ -44,7 +44,7 @@
                                 <td>{{ servico.codigo_servico }}</td>
                                 <td>{{ servico.descricao_servico }}</td>
                                 <td>{{ servico.familia?.codigo || '-' }}</td>
-                                <td>{{ servico.executor?.nome || '-' }}</td>
+                                <td>{{ obterExecutorNome(servico) }}</td>
                                 <td>{{ servico.categoria_orcamento?.descricao || '-' }}</td>
                                 <td>
                                     <div style="display: flex;">
@@ -61,6 +61,19 @@
                         </tr>
                     </tbody>
                 </table>
+                <div v-if="!carregando && servicos.length === 0" class="estado-vazio"
+                    style="text-align: center; padding: 20px;"> Nenhum serviço encontrado. </div>
+                <div v-if="!carregando && servicos.length > 0" class="alinha-centro" style="margin-top: 20px;">
+                    <div class="paginacao">
+                        <button :disabled="!prevPageUrl" @click="carregarPagina(prevPageUrl)">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span>Página <b>{{ paginaAtual }}</b> de <b>{{ ultimaPagina }}</b></span>
+                        <button :disabled="!nextPageUrl" @click="carregarPagina(nextPageUrl)">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- MODAL -->
@@ -83,16 +96,13 @@
                         <select v-model="servicoSelecionado.familia_id">
                             <option value="">Selecione uma família</option>
                             <option v-for="familia in familias" :key="familia.id" :value="familia.id"> {{ familia.codigo
-                                }} - {{ familia.nome }} </option>
+                            }} - {{ familia.nome }} </option>
                         </select>
                     </div>
                     <div>
                         <label>Executor</label>
-                        <select v-model="servicoSelecionado.executor_id">
-                            <option value="">Selecione um executor</option>
-                            <option v-for="setor in setores" :key="setor.id" :value="setor.id"> {{ setor.nome }}
-                            </option>
-                        </select>
+                        <input type="text" :value="executorNomeExibido" disabled
+                            style="background-color: #f5f5f5; cursor: not-allowed;" />
                     </div>
                     <div>
                         <label>Categoria de Orçamento</label>
@@ -146,6 +156,8 @@ export default {
                 executor_id: "",
                 orcamento_id: "",
             },
+            servicoId: null,
+            servicoParaEdicao: null,
             showDeleteModal: false,
             searchQuery: "",
             filtros: {
@@ -158,6 +170,11 @@ export default {
             excluindo: false,
             salvando: false,
             carregando: false,
+            paginaAtual: 1,
+            ultimaPagina: 1,
+            nextPageUrl: null,
+            prevPageUrl: null,
+            perPage: 15,
         };
     },
 
@@ -170,6 +187,18 @@ export default {
         this.carregarDados();
     },
 
+    computed: {
+        executorNomeExibido() {
+            if (this.modoAdicao) {
+                return 'O executor será definido pela categoria de orçamento';
+            }
+            if (this.servicoParaEdicao) {
+                return this.obterExecutorNome(this.servicoParaEdicao);
+            }
+            return '-';
+        },
+    },
+
     methods: {
         async carregarDados() {
             await Promise.all([
@@ -180,28 +209,49 @@ export default {
             ]);
         },
 
-        async carregarServicos() {
+        async carregarServicos(pagina = 1) {
             this.carregando = true;
             try {
                 const filtros = {
                     ...this.filtros,
                     search: this.searchQuery,
+                    page: pagina,
+                    per_page: this.perPage,
                 };
                 const response = await serviceDemandaServicos.listarServicos(filtros);
-                // A resposta pode vir paginada ou como array direto
-                if (response.data?.data) {
-                    this.servicos = response.data.data;
-                } else if (Array.isArray(response.data)) {
-                    this.servicos = response.data;
-                } else if (Array.isArray(response)) {
-                    this.servicos = response;
+
+                // Processa resposta paginada do Laravel
+                let dados = response.data || response;
+
+                if (dados && typeof dados === 'object' && !Array.isArray(dados)) {
+                    // Resposta paginada do Laravel
+                    this.servicos = Array.isArray(dados.data) ? dados.data : [];
+                    this.paginaAtual = Number(dados.current_page) || 1;
+                    this.ultimaPagina = Number(dados.last_page) || 1;
+                    this.nextPageUrl = this.paginaAtual < this.ultimaPagina ? this.paginaAtual + 1 : null;
+                    this.prevPageUrl = this.paginaAtual > 1 ? this.paginaAtual - 1 : null;
+                } else if (Array.isArray(dados)) {
+                    // Resposta como array direto (fallback)
+                    this.servicos = dados;
+                    this.paginaAtual = 1;
+                    this.ultimaPagina = 1;
+                    this.nextPageUrl = null;
+                    this.prevPageUrl = null;
                 } else {
                     this.servicos = [];
+                    this.paginaAtual = 1;
+                    this.ultimaPagina = 1;
+                    this.nextPageUrl = null;
+                    this.prevPageUrl = null;
                 }
             } catch (error) {
                 this.toast.error('Erro ao listar serviços')
                 console.error("Erro ao listar serviços:", error);
                 this.servicos = [];
+                this.paginaAtual = 1;
+                this.ultimaPagina = 1;
+                this.nextPageUrl = null;
+                this.prevPageUrl = null;
             } finally {
                 this.carregando = false;
             }
@@ -225,6 +275,47 @@ export default {
             }
         },
 
+        carregarPagina(pagina) {
+            this.carregarServicos(pagina);
+        },
+
+        obterExecutorNome(servico) {
+            // Debug temporário - remover após confirmar funcionamento
+            if (!servico.executor && servico.categoria_orcamento) {
+                console.log('Serviço sem executor:', {
+                    id: servico.id,
+                    codigo: servico.codigo_servico,
+                    categoria_orcamento: servico.categoria_orcamento,
+                    vinculos_setores: servico.categoria_orcamento?.vinculos_setores || servico.categoria_orcamento?.vinculosSetores
+                });
+            }
+
+            // O backend agora retorna o executor diretamente no objeto serviço
+            // Tenta ambos os formatos (snake_case e camelCase)
+            if (servico.executor?.nome) {
+                return servico.executor.nome;
+            }
+
+            // Fallback: tenta acessar através da categoria de orçamento
+            const categoriaOrcamento = servico.categoria_orcamento || servico.categoriaOrcamento;
+
+            if (categoriaOrcamento) {
+                // Tenta ambos os formatos (snake_case e camelCase)
+                const vinculos = categoriaOrcamento.vinculos_setores || categoriaOrcamento.vinculosSetores || [];
+
+                if (Array.isArray(vinculos) && vinculos.length > 0) {
+                    // Busca o vínculo com tipo 'Executor'
+                    const executorVinculo = vinculos.find(v => v.tipo === 'Executor') || vinculos[0];
+                    const setor = executorVinculo?.setor || executorVinculo?.Setor;
+                    if (setor?.nome) {
+                        return setor.nome;
+                    }
+                }
+            }
+
+            return '-';
+        },
+
         async carregarCategoriasOrcamento() {
             try {
                 const ano = new Date().getFullYear();
@@ -237,7 +328,7 @@ export default {
         },
 
         aplicarFiltros() {
-            this.carregarServicos();
+            this.carregarServicos(1);
         },
 
         abrirModalExcluir(servico) {
@@ -264,7 +355,8 @@ export default {
                 await serviceDemandaServicos.excluirServico(this.idToDelete);
                 this.toast.success("Serviço excluído com sucesso!");
                 this.fecharModal();
-                this.carregarServicos();
+                // Mantém a página atual após exclusão
+                this.carregarServicos(this.paginaAtual);
             } catch (e) {
                 const errorMsg = e.response?.data?.error || e.response?.data?.msg || "Erro ao excluir serviço";
                 this.toast.error(errorMsg);
@@ -282,6 +374,8 @@ export default {
                 executor_id: "",
                 orcamento_id: "",
             };
+            this.servicoId = null;
+            this.servicoParaEdicao = null;
             this.showModal = true;
         },
 
@@ -295,6 +389,7 @@ export default {
                 orcamento_id: servico.orcamento_id || "",
             };
             this.servicoId = servico.id;
+            this.servicoParaEdicao = servico; // Guarda o serviço completo para exibir o executor
             this.showModal = true;
         },
 
@@ -310,7 +405,7 @@ export default {
                     codigo_servico: this.servicoSelecionado.codigo_servico,
                     descricao_servico: this.servicoSelecionado.descricao_servico,
                     familia_id: this.servicoSelecionado.familia_id,
-                    executor_id: this.servicoSelecionado.executor_id || null,
+                    // executor_id não é enviado - o executor vem da categoria de orçamento
                     orcamento_id: this.servicoSelecionado.orcamento_id || null,
                 };
 
@@ -323,7 +418,8 @@ export default {
                 }
 
                 this.showModal = false;
-                this.carregarServicos();
+                // Recarrega a página atual após salvar
+                this.carregarServicos(this.paginaAtual);
             } catch (error) {
                 const errorMsg = error.response?.data?.error || error.response?.data?.msg || "Erro ao salvar serviço";
                 this.toast.error(errorMsg);
