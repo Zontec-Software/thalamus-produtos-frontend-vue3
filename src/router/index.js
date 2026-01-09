@@ -25,6 +25,9 @@ import CadastroServico from "@/views/Serviços/CadastroServicos.vue";
 import CatalogoServicos from "@/views/Serviços/CatalogoServicos.vue";
 import ConfiguracaoServicos from "@/views/Serviços/ConfiguracaoServicos.vue";
 import ServicosEmEdicao from "@/views/Serviços/SevicosEmEdicao.vue";
+//Demanda - Serviços
+import DemandaFamiliasView from '@/views/Serviços/DemandaFamiliasView.vue';
+import DemandaServicosView from '@/views/Serviços/DemandaServicosView.vue';
 
 
 // redireciona usuario para LOGIN baseado no env
@@ -268,6 +271,19 @@ const routes = [
     path: '/configurar/servicos',
     name: 'ConfigurarServico',
     component: ConfiguracaoServicos,
+    beforeEnter: guardPermissaoRoute
+  },
+  //Demanda - Serviços
+  {
+    path: '/demanda/familias',
+    name: 'DemandaFamiliasView',
+    component: DemandaFamiliasView,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/demanda/servicos',
+    name: 'DemandaServicosView',
+    component: DemandaServicosView,
     beforeEnter: guardPermissaoRoute
   },
 
