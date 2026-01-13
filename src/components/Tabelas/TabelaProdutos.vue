@@ -139,9 +139,9 @@ export default {
 
     async pesquisarProdutosGuard() {
       const payload = {
-        //tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         // temp produtos acabados e em processo
-        tipo: [4, 5],
+        // tipo: [4, 5],
+        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         ...(this.exibirApenasEditavel ? { editavel: true } : {}),
       };
       if (this.searchQuery) payload.termo = this.searchQuery;
@@ -169,9 +169,9 @@ export default {
         const temFiltro = !!this.searchQuery || !!this.filtroTipo || !!this.filtroFamilia || !!this.filtro;
 
         if (temFiltro) {
-          //const payload = { tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] };
           // temp produtos acabados e em processo ((search na pagina de catalogo))
-          const payload = { tipo: [4, 5] };
+          // const payload = { tipo: [4, 5] };
+          const payload = { tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] };
           if (this.exibirApenasEditavel) payload.editavel = true;
           if (this.searchQuery) payload.termo = this.searchQuery;
           else if (this.filtroTipo) payload.termo = this.filtroTipo;
