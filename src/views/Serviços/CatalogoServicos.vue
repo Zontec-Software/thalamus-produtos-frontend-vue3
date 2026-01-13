@@ -221,18 +221,15 @@ export default {
                 };
                 const response = await serviceDemandaServicos.listarServicos(filtros);
 
-                // Processa resposta paginada do Laravel
                 let dados = response.data || response;
 
                 if (dados && typeof dados === 'object' && !Array.isArray(dados)) {
-                    // Resposta paginada do Laravel
                     this.servicos = Array.isArray(dados.data) ? dados.data : [];
                     this.paginaAtual = Number(dados.current_page) || 1;
                     this.ultimaPagina = Number(dados.last_page) || 1;
                     this.nextPageUrl = this.paginaAtual < this.ultimaPagina ? this.paginaAtual + 1 : null;
                     this.prevPageUrl = this.paginaAtual > 1 ? this.paginaAtual - 1 : null;
                 } else if (Array.isArray(dados)) {
-                    // Resposta como array direto (fallback)
                     this.servicos = dados;
                     this.paginaAtual = 1;
                     this.ultimaPagina = 1;
@@ -285,21 +282,17 @@ export default {
                 return '-';
             }
 
-            // O backend agora retorna o executor diretamente no objeto serviço
-            // Tenta ambos os formatos (snake_case e camelCase)
+
             if (servico.executor?.nome) {
                 return servico.executor.nome;
             }
 
-            // Fallback: tenta acessar através da categoria de orçamento
             const categoriaOrcamento = servico.categoria_orcamento || servico.categoriaOrcamento;
 
             if (categoriaOrcamento) {
-                // Tenta ambos os formatos (snake_case e camelCase)
                 const vinculos = categoriaOrcamento.vinculos_setores || categoriaOrcamento.vinculosSetores || [];
 
                 if (Array.isArray(vinculos) && vinculos.length > 0) {
-                    // Busca o vínculo com tipo 'Executor'
                     const executorVinculo = vinculos.find(v => v.tipo === 'Executor') || vinculos[0];
                     const setor = executorVinculo?.setor || executorVinculo?.Setor;
                     if (setor?.nome) {
@@ -315,7 +308,6 @@ export default {
             try {
                 const ano = new Date().getFullYear();
                 const response = await serviceDemandaServicos.listarCategoriasOrcamento(ano);
-                // A API retorna um array de categorias
                 this.categoriasOrcamento = response.data || response;
             } catch (error) {
                 console.error("Erro ao listar categorias de orçamento:", error);
@@ -350,7 +342,6 @@ export default {
                 await serviceDemandaServicos.excluirServico(this.idToDelete);
                 this.toast.success("Serviço excluído com sucesso!");
                 this.fecharModal();
-                // Mantém a página atual após exclusão
                 this.carregarServicos(this.paginaAtual);
             } catch (e) {
                 const errorMsg = e.response?.data?.error || e.response?.data?.msg || "Erro ao excluir serviço";
@@ -384,12 +375,11 @@ export default {
                 orcamento_id: servico.orcamento_id || "",
             };
             this.servicoId = servico.id;
-            this.servicoParaEdicao = servico; // Guarda o serviço completo para exibir o executor
+            this.servicoParaEdicao = servico;
             this.showModal = true;
         },
 
         async salvarServico() {
-            // Validação dos campos obrigatórios (codigo_servico NÃO é obrigatório)
             const descricao = this.servicoSelecionado.descricao_servico?.trim() || '';
             const familiaId = this.servicoSelecionado.familia_id;
 
@@ -409,11 +399,9 @@ export default {
                 payload = {
                     descricao_servico: descricao,
                     familia_id: familiaId,
-                    // executor_id não é enviado - o executor vem da categoria de orçamento
                     orcamento_id: this.servicoSelecionado.orcamento_id || null,
                 };
 
-                // Só adiciona o código se foi preenchido pelo usuário
                 const codigoServico = this.servicoSelecionado.codigo_servico?.trim() || '';
                 if (codigoServico) {
                     payload.codigo_servico = codigoServico;
@@ -428,7 +416,6 @@ export default {
                 }
 
                 this.showModal = false;
-                // Recarrega a página atual após salvar
                 this.carregarServicos(this.paginaAtual);
             } catch (error) {
                 console.error("Erro ao salvar serviço:", error);
@@ -436,7 +423,6 @@ export default {
                     console.error("Payload enviado:", payload);
                 }
 
-                // Trata erros de validação do backend
                 if (error.response?.data?.errors) {
                     const errors = error.response.data.errors;
                     const firstError = Object.values(errors)[0];
