@@ -281,14 +281,8 @@ export default {
         },
 
         obterExecutorNome(servico) {
-            // Debug temporário - remover após confirmar funcionamento
-            if (!servico.executor && servico.categoria_orcamento) {
-                console.log('Serviço sem executor:', {
-                    id: servico.id,
-                    codigo: servico.codigo_servico,
-                    categoria_orcamento: servico.categoria_orcamento,
-                    vinculos_setores: servico.categoria_orcamento?.vinculos_setores || servico.categoria_orcamento?.vinculosSetores
-                });
+            if (!servico) {
+                return '-';
             }
 
             // O backend agora retorna o executor diretamente no objeto serviço
