@@ -9,7 +9,7 @@
                         <a class="icone-pesquisa" title="Pesquise"></a>
                     </div>
                 </div>
-                <h2>Serviços de Demanda</h2>
+                <h2>Serviços</h2>
             </div>
         </div>
         <div class="margem container">
@@ -84,8 +84,9 @@
                 </div>
                 <fieldset class="grid-2 margem">
                     <div>
-                        <label>Código do Serviço *</label>
-                        <input type="text" v-model="servicoSelecionado.codigo_servico" :disabled="!modoAdicao" />
+                        <label>Código do Serviço</label>
+                        <input type="text" v-model="servicoSelecionado.codigo_servico" :disabled="!modoAdicao"
+                            placeholder="Deixe em branco para gerar automaticamente" />
                     </div>
                     <div>
                         <label>Descrição do Serviço *</label>
@@ -96,7 +97,7 @@
                         <select v-model="servicoSelecionado.familia_id">
                             <option value="">Selecione uma família</option>
                             <option v-for="familia in familias" :key="familia.id" :value="familia.id"> {{ familia.codigo
-                            }} - {{ familia.nome }} </option>
+                                }} - {{ familia.nome }} </option>
                         </select>
                     </div>
                     <div>
@@ -394,20 +395,35 @@ export default {
         },
 
         async salvarServico() {
-            if (!this.servicoSelecionado.codigo_servico || !this.servicoSelecionado.descricao_servico || !this.servicoSelecionado.familia_id) {
-                this.toast.error('Preencha todos os campos obrigatórios');
+            // Validação dos campos obrigatórios (codigo_servico NÃO é obrigatório)
+            const descricao = this.servicoSelecionado.descricao_servico?.trim() || '';
+            const familiaId = this.servicoSelecionado.familia_id;
+
+            if (!descricao) {
+                this.toast.error('Preencha a descrição do serviço');
+                return;
+            }
+
+            if (!familiaId) {
+                this.toast.error('Selecione uma família');
                 return;
             }
 
             this.salvando = true;
+            let payload;
             try {
-                const payload = {
-                    codigo_servico: this.servicoSelecionado.codigo_servico,
-                    descricao_servico: this.servicoSelecionado.descricao_servico,
-                    familia_id: this.servicoSelecionado.familia_id,
+                payload = {
+                    descricao_servico: descricao,
+                    familia_id: familiaId,
                     // executor_id não é enviado - o executor vem da categoria de orçamento
                     orcamento_id: this.servicoSelecionado.orcamento_id || null,
                 };
+
+                // Só adiciona o código se foi preenchido pelo usuário
+                const codigoServico = this.servicoSelecionado.codigo_servico?.trim() || '';
+                if (codigoServico) {
+                    payload.codigo_servico = codigoServico;
+                }
 
                 if (this.modoAdicao) {
                     await serviceDemandaServicos.criarServico(payload);
@@ -421,9 +437,21 @@ export default {
                 // Recarrega a página atual após salvar
                 this.carregarServicos(this.paginaAtual);
             } catch (error) {
-                const errorMsg = error.response?.data?.error || error.response?.data?.msg || "Erro ao salvar serviço";
-                this.toast.error(errorMsg);
                 console.error("Erro ao salvar serviço:", error);
+                if (payload) {
+                    console.error("Payload enviado:", payload);
+                }
+
+                // Trata erros de validação do backend
+                if (error.response?.data?.errors) {
+                    const errors = error.response.data.errors;
+                    const firstError = Object.values(errors)[0];
+                    const errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
+                    this.toast.error(errorMsg || 'Erros de validação encontrados');
+                } else {
+                    const errorMsg = error.response?.data?.error || error.response?.data?.msg || "Erro ao salvar serviço";
+                    this.toast.error(errorMsg);
+                }
             } finally {
                 this.salvando = false;
             }

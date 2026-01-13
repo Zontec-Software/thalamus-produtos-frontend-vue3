@@ -18,13 +18,11 @@
                 <table class="tabela">
                     <tbody>
                         <tr>
-                            <th>ID</th>
                             <th>Código</th>
                             <th>Nome</th>
                             <th>Ações</th>
                         </tr>
                         <tr v-for="familia in filteredFamilias" :key="familia.id">
-                            <td>{{ familia.id }}</td>
                             <td>{{ familia.codigo }}</td>
                             <td>{{ familia.nome }}</td>
                             <td style="justify-content:center;">

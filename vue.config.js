@@ -1,12 +1,12 @@
-const { defineConfig } = require("@vue/cli-service");
+const { defineConfig } = require('@vue/cli-service')
 
 module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
     allowedHosts: "all",
-    // host: "0.0.0.0",
+    host: 'localhost.thalamus.ind.br',
     client: {
-      webSocketURL: "ws://localhost.thalamus.ind.br:8080/ws",
+      webSocketURL: 'ws://localhost.thalamus.ind.br:8080/ws',
     },
   },
-});
+})

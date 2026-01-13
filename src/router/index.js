@@ -20,14 +20,8 @@ import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
 import EtapasView from '@/views/Produtos/EtapasView.vue'
 import FamiliaView from '@/views/Produtos/FamiliasView.vue'
 //Serviços
-import ServicosView from '@/views/Serviços/ServicosView.vue'
-import CadastroServico from "@/views/Serviços/CadastroServicos.vue";
 import CatalogoServicos from "@/views/Serviços/CatalogoServicos.vue";
-import ConfiguracaoServicos from "@/views/Serviços/ConfiguracaoServicos.vue";
-import ServicosEmEdicao from "@/views/Serviços/SevicosEmEdicao.vue";
-//Demanda - Serviços
-import DemandaFamiliasView from '@/views/Serviços/DemandaFamiliasView.vue';
-import DemandaServicosView from '@/views/Serviços/DemandaServicosView.vue';
+import DemandaFamiliasView from "@/views/Serviços/DemandaFamiliasView.vue";
 
 
 // redireciona usuario para LOGIN baseado no env
@@ -244,46 +238,15 @@ const routes = [
   },
   //Serviços
   {
-    path: '/servicos',
-    name: 'ServicosView',
-    component: ServicosView,
-    beforeEnter: guardPermissaoRoute
-  },
-  {
-    path: '/servicos/edicao',
-    name: 'ServicosEmEdicao',
-    component: ServicosEmEdicao,
-    beforeEnter: guardPermissaoRoute
-  },
-  {
-    path: '/cadastrar/servico',
-    name: 'CadastrarServico',
-    component: CadastroServico,
-    beforeEnter: guardPermissaoRoute
-  },
-  {
-    path: '/catalogo/servicos',
-    name: 'CatalogoServico',
-    component: CatalogoServicos,
-    beforeEnter: guardPermissaoRoute
-  },
-  {
-    path: '/configurar/servicos',
-    name: 'ConfigurarServico',
-    component: ConfiguracaoServicos,
-    beforeEnter: guardPermissaoRoute
-  },
-  //Demanda - Serviços
-  {
-    path: '/demanda/familias',
+    path: '/servicos/familias',
     name: 'DemandaFamiliasView',
     component: DemandaFamiliasView,
     beforeEnter: guardPermissaoRoute
   },
   {
-    path: '/demanda/servicos',
-    name: 'DemandaServicosView',
-    component: DemandaServicosView,
+    path: '/servicos',
+    name: 'CatalogoServico',
+    component: CatalogoServicos,
     beforeEnter: guardPermissaoRoute
   },
 
