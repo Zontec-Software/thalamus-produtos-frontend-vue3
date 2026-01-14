@@ -766,6 +766,36 @@ export default {
       if (!responseData) {
         return "Erro ao salvar produto";
       }
+      if (responseData.error || responseData.detalhes) {
+        let mensagem = responseData.error || "Erro ao salvar produto";
+
+        if (responseData.detalhes) {
+          try {
+            const jsonMatch = responseData.detalhes.match(/\{.*\}/);
+            if (jsonMatch) {
+              const omieError = JSON.parse(jsonMatch[0]);
+              if (omieError.faultstring) {
+                const faultMessage = omieError.faultstring.replace(/^ERROR:\s*/i, "");
+                mensagem = `${mensagem}: ${faultMessage}`;
+              } else if (omieError.message) {
+                mensagem = `${mensagem}: ${omieError.message}`;
+              }
+            } else {
+              const detalhesLimpo = responseData.detalhes.replace(/^Erro ao cadastrar na API Omie:\s*/i, "");
+              if (detalhesLimpo && detalhesLimpo !== responseData.detalhes) {
+                mensagem = `${mensagem}: ${detalhesLimpo}`;
+              }
+            }
+          } catch (e) {
+            const detalhesLimpo = responseData.detalhes.replace(/^Erro ao cadastrar na API Omie:\s*/i, "");
+            if (detalhesLimpo) {
+              mensagem = `${mensagem}: ${detalhesLimpo}`;
+            }
+          }
+        }
+
+        return mensagem;
+      }
 
       let mensagem = responseData.message || "Erro ao salvar produto";
       if (responseData.errors && Object.keys(responseData.errors).length > 0) {
