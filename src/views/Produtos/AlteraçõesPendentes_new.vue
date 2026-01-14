@@ -377,7 +377,8 @@ export default {
         this.toast.success("Atualização finalizada e enviada ao Omie!");
         // this.$router.push({ name: "ProdutosView" });
       } catch (error) {
-        this.toast.error("Erro ao finalizar atualização");
+        const mensagemErro = this.formatarMensagensErro(error);
+        this.toast.error(mensagemErro);
         console.error(error);
       }
     },
@@ -681,6 +682,58 @@ export default {
       this.payLoad[chave] = valor;
     },
 
+    formatarMensagemValidacao(mensagem) {
+      const traducoes = {
+        "validation.required": "é obrigatório",
+        "validation.numeric": "deve ser um número",
+        "validation.email": "deve ser um e-mail válido",
+        "validation.min": "não atende ao valor mínimo",
+        "validation.max": "excede o valor máximo",
+        "validation.unique": "já está em uso",
+        "validation.exists": "não existe",
+        "validation.date": "deve ser uma data válida",
+        "validation.integer": "deve ser um número inteiro",
+        "validation.string": "deve ser um texto",
+        "validation.array": "deve ser uma lista",
+      };
+      return traducoes[mensagem] || mensagem;
+    },
+
+    obterNomeCampo(chave) {
+      if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
+        return chave;
+      }
+      const campo = this.camposSelects.find((c) => c.chave === chave);
+      return campo?.label || chave;
+    },
+
+    formatarMensagensErro(error) {
+      const responseData = error.response?.data;
+      if (!responseData) {
+        return "Erro ao salvar produto";
+      }
+
+      // Se houver mensagem geral, usa ela como base
+      let mensagem = responseData.message || "Erro ao salvar produto";
+
+      // Se houver erros de validação, adiciona detalhes
+      if (responseData.errors && Object.keys(responseData.errors).length > 0) {
+        const errosDetalhados = [];
+        for (const [campo, mensagens] of Object.entries(responseData.errors)) {
+          const nomeCampo = this.obterNomeCampo(campo);
+          const mensagensFormatadas = Array.isArray(mensagens)
+            ? mensagens.map((msg) => this.formatarMensagemValidacao(msg)).join(", ")
+            : this.formatarMensagemValidacao(mensagens);
+          errosDetalhados.push(`${nomeCampo} ${mensagensFormatadas}`);
+        }
+        if (errosDetalhados.length > 0) {
+          mensagem = `${mensagem}. ${errosDetalhados.join("; ")}`;
+        }
+      }
+
+      return mensagem;
+    },
+
     async salvarProduto() {
       if (this.isReadOnly && !this.isCadastro) {
         this.toast.info("Este produto está em visualização. Clique em 'Enviar para Edição'.");
@@ -743,11 +796,8 @@ export default {
         await serviceProdutos.finalizarCadastro(this.produto_cod, payloadAtualizar);
         this.toast.success("Produto salvo com sucesso!");
       } catch (error) {
-        if (error.response?.data?.errors?.id_cest) {
-          this.toast.error("CEST inválido. Use 00.000.00");
-        } else {
-          this.toast.error("Erro ao salvar produto");
-        }
+        const mensagemErro = this.formatarMensagensErro(error);
+        this.toast.error(mensagemErro);
         console.error("Erro ao salvar produto:", error);
       }
     },
@@ -757,7 +807,8 @@ export default {
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
         this.toast.success("Produto finalizado com sucesso!");
       } catch (error) {
-        this.toast.error("Erro ao finalizar produto");
+        const mensagemErro = this.formatarMensagensErro(error);
+        this.toast.error(mensagemErro);
         console.error("Erro ao salvar produto:", error);
       }
     },
