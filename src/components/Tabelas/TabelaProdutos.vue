@@ -82,7 +82,7 @@ export default {
   props: {
     searchQuery: { required: true },
     filtro: { type: String, default: "" },
-    filtroTipo: { type: String, default: "" },
+    filtroTipo: { type: [String, Number], default: "" },
     filtroFamilia: { type: String, default: "" },
     useModal: { type: Boolean, default: false },
     exibirAcoes: { type: Boolean, default: true },
@@ -141,11 +141,10 @@ export default {
       const payload = {
         // temp produtos acabados e em processo
         // tipo: [4, 5],
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        tipo: (this.filtroTipo && this.filtroTipo !== "") ? [Number(this.filtroTipo)] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         ...(this.exibirApenasEditavel ? { editavel: true } : {}),
       };
       if (this.searchQuery) payload.termo = this.searchQuery;
-      else if (this.filtroTipo) payload.termo = this.filtroTipo;
       else if (this.filtroFamilia) payload.termo = this.filtroFamilia;
       else if (this.filtro) payload.termo = this.filtro;
 
@@ -166,19 +165,26 @@ export default {
         this.carregando = true;
 
         let resp;
-        const temFiltro = !!this.searchQuery || !!this.filtroTipo || !!this.filtroFamilia || !!this.filtro;
+        const temFiltro = !!this.searchQuery || (!!this.filtroTipo && this.filtroTipo !== "") || !!this.filtroFamilia || !!this.filtro;
 
         if (temFiltro) {
           // temp produtos acabados e em processo ((search na pagina de catalogo))
           // const payload = { tipo: [4, 5] };
-          const payload = { tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] };
-          if (this.exibirApenasEditavel) payload.editavel = true;
+          const payload = { 
+            tipo: (this.filtroTipo && this.filtroTipo !== "") ? [Number(this.filtroTipo)] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            paginacao: 1,
+            page: pagina,
+          };
+          if (this.exibirApenasEditavel) {
+            payload.editavel = true;
+          } else {
+            payload.aprovado = true;
+          }
           if (this.searchQuery) payload.termo = this.searchQuery;
-          else if (this.filtroTipo) payload.termo = this.filtroTipo;
           else if (this.filtroFamilia) payload.termo = this.filtroFamilia;
           else if (this.filtro) payload.termo = this.filtro;
 
-          resp = await serviceProdutos.filtrarProdutos(payload, pagina);
+          resp = await serviceProdutos.filtrarProdutos(payload);
         } else {
           resp = this.exibirApenasEditavel ? await serviceProdutos.getProdutosEditaveis(pagina) : await serviceProdutos.getProdutos(pagina);
         }
@@ -240,7 +246,7 @@ export default {
 
         const matchFiltroBotao = this.filtro ? item.tipo?.nome === this.filtro : true;
 
-        const matchTipoSelect = this.filtroTipo ? item.tipo?.nome === this.filtroTipo : true;
+        const matchTipoSelect = (this.filtroTipo && this.filtroTipo !== "") ? item.tipo?.id === Number(this.filtroTipo) : true;
 
         const matchFamilia = this.filtroFamilia ? item.familia_produto?.familia_nome === this.filtroFamilia : true;
 

@@ -13,9 +13,17 @@
     </div>
     <div class="margem container">
       <div class="bloco margem">
-        <div class="alinha-v" style="display: flex; justify-content: space-between"></div>
-        <v-btn class="acao-secundaria direita" icon="mdi-plus" @click="cadastrarProduto()"
-          title="Clique para cadastrar um novo produto"></v-btn>
+
+        <div class="linha" style="justify-content: end;">
+          <div class="alinha-v" style="display: flex; justify-content: space-between; margin-bottom: 16px; width: 220px;">
+            <select v-model="filtroTipo" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+              <option value="">Todos os tipos</option>
+              <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}</option>
+            </select>
+          </div>
+          <v-btn class="acao-secundaria direita" icon="mdi-plus" @click="cadastrarProduto()"
+            title="Clique para cadastrar um novo produto"></v-btn>
+        </div>
         <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
           :filtroFamilia="filtroFamilia" :exibirApenasEditavel="true" :exibirAcoes="true"
           :somenteVisualizacao="false" />
@@ -55,7 +63,7 @@ export default {
 
     const { tipos, familias } = await serviceProdutos.getTipoeFamilias();
 
-    this.tiposProduto = tipos.map((t) => t.nome).sort((a, b) => a.localeCompare(b));
+    this.tiposProduto = tipos.sort((a, b) => a.nome.localeCompare(b.nome));
 
     this.familiasProduto = familias.map((f) => f.familia_nome).sort((a, b) => a.localeCompare(b));
 
@@ -92,4 +100,3 @@ export default {
   },
 };
 </script>
-<style></style>
