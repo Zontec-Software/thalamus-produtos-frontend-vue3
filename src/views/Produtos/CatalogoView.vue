@@ -13,11 +13,13 @@
     </div>
     <div class="margem container">
       <div class="bloco margem">
-        <div  style="display: flex; justify-content: space-between; margin-bottom: 16px; width: 220px;">
-          <select v-model="filtroTipo" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-            <option value="">Todos os tipos</option>
-            <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}</option>
-          </select>
+        <div style="display: flex; justify-content: end;">
+          <div style="margin-bottom: 16px; width: 220px;">
+            <select v-model="filtroTipo" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+              <option value="">Todos os tipos</option>
+              <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}</option>
+            </select>
+          </div>
         </div>
         <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
           :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" :exibirAcoes="false"
