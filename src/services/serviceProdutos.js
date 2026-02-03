@@ -375,6 +375,16 @@ const funções = {
     }
   },
 
+  async listarTiposProduto() {
+    try {
+      const { data } = await api.get("/tipoProduto");
+      return data;
+    } catch (error) {
+      console.error("Erro ao buscar tipos de produto:", error);
+      throw error;
+    }
+  },
+
   async carregarAlteracoesOriginalEditado(id) {
     try {
       const response = await api.get(`/produto/original-editado/${id}`);
