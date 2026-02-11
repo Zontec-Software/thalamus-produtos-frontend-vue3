@@ -118,7 +118,7 @@
             <label>{{ campo.label }}</label>
             <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
               @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor == "" ? 'Nenhum' : opcao.valor }}
               </option>
             </select>
             <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
