@@ -246,7 +246,7 @@ const routes = [
     beforeEnter: guardPermissaoRoute
   },
   {
-    path: '/gestao-arquivos/op/:op_cod',
+    path: '/gestao-arquivos/produto/:produto_cod',
     name: 'GestaoArquivosDetalhe',
     component: GestaoArquivosDetalheView,
     props: true,
