@@ -4,7 +4,7 @@
       <div class="margem container">
         <div class="m-icone direita">
           <div class="pesquisa">
-            <input type="text" placeholder="Pesquisar por OP, produto..." v-model="busca" @input="debounceBusca" />
+            <input type="text" placeholder="Pesquisar por código, descrição..." v-model="busca" @input="debounceBusca" />
             <a class="icone-pesquisa" title="Pesquisar"></a>
           </div>
         </div>
@@ -13,59 +13,36 @@
     </div>
     <div class="margem container">
       <div class="bloco margem">
-        <div class="linha" style="justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div>
-            <select v-model="filtroConcluida" class="filtro-select">
-              <option value="">Todas</option>
-              <option value="0">Em andamento</option>
-              <option value="1">Concluídas</option>
-            </select>
-          </div>
-        </div>
         <div class="table-responsive">
           <table class="tabela">
             <thead>
               <tr>
-                <th>Número da OP</th>
-                <th>Descrição do Produto</th>
                 <th>Código</th>
+                <th>Descrição do Produto</th>
                 <th>Tipo</th>
                 <th>Família</th>
-                <th>Quantidade</th>
-                <th>Data Prevista</th>
-                <th>Status</th>
+                <th>Unidade</th>
               </tr>
             </thead>
             <tbody>
               <tr
-                v-for="op in ordens"
-                :key="op.op_cod"
+                v-for="prod in produtos"
+                :key="prod.produto_cod"
                 class="clicavel"
-                @click="abrirDetalhe(op.op_cod)"
+                @click="abrirDetalhe(prod.produto_cod)"
               >
-                <td>
-                  <strong>{{ op.opNum }}</strong>
-                  <br />
-                  <small class="text-muted">{{ op.codigo_integracao || "-" }}</small>
-                </td>
-                <td>{{ op.produto?.desc ?? "-" }}</td>
-                <td>{{ op.produto?.cod ?? "-" }}</td>
-                <td>{{ op.produto?.tipo?.nome ?? "-" }}</td>
-                <td>{{ op.produto?.familia_produto?.familia_nome ?? "-" }}</td>
-                <td>{{ op.qt ?? "-" }}</td>
-                <td>{{ formatarData(op.dataPrevista) }}</td>
-                <td>
-                  <span :class="op.concluida ? 'badge concluida' : 'badge andamento'">
-                    {{ op.concluida ? "Concluída" : "Em andamento" }}
-                  </span>
-                </td>
+                <td><strong>{{ prod.cod ?? prod.produto_cod }}</strong></td>
+                <td>{{ prod.desc ?? "-" }}</td>
+                <td>{{ prod.tipo?.nome ?? "-" }}</td>
+                <td>{{ prod.familia_produto?.familia_nome ?? "-" }}</td>
+                <td>{{ prod.und ?? "-" }}</td>
               </tr>
             </tbody>
           </table>
         </div>
         <div v-if="carregando" class="loading"><div></div></div>
-        <div v-else-if="ordens.length === 0" class="estado-vazio">
-          Nenhuma ordem de produção encontrada.
+        <div v-else-if="produtos.length === 0" class="estado-vazio">
+          Nenhum produto encontrado.
         </div>
         <div v-if="totalPaginas > 1" class="alinha-centro margem-topo">
           <div class="paginacao">
@@ -84,15 +61,16 @@
 </template>
 
 <script>
-import serviceGestaoArquivos from "@/services/serviceGestaoArquivos";
+import serviceProdutos from "@/services/serviceProdutos";
+
+const TIPOS_GESTAO_ARQUIVOS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 export default {
   name: "GestaoArquivosView",
   data() {
     return {
       busca: "",
-      filtroConcluida: "",
-      ordens: [],
+      produtos: [],
       carregando: false,
       paginaAtual: 1,
       totalPaginas: 1,
@@ -107,18 +85,22 @@ export default {
     async carregarLista() {
       this.carregando = true;
       try {
-        const res = await serviceGestaoArquivos.listarOrdensProducao({
-          q: this.busca || undefined,
-          concluida: this.filtroConcluida === "" ? undefined : this.filtroConcluida,
+        const payload = {
+          tipo: TIPOS_GESTAO_ARQUIVOS,
+          paginacao: 1,
           page: this.paginaAtual,
-          per_page: 15,
-        });
-        this.ordens = res.data || [];
-        this.totalPaginas = res.last_page ?? 1;
-        this.total = res.total ?? 0;
+        };
+        if (this.busca && this.busca.trim()) {
+          payload.termo = this.busca.trim();
+        }
+        const res = await serviceProdutos.filtrarProdutos(payload);
+        const data = res.data ?? res;
+        this.produtos = data.data ?? data;
+        this.totalPaginas = data.last_page ?? 1;
+        this.total = data.total ?? 0;
       } catch (err) {
         console.error(err);
-        this.ordens = [];
+        this.produtos = [];
       } finally {
         this.carregando = false;
       }
@@ -135,48 +117,15 @@ export default {
       this.paginaAtual = p;
       this.carregarLista();
     },
-    abrirDetalhe(opCod) {
-      this.$router.push({ name: "GestaoArquivosDetalhe", params: { op_cod: String(opCod) } });
-    },
-    formatarData(val) {
-      if (!val) return "-";
-      const d = new Date(val);
-      return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("pt-BR");
-    },
-  },
-  watch: {
-    filtroConcluida() {
-      this.paginaAtual = 1;
-      this.carregarLista();
+    abrirDetalhe(produtoCod) {
+      this.$router.push({ name: "GestaoArquivosDetalhe", params: { produto_cod: String(produtoCod) } });
     },
   },
 };
 </script>
 
 <style scoped>
-.filtro-select {
-  width: auto;
-  min-width: 160px;
-  padding: 8px 12px;
-}
 .table-responsive {
   overflow-x: auto;
-}
-.badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-.badge.concluida {
-  background: var(--cor-sucesso, #28a745);
-  color: #fff;
-}
-.badge.andamento {
-  background: var(--cor-alerta, #ffc107);
-  color: #333;
-}
-.text-muted {
-  color: var(--cor-fonte-fraca);
-  font-size: 12px;
 }
 </style>

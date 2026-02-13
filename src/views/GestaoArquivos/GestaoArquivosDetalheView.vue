@@ -3,7 +3,7 @@
     <div class="margem container">
       <div class="m-icone esquerda"><a @click="this.$router.back()" style="cursor: pointer"
           class="icone-voltar m-d"></a></div>
-      <h2>Ordem de Produção: {{ ordem?.opNum ?? op_cod }}</h2>
+      <h2>Produto: {{ produto?.desc ?? produto_cod }}</h2>
     </div>
   </div>
   <div class="margem container">
@@ -17,40 +17,30 @@
         <p class="estado-vazio">{{ erro }}</p>
       </div>
     </div>
-    <template v-else-if="ordem">
-      <!-- Dados da OP -->
+    <template v-else-if="produto">
+      <!-- Dados do Produto -->
       <div class="bloco margem">
-        <h3 class="separador">Informações da OP</h3>
+        <h3 class="separador">Informações do Produto</h3>
         <div class="grid-4">
           <div>
-            <label>Número</label>
-            <span>{{ ordem.opNum }}</span>
-          </div>
-          <div>
-            <label>Código integração</label>
-            <span>{{ ordem.codigo_integracao || "-" }}</span>
-          </div>
-          <div>
-            <label>Status</label>
-            <span :class="ordem.concluida ? 'badge concluida' : 'badge andamento'">
-              {{ ordem.concluida ? "Concluída" : "Em andamento" }}
-            </span>
-          </div>
-          <div>
             <label>Código</label>
-            <span>{{ ordem.produto?.cod ?? "-" }}</span>
+            <span>{{ produto.cod ?? produto.produto_cod ?? "-" }}</span>
           </div>
           <div>
-            <label>Produto</label>
-            <span>{{ ordem.produto?.desc ?? "-" }}</span>
+            <label>Descrição</label>
+            <span>{{ produto.desc ?? "-" }}</span>
           </div>
           <div>
             <label>Tipo</label>
-            <span>{{ ordem.produto?.tipo?.nome ?? "-" }}</span>
+            <span>{{ produto.tipo?.nome ?? "-" }}</span>
           </div>
           <div>
             <label>Família</label>
-            <span>{{ ordem.produto?.familia_produto?.familia_nome ?? "-" }}</span>
+            <span>{{ produto.familia_produto?.familia_nome ?? "-" }}</span>
+          </div>
+          <div>
+            <label>Unidade</label>
+            <span>{{ produto.und ?? "-" }}</span>
           </div>
         </div>
       </div>
@@ -62,13 +52,13 @@
           </button>
         </div>
         <ListaArquivos
-          :arquivos="ordem.arquivos_documentacao_comercial || ordem.arquivosDocumentacaoComercial || []"
+          :arquivos="produto.arquivos_documentacao_comercial || produto.arquivosDocumentacaoComercial || []"
           :current-user-id="currentUserId"
           @baixar="baixar"
           @baixar-para-edicao="baixarParaEdicao"
           @cancelar-edicao="cancelarEdicao"
           @excluir="excluir"
-          @recarregar="carregarOrdem"
+          @recarregar="carregarProduto"
         />
       </div>
 
@@ -80,13 +70,13 @@
           </button>
         </div>
         <ListaArquivos
-          :arquivos="ordem.arquivos_documentacao_produto || ordem.arquivosDocumentacaoProduto || []"
+          :arquivos="produto.arquivos_documentacao_produto || produto.arquivosDocumentacaoProduto || []"
           :current-user-id="currentUserId"
           @baixar="baixar"
           @baixar-para-edicao="baixarParaEdicao"
           @cancelar-edicao="cancelarEdicao"
           @excluir="excluir"
-          @recarregar="carregarOrdem"
+          @recarregar="carregarProduto"
         />
       </div>
 
@@ -98,13 +88,13 @@
           </button>
         </div>
         <ListaArquivos
-          :arquivos="ordem.arquivos_documentos_producao || ordem.arquivosDocumentosProducao || []"
+          :arquivos="produto.arquivos_documentos_producao || produto.arquivosDocumentosProducao || []"
           :current-user-id="currentUserId"
           @baixar="baixar"
           @baixar-para-edicao="baixarParaEdicao"
           @cancelar-edicao="cancelarEdicao"
           @excluir="excluir"
-          @recarregar="carregarOrdem"
+          @recarregar="carregarProduto"
         />
       </div>
     </template>
@@ -142,11 +132,11 @@ export default {
   name: "GestaoArquivosDetalheView",
   components: { ListaArquivos },
   props: {
-    op_cod: { type: String, required: true },
+    produto_cod: { type: String, required: true },
   },
   data() {
     return {
-      ordem: null,
+      produto: null,
       currentUserId: null,
       carregando: true,
       erro: null,
@@ -163,19 +153,19 @@ export default {
     },
   },
   async created() {
-    await this.carregarOrdem();
+    await this.carregarProduto();
   },
   methods: {
-    async carregarOrdem() {
+    async carregarProduto() {
       this.carregando = true;
       this.erro = null;
       try {
-        const data = await serviceGestaoArquivos.buscarOrdemProducao(this.op_cod);
-        this.ordem = data.ordem ?? data;
-        const rawId = data.current_user_id ?? this.ordem?.current_user_id ?? null;
+        const data = await serviceGestaoArquivos.buscarProduto(this.produto_cod);
+        this.produto = data.produto ?? data;
+        const rawId = data.current_user_id ?? this.produto?.current_user_id ?? null;
         this.currentUserId = rawId != null ? Number(rawId) || rawId : null;
       } catch (e) {
-        this.erro = e.response?.data?.error || "Não foi possível carregar a ordem de produção.";
+        this.erro = e.response?.data?.error || "Não foi possível carregar o produto.";
       } finally {
         this.carregando = false;
       }
@@ -206,9 +196,9 @@ export default {
       if (!this.arquivoSelecionado || !this.tipoUpload) return;
       this.enviando = true;
       try {
-        await serviceGestaoArquivos.uploadArquivo(this.op_cod, this.arquivoSelecionado, this.tipoUpload);
+        await serviceGestaoArquivos.uploadArquivo(this.produto_cod, this.arquivoSelecionado, this.tipoUpload);
         this.fecharUpload();
-        await this.carregarOrdem();
+        await this.carregarProduto();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao enviar arquivo.");
       } finally {
@@ -226,7 +216,7 @@ export default {
     async baixarParaEdicao(arquivo) {
       try {
         await serviceGestaoArquivos.downloadParaEdicao(arquivo.id, arquivo.nome);
-        await this.carregarOrdem();
+        await this.carregarProduto();
       } catch (e) {
         const msg =
           e.response?.data?.error ||
@@ -235,7 +225,7 @@ export default {
         alert(typeof msg === "string" ? msg : JSON.stringify(msg));
         try {
           await serviceGestaoArquivos.cancelarEdicao(arquivo.id);
-          await this.carregarOrdem();
+          await this.carregarProduto();
         } catch {
           // Ignora falha ao desbloquear (ex.: já desbloqueado ou 403)
         }
@@ -244,7 +234,7 @@ export default {
     async cancelarEdicao(arquivo) {
       try {
         await serviceGestaoArquivos.cancelarEdicao(arquivo.id);
-        await this.carregarOrdem();
+        await this.carregarProduto();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao cancelar edição.");
       }
@@ -255,7 +245,7 @@ export default {
       if (!confirm(`Excluir o arquivo "${nome}" e todas as versões?`)) return;
       try {
         await serviceGestaoArquivos.excluirArquivo(raiz.id);
-        await this.carregarOrdem();
+        await this.carregarProduto();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao excluir arquivo.");
       }

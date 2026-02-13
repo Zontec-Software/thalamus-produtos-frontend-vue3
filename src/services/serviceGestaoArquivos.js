@@ -7,34 +7,25 @@ const TIPOS_ARQUIVO = [
 ];
 
 /**
- * Lista ordens de produção (com paginação e busca).
- * @param {Object} params - { q, concluida, page, per_page }
+ * Busca detalhes de um produto (com arquivos por categoria).
+ * @param {string} produtoCod - produto_cod do produto
  */
-async function listarOrdensProducao(params = {}) {
-  const { data } = await api.get("/gestao-arquivos/ordem-producao", { params });
+async function buscarProduto(produtoCod) {
+  const { data } = await api.get(`/gestao-arquivos/produto/${encodeURIComponent(produtoCod)}`);
   return data;
 }
 
 /**
- * Busca detalhes de uma ordem de produção (com arquivos por categoria).
- * @param {string|number} opCod - op_cod da ordem
- */
-async function buscarOrdemProducao(opCod) {
-  const { data } = await api.get(`/gestao-arquivos/ordem-producao/${opCod}`);
-  return data;
-}
-
-/**
- * Upload de arquivo para uma OP.
- * @param {string|number} opCod - op_cod da ordem
+ * Upload de arquivo para um produto.
+ * @param {string} produtoCod - produto_cod do produto
  * @param {File} file - arquivo
  * @param {string} tipo - documentacao_comercial | documentacao_produto | documentos_producao
  */
-async function uploadArquivo(opCod, file, tipo) {
+async function uploadArquivo(produtoCod, file, tipo) {
   const formData = new FormData();
   formData.append("arquivo", file);
   formData.append("tipo", tipo);
-  const { data } = await api.post(`/gestao-arquivos/ordem-producao/${opCod}/upload`, formData, {
+  const { data } = await api.post(`/gestao-arquivos/produto/${encodeURIComponent(produtoCod)}/upload`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data;
@@ -130,8 +121,7 @@ async function excluirArquivo(arquivoId) {
 
 export default {
   TIPOS_ARQUIVO,
-  listarOrdensProducao,
-  buscarOrdemProducao,
+  buscarProduto,
   uploadArquivo,
   getUrlDownload,
   downloadArquivo,
