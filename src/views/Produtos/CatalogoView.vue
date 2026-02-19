@@ -13,7 +13,14 @@
     </div>
     <div class="margem container">
       <div class="bloco margem">
-        <div class="alinha-v" style="display: flex; justify-content: space-between"></div>
+        <div style="display: flex; justify-content: end;">
+          <div style="margin-bottom: 16px; width: 220px;">
+            <select v-model="filtroTipo" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+              <option value="">Todos os tipos</option>
+              <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id">{{ tipo.tipo_cod }} - {{ tipo.nome }}</option>
+            </select>
+          </div>
+        </div>
         <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo"
           :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" :exibirAcoes="false"
           :somenteVisualizacao="true" />
@@ -24,9 +31,9 @@
 </template>
 <script>
 import TabelaProdutos from "@/components/Tabelas/TabelaProdutos.vue";
-import serviceProdutos from "@/services/serviceProdutos";
 // import BotaoFlutuante from "@/components/Botão/BotaoFlutuante.vue";
 import { getPermissao } from "@/services/permissao-service";
+import serviceProdutos from "@/services/serviceProdutos";
 // import NovosProdutos from "@/components/Tabelas/NovosProdutos.vue";
 
 export default {
@@ -51,11 +58,11 @@ export default {
   async created() {
     this.funcionalidades = await getPermissao();
 
-    const { tipos, familias } = await serviceProdutos.getTipoeFamilias();
-
-    this.tiposProduto = tipos.map((t) => t.nome).sort((a, b) => a.localeCompare(b));
-
-    this.familiasProduto = familias.map((f) => f.familia_nome).sort((a, b) => a.localeCompare(b));
+    try {
+      this.tiposProduto = await serviceProdutos.listarTiposProduto();
+    } catch (error) {
+      console.error("Erro ao buscar tipos de produto:", error);
+    }
 
     this.blocoVisivel = this.funcionalidades.includes(113) ? "catalogo" : "novosProdutos";
   },
@@ -90,4 +97,3 @@ export default {
   },
 };
 </script>
-<style></style>

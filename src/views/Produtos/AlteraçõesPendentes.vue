@@ -4,12 +4,8 @@
   </div>
   <section class="bloco section" v-readonly="isReadOnly" v-else>
     <div class="margem" style="text-align: right">
-      <strong>
-        {{
-          `Atualizado em: ${formatarData(produto_original.updated_at) ?? "?"} - por:
-        ${produto_original.editadoPor ?? "??"}`
-        }}
-      </strong>
+      <strong> {{ `Atualizado em: ${formatarData(produto_original.updated_at) ?? "?"} - por:
+        ${produto_original.editadoPor ?? "??"}` }} </strong>
     </div>
     <div class="margem container">
       <div class="grid-4 container">
@@ -17,36 +13,53 @@
           <div class="grid-4">
             <div>
               <label>Família</label>
-              <select v-model="produto_original.familia_id" @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
+              <select v-model="produto_original.familia_id"
+                @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
                 <option disabled value="">Selecione uma família</option>
                 <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome.toUpperCase() }}</option>
               </select>
             </div>
             <div v-for="campo in camposBasicos" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'" v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'"
+                v-model.number="valoresSelecionados[campo.id]"
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
+                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id">{{ opcao.valor }}</option>
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id"
+                  :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id">{{ opcao.valor }}</option>
               </select>
-              <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
+                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
+                </option>
               </select>
-              <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
+              <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
+                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
+                </option>
               </select>
-              <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)" v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="onInputDecimal($event, campo)" />
+              <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)"
+                v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
+                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
+                @input="onInputDecimal($event, campo)" />
             </div>
             <div class="col-2">
               <label>Categoria do Orçamento</label>
-              <SelectCategoriaOrcamento v-model="produto_original.id_categoria_orcamento" :dreTree="categoriasOrçamento" @update:modelValue="atualizarPayLoad('id_categoria_orcamento', $event)" />
+              <SelectCategoriaOrcamento v-model="produto_original.id_categoria_orcamento" :dreTree="categoriasOrçamento"
+                @update:modelValue="atualizarPayLoad('id_categoria_orcamento', $event)" />
             </div>
           </div>
           <br />
           <div class="grid">
             <div v-for="campo in camposAreaTexto" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <QuillEditor theme="snow" :readOnly="isReadOnly || aguardandoAprovaçãoFiscal" v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px" @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+              <QuillEditor theme="snow" :readOnly="isReadOnly || aguardandoAprovaçãoFiscal"
+                v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px"
+                @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
         </div>
@@ -54,13 +67,16 @@
         <div class="bloco2 margem col-1 alinha-centro">
           <div>
             <div v-if="fotosProduto.length > 0" class="carousel">
-              <img v-for="(foto, index) in fotosProduto" :key="index" :src="foto.url" :alt="foto.nome" class="imagem" @click="indiceAtual = index" :style="{ border: indiceAtual === index ? '2px solid var(--cor-primaria)' : 'none' }" />
+              <img v-for="(foto, index) in fotosProduto" :key="index" :src="foto.url" :alt="foto.nome" class="imagem"
+                @click="indiceAtual = index"
+                :style="{ border: indiceAtual === index ? '2px solid var(--cor-primaria)' : 'none' }" />
             </div>
             <div v-else>
               <span>Sem fotos cadastradas.</span>
             </div>
             <br />
-            <a data-block-when-readonly style="cursor: pointer; border: 1px solid; color: var(--cor-primaria)" class="icone-camera" @click="showModalFotos = true"> Gerenciar Fotos </a>
+            <a data-block-when-readonly style="cursor: pointer; border: 1px solid; color: var(--cor-primaria)"
+              class="icone-camera" @click="showModalFotos = true"> Gerenciar Fotos </a>
           </div>
         </div>
         <!-- END FOTOS -->
@@ -69,8 +85,10 @@
       <div class="grid-4 container">
         <div class="bloco3 col-4">
           <div class="tags m-b" style="cursor: pointer">
-            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')"> Informações Adicionais </a>
-            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')"> Recomendações Fiscais </a>
+            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')"> Informações
+              Adicionais </a>
+            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')"> Recomendações Fiscais
+            </a>
           </div>
         </div>
       </div>
@@ -78,13 +96,19 @@
         <fieldset class="margem grid-4">
           <div v-for="campo in camposAdicionais" :key="campo.id">
             <label>{{ campo.label }}</label>
-            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
+              </option>
             </select>
-            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
+              </option>
             </select>
-            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" :value="valoresSelecionados[campo.id] ?? ''" :required="campo.obrigatorio" @input="onInputDecimal($event, campo)" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" :value="valoresSelecionados[campo.id] ?? ''"
+              :required="campo.obrigatorio" @input="onInputDecimal($event, campo)"
+              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
           </div>
         </fieldset>
       </div>
@@ -92,16 +116,24 @@
         <fieldset class="margem grid-4">
           <div v-for="campo in camposFiscaisVisiveis" :key="campo.id">
             <label>{{ campo.label }}</label>
-            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor == "" ? 'Nenhum' : opcao.valor }}
+              </option>
             </select>
-            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
+              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
+              </option>
             </select>
             <div v-else-if="campo.chave === 'id_cest'">
-              <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="mascaraCest(campo.id)" maxlength="9" placeholder="00.000.00" :disabled="aguardandoAprovaçãoFiscal" />
+              <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
+                @input="mascaraCest(campo.id)" maxlength="9" placeholder="00.000.00"
+                :disabled="aguardandoAprovaçãoFiscal" />
             </div>
-            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="onInputDecimal($event, campo)" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
+              :required="campo.obrigatorio" @input="onInputDecimal($event, campo)"
+              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
         </fieldset>
       </div>
@@ -121,7 +153,8 @@
       </div>
     </div>
   </section>
-  <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo" @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
+  <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
+    @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
   <!-- MODAL FOTOS -->
   <div v-if="showModalFotos" class="modal-mask">
     <div class="modal-container" style="height: min-content; width: 50rem">
@@ -287,10 +320,12 @@ export default {
 
       v = v.replace(/,/g, ".");
 
+
       if (/^\d+(\.\d{4,})$/.test(v)) {
         this.toast.error("O valor não pode ter mais de três casas decimais.");
 
         v = v.replace(/^(\d+\.\d{0,3}).*$/, "$1");
+
 
         e.target.value = v;
       }
@@ -370,7 +405,8 @@ export default {
         this.toast.success("Atualização finalizada e enviada ao Omie!");
         this.$router.push({ name: "ProdutosView" });
       } catch (error) {
-        this.toast.error("Erro ao finalizar atualização");
+        const mensagemErro = this.formatarMensagensErro(error);
+        this.toast.error(mensagemErro);
         console.error(error);
       } finally {
         this.finalizandoAtualizacao = false;
@@ -715,6 +751,85 @@ export default {
       if (this.isReadOnly && !this.isCadastro) return;
       this.payLoad[chave] = valor;
     },
+    formatarMensagemValidacao(mensagem) {
+      const traducoes = {
+        "validation.required": "é obrigatório",
+        "validation.numeric": "deve ser um número",
+        "validation.email": "deve ser um e-mail válido",
+        "validation.min": "não atende ao valor mínimo",
+        "validation.max": "excede o valor máximo",
+        "validation.unique": "já está em uso",
+        "validation.exists": "não existe",
+        "validation.date": "deve ser uma data válida",
+        "validation.integer": "deve ser um número inteiro",
+        "validation.string": "deve ser um texto",
+        "validation.array": "deve ser uma lista",
+      };
+      return traducoes[mensagem] || mensagem;
+    },
+
+    obterNomeCampo(chave) {
+      if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
+        return chave;
+      }
+      const campo = this.camposSelects.find((c) => c.chave === chave);
+      return campo?.label || chave;
+    },
+
+    formatarMensagensErro(error) {
+      const responseData = error.response?.data;
+      if (!responseData) {
+        return "Erro ao salvar produto";
+      }
+      if (responseData.error || responseData.detalhes) {
+        let mensagem = responseData.error || "Erro ao salvar produto";
+
+        if (responseData.detalhes) {
+          try {
+            const jsonMatch = responseData.detalhes.match(/\{.*\}/);
+            if (jsonMatch) {
+              const omieError = JSON.parse(jsonMatch[0]);
+              if (omieError.faultstring) {
+                const faultMessage = omieError.faultstring.replace(/^ERROR:\s*/i, "");
+                mensagem = `${mensagem}: ${faultMessage}`;
+              } else if (omieError.message) {
+                mensagem = `${mensagem}: ${omieError.message}`;
+              }
+            } else {
+              const detalhesLimpo = responseData.detalhes.replace(/^Erro ao cadastrar na API Omie:\s*/i, "");
+              if (detalhesLimpo && detalhesLimpo !== responseData.detalhes) {
+                mensagem = `${mensagem}: ${detalhesLimpo}`;
+              }
+            }
+          } catch (e) {
+            const detalhesLimpo = responseData.detalhes.replace(/^Erro ao cadastrar na API Omie:\s*/i, "");
+            if (detalhesLimpo) {
+              mensagem = `${mensagem}: ${detalhesLimpo}`;
+            }
+          }
+        }
+
+        return mensagem;
+      }
+
+      let mensagem = responseData.message || "Erro ao salvar produto";
+      if (responseData.errors && Object.keys(responseData.errors).length > 0) {
+        const errosDetalhados = [];
+        for (const [campo, mensagens] of Object.entries(responseData.errors)) {
+          const nomeCampo = this.obterNomeCampo(campo);
+          const mensagensFormatadas = Array.isArray(mensagens)
+            ? mensagens.map((msg) => this.formatarMensagemValidacao(msg)).join(", ")
+            : this.formatarMensagemValidacao(mensagens);
+          errosDetalhados.push(`${nomeCampo} ${mensagensFormatadas}`);
+        }
+        if (errosDetalhados.length > 0) {
+          mensagem = `${mensagem}. ${errosDetalhados.join("; ")}`;
+        }
+      }
+
+      return mensagem;
+    },
+
     async salvarProduto() {
       if (this.salvandoProduto) return;
       if (this.isReadOnly && !this.isCadastro) {
@@ -788,11 +903,8 @@ export default {
         this.toast.success("Produto salvo com sucesso!");
         this.$router.push({ name: "ProdutosView" });
       } catch (error) {
-        if (error.response?.data?.errors?.id_cest) {
-          this.toast.error("CEST inválido. Use 00.000.00");
-        } else {
-          this.toast.error("Erro ao salvar produto");
-        }
+        const mensagemErro = this.formatarMensagensErro(error);
+        this.toast.error(mensagemErro);
         console.error("Erro ao salvar produto:", error);
       } finally {
         this.salvandoProduto = false;
@@ -803,7 +915,8 @@ export default {
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.payLoad);
         this.toast.success("Produto finalizado com sucesso!");
       } catch (error) {
-        this.toast.error("Erro ao finalizar produto");
+        const mensagemErro = this.formatarMensagensErro(error);
+        this.toast.error(mensagemErro);
         console.error("Erro ao salvar produto:", error);
       }
     },

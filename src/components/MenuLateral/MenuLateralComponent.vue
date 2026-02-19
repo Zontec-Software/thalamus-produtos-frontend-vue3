@@ -27,13 +27,16 @@
       <!-- <router-link to="/codificacoes" active-class="ativo">Codificação de Serviços</router-link> -->
     </nav>
     <nav class="nav-maior separador">
-      <router-link to="/servicos/edicao" active-class="ativo"> Serviços em Edição </router-link>
-      <router-link to="/catalogo/servicos" active-class="ativo"> Catálogo de Serviços </router-link>
-      <router-link to="/servicos" active-class="ativo">Famílias de Serviços</router-link>
-      <router-link to="/configurar/servicos" active-class="ativo">Campos por Família</router-link>
+      <!-- <router-link to="/servicos/edicao" active-class="ativo"> Serviços em Edição </router-link> -->
+      <router-link to="/servicos" active-class="ativo"> Catálogo de Serviços </router-link>
+      <router-link to="/servicos/familias" active-class="ativo">Famílias de Serviços</router-link>
+      <!-- <router-link to="/configurar/servicos" active-class="ativo">Campos por Família</router-link> -->
     </nav>
     <nav class="nav-maior separador">
       <router-link to="/etapas" active-class="ativo">Configuração de Etapas</router-link>
+    </nav>
+    <nav class="nav-maior separador" v-if="permissoes.includes(180)">
+      <router-link to="/gestao-arquivos" active-class="ativo">Gestão de Arquivos</router-link>
     </nav>
   </aside>
 </template>
