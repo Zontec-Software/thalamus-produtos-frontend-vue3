@@ -107,11 +107,17 @@
       </div>
       <div class="submit m-b direita">
         <!-- Editando e em modo de edição: pode finalizar -->
-        <button class="acao-secundaria" v-if="!isReadOnly && !isCadastro && produto_original.editavel" @click="finalizarAtualizacao()">Finalizar Edição</button>
+        <button class="acao-secundaria" v-if="!isReadOnly && !isCadastro && produto_original.editavel" type="button" :disabled="finalizandoAtualizacao || salvandoProduto || enviandoParaEdicao" @click="finalizarAtualizacao()">
+          {{ finalizandoAtualizacao ? "Finalizando…" : "Finalizar Edição" }}
+        </button>
         <!-- Editando: botão para habilitar edição -->
-        <button data-allow-when-readonly class="" v-if="!isCadastro && !produto_original.editavel" @click="enviarParaEdicao()">Enviar para Edição</button>
+        <button data-allow-when-readonly class="" v-if="!isCadastro && !produto_original.editavel" type="button" :disabled="finalizandoAtualizacao || salvandoProduto || enviandoParaEdicao" @click="enviarParaEdicao()">
+          {{ enviandoParaEdicao ? "Enviando…" : "Enviar para Edição" }}
+        </button>
         <!-- Salvar/Cadastrar -->
-        <button v-if="!isReadOnly" @click="salvarProduto()">{{ isCadastro ? "Cadastrar Produto" : "Salvar" }}</button>
+        <button v-if="!isReadOnly" type="button" :disabled="salvandoProduto || finalizandoAtualizacao || enviandoParaEdicao" @click="salvarProduto()">
+          {{ salvandoProduto ? "Salvando…" : (isCadastro ? "Cadastrar Produto" : "Salvar") }}
+        </button>
       </div>
     </div>
   </section>
@@ -204,6 +210,10 @@ export default {
       idIndicadorEscala: null,
 
       categoriasOrçamento: [],
+
+      salvandoProduto: false,
+      finalizandoAtualizacao: false,
+      enviandoParaEdicao: false,
     };
   },
 
@@ -343,12 +353,13 @@ export default {
     },
 
     async finalizarAtualizacao() {
+      if (this.finalizandoAtualizacao) return;
+      if (!this.produto_cod) {
+        this.toast.error("Produto inválido para finalizar.");
+        return;
+      }
+      this.finalizandoAtualizacao = true;
       try {
-        if (!this.produto_cod) {
-          this.toast.error("Produto inválido para finalizar.");
-          return;
-        }
-
         // salvar oque está na tela no staging (indica finalizar para gravar aprovador)
         const payloadStaging = this.buildStagingPayload();
         await serviceProdutos.salvarLocal(this.produto_cod, { ...payloadStaging, finalizar: true });
@@ -357,26 +368,32 @@ export default {
         await serviceProdutos.finalizarAtualizacao(this.produto_cod);
 
         this.toast.success("Atualização finalizada e enviada ao Omie!");
-        // this.$router.push({ name: "ProdutosView" });
+        this.$router.push({ name: "ProdutosView" });
       } catch (error) {
         this.toast.error("Erro ao finalizar atualização");
         console.error(error);
+      } finally {
+        this.finalizandoAtualizacao = false;
       }
     },
 
     async enviarParaEdicao() {
+      if (this.enviandoParaEdicao) return;
+      if (!this.produto_cod) {
+        this.toast.error("Produto inválido para entrar em edição.");
+        return;
+      }
+      this.enviandoParaEdicao = true;
       try {
-        if (!this.produto_cod) {
-          this.toast.error("Produto inválido para entrar em edição.");
-          return;
-        }
         await serviceProdutos.setEditavel(this.produto_cod, true);
         this.produto_original.editavel = true;
         this.toast.success("Produto habilitado para edição.");
-        // this.$router.push({ name: "CatalogoView" });
+        this.$router.push({ name: "CatalogoView" });
       } catch (e) {
         this.toast.error("Não foi possível habilitar edição.");
         console.error(e);
+      } finally {
+        this.enviandoParaEdicao = false;
       }
     },
 
@@ -615,7 +632,7 @@ export default {
       this.produto_original.especificacoes = this.produto_original.especificacoes.filter((item) => item != i);
       this.atualizarPayLoad(
         "especificacoes",
-        this.produto_original.especificacoes.map((i) => i.id)
+        this.produto_original.especificacoes.map((i) => i.id),
       );
     },
 
@@ -623,7 +640,7 @@ export default {
       this.produto_original.especificacoes.push(item);
       this.atualizarPayLoad(
         "especificacoes",
-        this.produto_original.especificacoes.map((i) => i.id)
+        this.produto_original.especificacoes.map((i) => i.id),
       );
     },
 
@@ -699,11 +716,13 @@ export default {
       this.payLoad[chave] = valor;
     },
     async salvarProduto() {
+      if (this.salvandoProduto) return;
       if (this.isReadOnly && !this.isCadastro) {
         this.toast.info("Este produto está em visualização. Clique em 'Enviar para Edição'.");
         return;
       }
 
+      this.salvandoProduto = true;
       try {
         this.errors = {};
         const campoCest = this.camposSelects.find((c) => c.chave === "id_cest");
@@ -730,7 +749,7 @@ export default {
 
           await serviceProdutos.cadastrarProdutoOMIE(payload);
           this.toast.success("Produto enviado com sucesso!");
-          // this.$router.push({ name: "CatalogoView" });
+          this.$router.push({ name: "ProdutosView" });
           return;
         }
 
@@ -740,6 +759,7 @@ export default {
           // salvar sem aprovar (salvar apenas)
           await serviceProdutos.salvarLocal(this.produto_cod, this.normalizeCadastroPayload(payloadStaging));
           this.toast.success("Alterações salvas localmente.");
+          this.$router.push({ name: "ProdutosView" });
           return;
         }
 
@@ -766,6 +786,7 @@ export default {
 
         await serviceProdutos.finalizarCadastro(this.produto_cod, this.normalizeCadastroPayload(payloadAtualizar));
         this.toast.success("Produto salvo com sucesso!");
+        this.$router.push({ name: "ProdutosView" });
       } catch (error) {
         if (error.response?.data?.errors?.id_cest) {
           this.toast.error("CEST inválido. Use 00.000.00");
@@ -773,6 +794,8 @@ export default {
           this.toast.error("Erro ao salvar produto");
         }
         console.error("Erro ao salvar produto:", error);
+      } finally {
+        this.salvandoProduto = false;
       }
     },
     async finalizarCadastro() {
