@@ -35,6 +35,9 @@
     <nav class="nav-maior separador">
       <router-link to="/etapas" active-class="ativo">Configuração de Etapas</router-link>
     </nav>
+    <nav class="nav-maior separador" v-if="permissoes.includes(180)">
+      <router-link to="/gestao-arquivos" active-class="ativo">Gestão de Arquivos</router-link>
+    </nav>
   </aside>
 </template>
 <script>

@@ -19,6 +19,9 @@ import CatalogoView from "@/views/Produtos/CatalogoView.vue";
 import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
 import EtapasView from '@/views/Produtos/EtapasView.vue'
 import FamiliaView from '@/views/Produtos/FamiliasView.vue'
+// Gestão de Arquivos
+import GestaoArquivosView from "@/views/GestaoArquivos/GestaoArquivosView.vue";
+import GestaoArquivosDetalheView from "@/views/GestaoArquivos/GestaoArquivosDetalheView.vue";
 //Serviços
 import CatalogoServicos from "@/views/Serviços/CatalogoServicos.vue";
 import DemandaFamiliasView from "@/views/Serviços/DemandaFamiliasView.vue";
@@ -234,6 +237,19 @@ const routes = [
     path: '/familia',
     name: 'FamiliaView',
     component: FamiliaView,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/gestao-arquivos',
+    name: 'GestaoArquivosView',
+    component: GestaoArquivosView,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
+    path: '/gestao-arquivos/produto/:produto_cod',
+    name: 'GestaoArquivosDetalhe',
+    component: GestaoArquivosDetalheView,
+    props: true,
     beforeEnter: guardPermissaoRoute
   },
   //Serviços
