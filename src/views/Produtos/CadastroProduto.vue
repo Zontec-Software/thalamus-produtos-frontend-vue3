@@ -53,9 +53,16 @@
       <div class="bloco2 sheet margem" v-if="exibirEstruturaERoteiro">
         <div class="section">
           <div>
-            <div class="section__title">ROTEIRO DE PRODUÇÃO</div>
+            <div class="section__title section__title-roteiro">
+              <span>ROTEIRO DE PRODUÇÃO</span>
+              <span v-if="roteiroVersao != null" class="roteiro-versao-label"> — Versão {{ roteiroVersao }}<span v-if="roteiroStatus" class="roteiro-status-label"> ({{ roteiroStatus }})</span></span>
+            </div>
             <!-- <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" /> -->
-            <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="somenteVisualizacao" />
+            <RoteiroComponent_2
+              :produto_cod="produto.produto_cod"
+              :readonly="somenteVisualizacao"
+              @versao-atual="onRoteiroVersaoAtual"
+            />
             <!-- <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="false"/> -->
           </div>
         </div>
@@ -115,6 +122,9 @@ export default {
       usuarioLogado: "",
 
       unidades: [],
+      roteiroVersao: null,
+      roteiroVersaoMaisRecente: true,
+      roteiroStatus: null,
     };
   },
   computed: {
@@ -195,6 +205,11 @@ export default {
     },
     fecharModal() {
       this.mostrarModal = false;
+    },
+    onRoteiroVersaoAtual({ versao, isMaisRecente, status }) {
+      this.roteiroVersao = versao;
+      this.roteiroVersaoMaisRecente = isMaisRecente;
+      this.roteiroStatus = status ?? null;
     },
   },
 };
@@ -293,6 +308,23 @@ export default {
   padding-bottom: 8px;
   border-bottom: 3px solid var(--cor-primaria-media);
   font-weight: 800;
+}
+
+.section__title-roteiro {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.roteiro-versao-label {
+  font-weight: 600;
+  color: var(--cor-fonte, #1565c0);
+}
+
+.roteiro-status-label {
+  font-weight: 500;
+  color: var(--cor-cinza-escuro, #555);
 }
 
 .sheet {

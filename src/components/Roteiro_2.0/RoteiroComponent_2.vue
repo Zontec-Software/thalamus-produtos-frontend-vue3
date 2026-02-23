@@ -1,6 +1,11 @@
 <template>
-    <section v-readonly="readonly || !versaoEdicao" v-if="roteiro.id">
+    <section v-readonly="readonly || !versaoEdicao || !!roteiroVisualizado" v-if="roteiro.id">
         <div v-if="!loading">
+            <!-- Banner ao visualizar uma versão antiga -->
+            <div v-if="roteiroVisualizado" class="banner-versao-antiga">
+                <span>Visualizando versão {{ roteiroVisualizado.versao }} ({{ roteiroVisualizado.status }})</span>
+                <button type="button" class="acao-secundaria" data-allow-when-readonly @click="sairVisualizacaoVersao">Voltar ao roteiro atual</button>
+            </div>
             <div class="table-wrapper">
                 <table class="tabela">
                     <thead>
@@ -8,15 +13,15 @@
                             <th v-if="!readonly && versaoEdicao" style="width:40px;"></th>
                             <th>Setor</th>
                             <th>SubSetor</th>
-                            <th>Etapa</th>
+                            <!-- <th>Etapa</th> -->
                             <th>Cod operação</th>
                             <th>Operação</th>
                             <th>Instrução técnica</th>
                             <th>Tempo Padrão</th>
-                            <th v-if="!readonly"></th>
+                            <th v-if="!readonly && !roteiroVisualizado"></th>
                         </tr>
                     </thead>
-                    <draggable v-model="roteiro.etapas" tag="tbody" handle=".handle" animation="200" @end="salvarOrdem">
+                    <draggable v-model="roteiroAtual.etapas" tag="tbody" handle=".handle" animation="200" @end="salvarOrdem" :disabled="!!roteiroVisualizado">
                         <template #item="{ element }">
                             <tr>
                                 <td style="text-align:center" class="handle" v-if="!readonly && versaoEdicao">
@@ -38,7 +43,7 @@
                                         </option>
                                     </select>
                                 </td>
-                                <td>
+                                <!-- <td>
                                     <select v-model="element.tipo_etapa_id"
                                         @change="atualizarEtapa(element.id, { tipo_etapa_id: element.tipo_etapa_id })">
                                         <option hidden></option>
@@ -46,7 +51,7 @@
                                             {{ tipo.nome }}
                                         </option>
                                     </select>
-                                </td>
+                                </td> -->
                                 <td style="text-align:center;">
                                     <span class="chip bg-cinza" style="font-size:14px;">{{ element.id }}</span>
                                 </td>
@@ -58,7 +63,7 @@
                                 <td><input type="text" v-model="element.tempo"
                                         @focusout="atualizarEtapa(element.id, { tempo: element.tempo })">
                                 </td>
-                                <td v-if="!readonly && versaoEdicao"><i class="bi-trash-fill"
+                                <td v-if="!readonly && versaoEdicao && !roteiroVisualizado"><i class="bi-trash-fill"
                                         @click="excluirEtapa(element.id)"></i>
                                 </td>
                             </tr>
@@ -108,25 +113,52 @@
 </template> -->
                 </table>
             </div>
-            <div v-if="!readonly && versaoEdicao" class="botoes-container">
+            <div v-if="!readonly && versaoEdicao && !roteiroVisualizado" class="botoes-container">
                 <button class="acao-secundaria" @click="modalCadastrar = true">Adicionar Etapa</button>
                 <button @click="publicarVersao()">Publicar Versão</button>
+                <button type="button" class="acao-secundaria btn-historico" data-allow-when-readonly @click="abrirModalHistorico">Ver outras versões</button>
             </div>
-            <div v-else-if="!readonly" class="alinha-centro">
+            <div v-else-if="!readonly && !roteiroVisualizado" class="alinha-centro botoes-oficial">
                 <button data-allow-when-readonly @click="iniciarEdicao()">
                     Iniciar Nova Versão
                 </button>
+                <button type="button" class="acao-secundaria" data-allow-when-readonly @click="abrirModalHistorico">Ver outras versões</button>
+            </div>
+            <div v-else class="alinha-centro botoes-oficial">
+                <button v-if="!roteiroVisualizado" type="button" class="acao-secundaria" data-allow-when-readonly @click="abrirModalHistorico">Ver outras versões</button>
             </div>
         </div>
         <div class="loading" v-else-if="loading">
             <div></div>
         </div>
-        <ModalNovaEtapa :setores="setores" :tiposEtapa="tiposEtapa" :roteiro_id="roteiro.id" v-if="modalCadastrar"
+        <ModalNovaEtapa :setores="setores" :tiposEtapa="tiposEtapa" :roteiro_id="roteiro.id" v-if="modalCadastrar && !roteiroVisualizado"
             @fecharModal="fecharModal" />
         <ModalInstrucao v-if="(!readonly && versaoEdicao) && etapaDestacada" :readonly="readonly"
-            :etapa="etapaDestacada" :produto="roteiro.produto" @fechar="etapaDestacada = null" />
+            :etapa="etapaDestacada" :produto="roteiroAtual.produto" @fechar="etapaDestacada = null" />
         <ModalVisualizacaoInstrucao v-if="(readonly || !versaoEdicao) && etapaDestacada" :etapa="etapaDestacada"
-            :produto="roteiro.produto" @fechar="etapaDestacada = null" />
+            :produto="roteiroAtual.produto" @fechar="etapaDestacada = null" />
+        <!-- Modal Histórico de Versões -->
+        <div v-if="modalHistoricoAberto" class="modal-overlay" @click.self="fecharModalHistorico">
+            <div class="modal-historico">
+                <div class="modal-historico-header">
+                    <h3>Histórico de versões</h3>
+                    <button type="button" class="modal-fechar" data-allow-when-readonly @click="fecharModalHistorico" aria-label="Fechar">&times;</button>
+                </div>
+                <div class="modal-historico-body">
+                    <p v-if="historicoVersoes.length === 0 && !loadingHistorico">Nenhuma versão publicada ainda.</p>
+                    <div v-else-if="loadingHistorico" class="loading-inline"><div></div></div>
+                    <ul v-else class="lista-versoes">
+                        <li v-for="v in historicoVersoes" :key="v.id" class="item-versao">
+                            <span class="versao-num">Versão {{ v.versao }}</span>
+                            <span class="versao-status" :class="v.status === 'Oficial' ? 'oficial' : 'arquivado'">{{ v.status }}</span>
+                            <span class="versao-data" v-if="v.publicado_em">{{ formatarData(v.publicado_em) }}</span>
+                            <span v-if="v.status === 'Oficial'" class="versao-atual-label">Atual</span>
+                            <button v-else type="button" class="acao-secundaria btn-ver" data-allow-when-readonly @click="visualizarVersao(v)">Ver</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </section>
     <div v-else-if="!readonly && !loading" class="alinha-centro">
         <button @click="criarRoteiro()">Criar Roteiro</button>
@@ -215,13 +247,35 @@ export default {
             etapaDestacada: null,
             drag: { from: null, over: null },
             toast: useToast(),
-            versaoEdicao: false
+            versaoEdicao: false,
+            modalHistoricoAberto: false,
+            historicoVersoes: [],
+            loadingHistorico: false,
+            roteiroVisualizado: null
         }
     },
 
     computed: {
+        roteiroAtual() {
+            return this.roteiroVisualizado || this.roteiro;
+        },
         grupos() {
-            return groupRoteiroBySetorTipo(this.roteiro);
+            return groupRoteiroBySetorTipo(this.roteiroAtual);
+        },
+        versaoExibida() {
+            return this.roteiroAtual?.versao ?? null;
+        },
+        exibindoVersaoMaisRecente() {
+            return !this.roteiroVisualizado;
+        }
+    },
+
+    watch: {
+        versaoExibida(val) {
+            this.$emit('versao-atual', { versao: val ?? null, isMaisRecente: this.exibindoVersaoMaisRecente, status: this.roteiroAtual?.status ?? null });
+        },
+        exibindoVersaoMaisRecente(val) {
+            this.$emit('versao-atual', { versao: this.versaoExibida, isMaisRecente: val, status: this.roteiroAtual?.status ?? null });
         }
     },
 
@@ -265,6 +319,8 @@ export default {
             }
             this.loading = false;
 
+            this.$emit('versao-atual', { versao: this.roteiroAtual?.versao ?? null, isMaisRecente: this.exibindoVersaoMaisRecente, status: this.roteiroAtual?.status ?? null });
+
             if (this.roteiro?.etapas) {
                 this.roteiro.etapas.sort((a, b) => {
                     if (a.ordem !== null && b.ordem !== null) {
@@ -293,6 +349,46 @@ export default {
             if (recarregarRoteiro) {
                 this.getRoteiro()
             }
+        },
+        async abrirModalHistorico() {
+            this.modalHistoricoAberto = true;
+            this.loadingHistorico = true;
+            this.historicoVersoes = [];
+            try {
+                this.historicoVersoes = await service.getHistoricoVersoes(this.produto_cod);
+            } catch (e) {
+                this.toast.error('Não foi possível carregar o histórico de versões.');
+            }
+            this.loadingHistorico = false;
+        },
+        fecharModalHistorico() {
+            this.modalHistoricoAberto = false;
+        },
+        async visualizarVersao(v) {
+            try {
+                const roteiro = await service.getRoteiroPorId(v.id);
+                this.roteiroVisualizado = roteiro;
+                if (roteiro?.etapas) {
+                    roteiro.etapas.sort((a, b) => {
+                        if (a.ordem !== null && b.ordem !== null) return a.ordem - b.ordem;
+                        if (a.ordem !== null) return -1;
+                        if (b.ordem !== null) return 1;
+                        return 0;
+                    });
+                }
+                this.fecharModalHistorico();
+            } catch (e) {
+                this.toast.error('Não foi possível carregar esta versão.');
+            }
+        },
+        sairVisualizacaoVersao() {
+            this.roteiroVisualizado = null;
+            this.$emit('versao-atual', { versao: this.roteiro?.versao ?? null, isMaisRecente: true, status: this.roteiro?.status ?? null });
+        },
+        formatarData(val) {
+            if (!val) return '';
+            const d = new Date(val);
+            return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         },
         salvarOrdem() {
             if(this.readonly || !this.versaoEdicao) return;
@@ -357,6 +453,7 @@ export default {
     justify-content: center;
     align-items: center;
     position: relative;
+    gap: .5rem;
 }
 
 .botoes-container button:last-child {
@@ -429,5 +526,134 @@ td {
 select:disabled {
     opacity: 1;
     border-color: var(--cor-cinza);
+}
+
+.banner-versao-antiga {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background: var(--cor-cinza, #f0f0f0);
+    border-radius: 6px;
+    border: 1px solid var(--cor-cinza-escuro, #ccc);
+}
+
+.botoes-oficial {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.btn-historico {
+    margin-left: auto;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-historico {
+    background: #fff;
+    border-radius: 8px;
+    min-width: 360px;
+    max-width: 90vw;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-historico-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--cor-cinza, #e0e0e0);
+}
+
+.modal-historico-header h3 {
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+.modal-fechar {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--cor-cinza-escuro, #666);
+    padding: 0 0.25rem;
+}
+
+.modal-fechar:hover {
+    color: #000;
+}
+
+.modal-historico-body {
+    padding: 1.25rem;
+    overflow-y: auto;
+}
+
+.loading-inline {
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.lista-versoes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.item-versao {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--cor-cinza, #eee);
+}
+
+.item-versao:last-child {
+    border-bottom: none;
+}
+
+.versao-num {
+    font-weight: 600;
+    min-width: 80px;
+}
+
+.versao-status.oficial {
+    color: var(--cor-primaria, #1976d2);
+}
+
+.versao-status.arquivado {
+    color: var(--cor-cinza-escuro, #666);
+}
+
+.versao-data {
+    font-size: 0.9rem;
+    color: var(--cor-cinza-escuro, #666);
+    flex: 1;
+}
+
+.btn-ver {
+    flex-shrink: 0;
+}
+
+.versao-atual-label {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--cor-primaria, #1976d2);
 }
 </style>
