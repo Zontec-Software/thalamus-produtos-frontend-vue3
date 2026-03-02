@@ -58,7 +58,7 @@
         </div>
         <SecaoArquivos :produto="produto" tipo="documentacao_comercial" :current-user-id="currentUserId"
           @baixar="baixar" @baixar-para-edicao="baixarParaEdicao" @cancelar-edicao="cancelarEdicao" @excluir="excluir"
-          @recarregar="carregarProduto" @excluir-pasta="excluirPasta" />
+          @recarregar="carregarProduto" @excluir-pasta="excluirPasta" @mover="moverArquivo" />
       </div>
 
       <div class="bloco margem secao-arquivos">
@@ -75,7 +75,7 @@
         </div>
         <SecaoArquivos :produto="produto" tipo="documentacao_produto" :current-user-id="currentUserId" @baixar="baixar"
           @baixar-para-edicao="baixarParaEdicao" @cancelar-edicao="cancelarEdicao" @excluir="excluir"
-          @recarregar="carregarProduto" @excluir-pasta="excluirPasta" />
+          @recarregar="carregarProduto" @excluir-pasta="excluirPasta" @mover="moverArquivo" />
       </div>
 
       <div class="bloco margem secao-arquivos">
@@ -92,7 +92,7 @@
         </div>
         <SecaoArquivos :produto="produto" tipo="documentos_producao" :current-user-id="currentUserId" @baixar="baixar"
           @baixar-para-edicao="baixarParaEdicao" @cancelar-edicao="cancelarEdicao" @excluir="excluir"
-          @recarregar="carregarProduto" @excluir-pasta="excluirPasta" />
+          @recarregar="carregarProduto" @excluir-pasta="excluirPasta" @mover="moverArquivo" />
       </div>
     </template>
 
@@ -324,6 +324,60 @@ export default {
         await this.carregarProduto();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao excluir pasta.");
+      }
+    },
+    async moverArquivo(payload) {
+      const { raizId, pastaId, tipo } = payload || {};
+      if (raizId == null || !tipo || !this.produto) return;
+      try {
+        await serviceGestaoArquivos.moverArquivo(raizId, pastaId ?? null);
+        this.moverArquivoNaArvore(tipo, raizId, pastaId ?? null);
+      } catch (e) {
+        alert(e.response?.data?.error || "Erro ao mover arquivo.");
+      }
+    },
+    getArquivosEPastasPorTipo(tipo) {
+      const arqKey = { documentacao_comercial: "arquivos_documentacao_comercial", documentacao_produto: "arquivos_documentacao_produto", documentos_producao: "arquivos_documentos_producao" }[tipo];
+      const arqKey2 = { documentacao_comercial: "arquivosDocumentacaoComercial", documentacao_produto: "arquivosDocumentacaoProduto", documentos_producao: "arquivosDocumentosProducao" }[tipo];
+      const pastKey = { documentacao_comercial: "pastas_documentacao_comercial", documentacao_produto: "pastas_documentacao_produto", documentos_producao: "pastas_documentos_producao" }[tipo];
+      const pastKey2 = { documentacao_comercial: "pastasDocumentacaoComercial", documentacao_produto: "pastasDocumentacaoProduto", documentos_producao: "pastasDocumentosProducao" }[tipo];
+      const arquivos = this.produto[arqKey] || this.produto[arqKey2] || [];
+      const pastas = this.produto[pastKey] || this.produto[pastKey2] || [];
+      return { arquivos, pastas };
+    },
+    findAndRemoveFile(arquivos, pastas, raizId) {
+      const idx = (arquivos || []).findIndex((f) => f.id === raizId);
+      if (idx >= 0) return { file: arquivos[idx], list: arquivos, index: idx };
+      for (const p of pastas || []) {
+        const list = p.arquivos || [];
+        const j = list.findIndex((f) => f.id === raizId);
+        if (j >= 0) return { file: list[j], list, index: j };
+        const found = this.findAndRemoveFile([], p.subpastas || [], raizId);
+        if (found) return found;
+      }
+      return null;
+    },
+    findPastaById(pastas, pastaId) {
+      for (const p of pastas || []) {
+        if (p.id === pastaId) return p;
+        const sub = this.findPastaById(p.subpastas || [], pastaId);
+        if (sub) return sub;
+      }
+      return null;
+    },
+    moverArquivoNaArvore(tipo, raizId, pastaId) {
+      const { arquivos, pastas } = this.getArquivosEPastasPorTipo(tipo);
+      const found = this.findAndRemoveFile(arquivos, pastas, raizId);
+      if (!found) return;
+      found.list.splice(found.index, 1);
+      if (pastaId == null) {
+        arquivos.push(found.file);
+      } else {
+        const folder = this.findPastaById(pastas, pastaId);
+        if (folder) {
+          if (!folder.arquivos) folder.arquivos = [];
+          folder.arquivos.push(found.file);
+        }
       }
     },
     onFileSelect(e) {
