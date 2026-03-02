@@ -12,6 +12,8 @@
           'em-edicao': item.versaoMaisRecente.em_edicao,
           'dropdown-aberto': dropdownAbertoId === item.raiz.id,
         }"
+        draggable="true"
+        @dragstart="onDragStart($event, item)"
       >
         <div class="arquivo-info">
           <i :class="item.versaoMaisRecente.url ? 'fa-solid fa-link icone-link' : 'fa-solid fa-file-lines icone-arquivo'"></i>
@@ -143,6 +145,7 @@ export default {
   props: {
     arquivos: { type: Array, default: () => [] },
     currentUserId: { type: [Number, String], default: null },
+    tipo: { type: String, default: null },
   },
   data() {
     return {
@@ -171,6 +174,10 @@ export default {
     },
   },
   methods: {
+    onDragStart(e, item) {
+      e.dataTransfer.setData("application/json", JSON.stringify({ raizId: item.raiz.id, tipo: this.tipo }));
+      e.dataTransfer.effectAllowed = "move";
+    },
     toggleHistorico(raizId) {
       this.historicoAbertoId = this.historicoAbertoId === raizId ? null : raizId;
     },
@@ -273,11 +280,15 @@ export default {
   justify-content: space-between;
   align-items: flex-start;
   padding: 12px;
+  cursor: grab;
   background: var(--cor-cinza2, rgba(0, 0, 0, 0.04));
   border-radius: 8px;
   border: 1px solid var(--cor-separador);
   position: relative;
   overflow: visible;
+}
+.arquivo-item:active {
+  cursor: grabbing;
 }
 .arquivo-item.dropdown-aberto {
   z-index: 100;

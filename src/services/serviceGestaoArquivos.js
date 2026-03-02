@@ -152,6 +152,18 @@ async function atualizarVersao(arquivoId, file) {
 }
 
 /**
+ * Move arquivo (raiz e todas as versões) para outra pasta ou para a raiz.
+ * @param {number} arquivoRaizId - id do arquivo raiz (ou de qualquer versão)
+ * @param {number|null} pastaId - id da pasta de destino; null = raiz
+ */
+// eslint-disable-next-line no-unused-vars -- exportado e usado em GestaoArquivosDetalheView
+async function moverArquivo(arquivoRaizId, pastaId) {
+  const payload = pastaId != null ? { pasta_id: pastaId } : { pasta_id: null };
+  const { data } = await api.patch(`/gestao-arquivos/arquivo/${arquivoRaizId}/mover`, payload);
+  return data;
+}
+
+/**
  * Exclui arquivo (raiz) e todas as versões.
  * @param {number} arquivoId - id do arquivo raiz ou de qualquer versão
  */
@@ -173,5 +185,6 @@ export default {
   downloadParaEdicao,
   cancelarEdicao,
   atualizarVersao,
+  moverArquivo,
   excluirArquivo,
 };
