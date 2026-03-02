@@ -1,5 +1,7 @@
 import { api } from "roboflex-thalamus-request-handler";
 
+const MAX_FILE_SIZE_MB = 20;
+
 const TIPOS_ARQUIVO = [
   { value: "documentacao_comercial", label: "Documentação da Proposta Comercial" },
   { value: "documentacao_produto", label: "Documentação do Produto" },
@@ -20,14 +22,53 @@ async function buscarProduto(produtoCod) {
  * @param {string} produtoCod - produto_cod do produto
  * @param {File} file - arquivo
  * @param {string} tipo - documentacao_comercial | documentacao_produto | documentos_producao
+ * @param {number|null} pastaId - id da pasta (null = raiz)
  */
-async function uploadArquivo(produtoCod, file, tipo) {
+async function uploadArquivo(produtoCod, file, tipo, pastaId = null) {
   const formData = new FormData();
   formData.append("arquivo", file);
   formData.append("tipo", tipo);
+  if (pastaId != null) formData.append("pasta_id", pastaId);
   const { data } = await api.post(`/gestao-arquivos/produto/${encodeURIComponent(produtoCod)}/upload`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+  return data;
+}
+
+/**
+ * Cadastra um link (URL) para um produto.
+ * @param {string} produtoCod
+ * @param {string} url - URL do link
+ * @param {string} nome - título/nome do link
+ * @param {string} tipo
+ * @param {number|null} pastaId
+ */
+async function cadastrarLink(produtoCod, url, nome, tipo, pastaId = null) {
+  const payload = { url, nome, tipo };
+  if (pastaId != null) payload.pasta_id = pastaId;
+  const { data } = await api.post(`/gestao-arquivos/produto/${encodeURIComponent(produtoCod)}/upload`, payload);
+  return data;
+}
+
+/**
+ * Cria uma nova pasta.
+ * @param {string} produtoCod
+ * @param {string} tipo
+ * @param {string} nome - nome da pasta
+ * @param {number|null} pastaPaiId - id da pasta pai (null = raiz)
+ */
+async function criarPasta(produtoCod, tipo, nome, pastaPaiId = null) {
+  const payload = { produto_cod: produtoCod, tipo, nome };
+  if (pastaPaiId != null) payload.pasta_pai_id = pastaPaiId;
+  const { data } = await api.post("/gestao-arquivos/pasta", payload);
+  return data;
+}
+
+/**
+ * Exclui uma pasta (arquivos dentro passam para a raiz).
+ */
+async function excluirPasta(pastaId) {
+  const { data } = await api.delete(`/gestao-arquivos/pasta/${pastaId}`);
   return data;
 }
 
@@ -120,9 +161,13 @@ async function excluirArquivo(arquivoId) {
 }
 
 export default {
+  MAX_FILE_SIZE_MB,
   TIPOS_ARQUIVO,
   buscarProduto,
   uploadArquivo,
+  cadastrarLink,
+  criarPasta,
+  excluirPasta,
   getUrlDownload,
   downloadArquivo,
   downloadParaEdicao,

@@ -14,7 +14,7 @@
         }"
       >
         <div class="arquivo-info">
-          <i class="fa-solid fa-file-lines icone-arquivo"></i>
+          <i :class="item.versaoMaisRecente.url ? 'fa-solid fa-link icone-link' : 'fa-solid fa-file-lines icone-arquivo'"></i>
           <div class="arquivo-detalhes">
             <div class="titulo-linha">
               <span class="nome">{{ item.versaoMaisRecente.nome }}</span>
@@ -23,7 +23,12 @@
               <span v-if="item.totalVersoes > 1" class="badge-versoes">{{ item.totalVersoes }} versões</span>
             </div>
             <div class="meta">
-              {{ formatarTamanho(item.versaoMaisRecente.tamanho) }}
+              <template v-if="item.versaoMaisRecente.url">
+                <a :href="item.versaoMaisRecente.url" target="_blank" class="link-externo">{{ item.versaoMaisRecente.url }}</a>
+              </template>
+              <template v-else>
+                {{ formatarTamanho(item.versaoMaisRecente.tamanho) }}
+              </template>
               <template v-if="item.versaoMaisRecente.upload_em">
                 · {{ formatarData(item.versaoMaisRecente.upload_em) }}
                 <template v-if="item.versaoMaisRecente.upload_por?.name"> por {{ item.versaoMaisRecente.upload_por.name }}</template>
@@ -54,21 +59,28 @@
               <i class="fa-solid fa-ellipsis-vertical"></i>
             </button>
             <div class="dropdown-menu-acoes" v-show="dropdownAbertoId === item.raiz.id" @click="fecharDropdowns">
-              <button type="button" @click="$emit('baixar', item.versaoMaisRecente)">
-                <i class="fa-solid fa-download"></i> Baixar
-              </button>
-              <template v-if="item.versaoMaisRecente.em_edicao && euSouOEditor(item)">
-                <button type="button" @click="abrirModalAtualizar(item)">
-                  <i class="fa-solid fa-upload"></i> Enviar nova versão (desbloquear)
-                </button>
-                <button type="button" class="acao-cancelar" @click="$emit('cancelar-edicao', item.versaoMaisRecente)">
-                  <i class="fa-solid fa-xmark"></i> Cancelar edição
-                </button>
+              <template v-if="item.versaoMaisRecente.url">
+                <a :href="item.versaoMaisRecente.url" target="_blank" class="dropdown-link">
+                  <i class="fa-solid fa-external-link"></i> Abrir link
+                </a>
               </template>
-              <template v-else-if="!item.versaoMaisRecente.em_edicao">
-                <button type="button" @click="$emit('baixar-para-edicao', item.versaoMaisRecente)">
-                  <i class="fa-solid fa-pencil"></i> Baixar para editar
+              <template v-else>
+                <button type="button" @click="$emit('baixar', item.versaoMaisRecente)">
+                  <i class="fa-solid fa-download"></i> Baixar
                 </button>
+                <template v-if="item.versaoMaisRecente.em_edicao && euSouOEditor(item)">
+                  <button type="button" @click="abrirModalAtualizar(item)">
+                    <i class="fa-solid fa-upload"></i> Enviar nova versão (desbloquear)
+                  </button>
+                  <button type="button" class="acao-cancelar" @click="$emit('cancelar-edicao', item.versaoMaisRecente)">
+                    <i class="fa-solid fa-xmark"></i> Cancelar edição
+                  </button>
+                </template>
+                <template v-else-if="!item.versaoMaisRecente.em_edicao">
+                  <button type="button" @click="$emit('baixar-para-edicao', item.versaoMaisRecente)">
+                    <i class="fa-solid fa-pencil"></i> Baixar para editar
+                  </button>
+                </template>
               </template>
               <button type="button" class="acao-excluir" @click="$emit('excluir', { raiz: item.raiz, versaoMaisRecente: item.versaoMaisRecente })">
                 <i class="fa-solid fa-trash"></i> Excluir todas as versões
@@ -89,7 +101,8 @@
               <span v-if="v.id === item.versaoMaisRecente.id" class="badge-edicao pequeno">Mais recente</span>
               <span class="meta">{{ formatarTamanho(v.tamanho) }} · {{ formatarData(v.upload_em) }} <template v-if="v.upload_por?.name">por {{ v.upload_por.name }}</template></span>
             </div>
-            <button type="button" class="btn-download-pequeno" title="Baixar" @click="$emit('baixar', v)">
+            <a v-if="v.url" :href="v.url" target="_blank" class="btn-download-pequeno" title="Abrir link"><i class="fa-solid fa-external-link"></i></a>
+            <button v-else type="button" class="btn-download-pequeno" title="Baixar" @click="$emit('baixar', v)">
               <i class="fa-solid fa-download"></i>
             </button>
           </div>
@@ -280,10 +293,30 @@ export default {
   min-width: 0;
   flex: 1;
 }
-.icone-arquivo {
+.icone-arquivo,
+.icone-link {
   color: var(--cor-primaria);
   font-size: 20px;
   flex-shrink: 0;
+}
+.icone-link {
+  color: var(--cor-secundaria, #0d6efd);
+}
+.link-externo {
+  color: var(--cor-primaria);
+  word-break: break-all;
+}
+.dropdown-menu-acoes .dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  text-decoration: none;
+  font-size: 14px;
+  color: var(--cor-fonte);
+}
+.dropdown-menu-acoes .dropdown-link:hover {
+  background: var(--cor-primaria-fraca);
 }
 .arquivo-detalhes {
   min-width: 0;
