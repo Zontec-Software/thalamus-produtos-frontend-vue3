@@ -23,9 +23,10 @@
     <div style="display: flex; flex-flow: column" v-if="produto">
       <div class="bloco2 margem">
         <AlteraçõesPendentes v-if="!somenteVisualizacao" :produto_cod="isEdicao ? produto.produto_cod : null"
-          :isCadastro="!isEdicao" :isTemplate="isTemplate" :somenteVisualizacao="somenteVisualizacao" />
+          :isCadastro="!isEdicao" :isTemplate="isTemplate" :somenteVisualizacao="somenteVisualizacao"
+          :projetoId="projetoIdAtual" />
         <AlteraçõesPendentes_new v-else :produto_cod="produto.produto_cod" :somenteVisualizacao="true"
-          :isCadastro="false" :isTemplate="isTemplate" />
+          :isCadastro="false" :isTemplate="isTemplate" :projetoId="projetoIdAtual" />
       </div>
       <!-- <div class="bloco margem">
           <header class="alinha-centro">
@@ -102,6 +103,7 @@ export default {
     isTemplate: { required: false },
     isCadastro: { required: true },
     somenteVisualizacao: { type: Boolean, default: false },
+    projetoId: { type: [String, Number], required: false, default: null },
   },
 
 
@@ -128,6 +130,10 @@ export default {
     };
   },
   computed: {
+    /** Id do projeto quando a tela foi aberta a partir de um projeto (query ?projetoId= ou prop). */
+    projetoIdAtual() {
+      return this.projetoId ?? this.$route?.query?.projetoId ?? null;
+    },
     isEdicao() {
       return !!this.id && /^\d+$/.test(String(this.id));
     },

@@ -204,6 +204,7 @@ export default {
     isTemplate: { required: false },
     isCadastro: { required: true },
     somenteVisualizacao: { type: Boolean, default: false },
+    projetoId: { type: [String, Number], default: null },
   },
   data() {
     return {
@@ -528,7 +529,8 @@ export default {
         const stagedArr = this.valorCamposDinamicos || [];
 
         const camposPrincipaisOrdem = ["tipoProduto_id", "cod", "desc", "und", "ncm"];
-        const camposSN = ["cupom_fiscal", "market_place", "indicador_escala"];
+        // Campos S/N que recebem default "N" quando vazios (indicador_escala pode ficar vazio)
+        const camposSNComDefault = ["cupom_fiscal", "market_place"];
 
         camposMapeados.forEach((campo) => {
           const stagedDyn = stagedArr.find((d) => d.campo_id === campo.id);
@@ -556,7 +558,7 @@ export default {
           if (campo.chave === "status" && valorAtual !== null && valorAtual !== "") {
             valorAtual = typeof valorAtual === "string" ? Number(valorAtual) : valorAtual;
           }
-          if (camposSN.includes(campo.chave) && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
+          if (camposSNComDefault.includes(campo.chave) && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
             valorAtual = "N";
           }
           if (campo.chave === "origem_mercadoria" && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
@@ -861,6 +863,7 @@ export default {
           };
 
           const payload = this.normalizeCadastroPayload(bruto);
+          if (this.projetoId) payload.projeto_id = Number(this.projetoId);
 
           await serviceProdutos.cadastrarProdutoOMIE(payload);
           this.toast.success("Produto enviado com sucesso!");
