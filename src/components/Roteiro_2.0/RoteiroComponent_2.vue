@@ -13,7 +13,7 @@
                             <th v-if="!readonly && versaoEdicao" style="width:40px;"></th>
                             <th>Setor</th>
                             <th>SubSetor</th>
-                            <!-- <th>Etapa</th> -->
+                            <th>Etapa</th>
                             <th>Cod operação</th>
                             <th>Operação</th>
                             <th>Instrução técnica</th>
@@ -43,7 +43,7 @@
                                         </option>
                                     </select>
                                 </td>
-                                <!-- <td>
+                                <td>
                                     <select v-model="element.tipo_etapa_id"
                                         @change="atualizarEtapa(element.id, { tipo_etapa_id: element.tipo_etapa_id })">
                                         <option hidden></option>
@@ -51,7 +51,7 @@
                                             {{ tipo.nome }}
                                         </option>
                                     </select>
-                                </td> -->
+                                </td>
                                 <td style="text-align:center;">
                                     <span class="chip bg-cinza" style="font-size:14px;">{{ element.id }}</span>
                                 </td>

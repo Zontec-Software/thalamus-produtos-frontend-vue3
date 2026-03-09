@@ -38,10 +38,6 @@
             <label>Família</label>
             <span>{{ produto.familia_produto?.familia_nome ?? "-" }}</span>
           </div>
-          <div>
-            <label>Unidade</label>
-            <span>{{ produto.und ?? "-" }}</span>
-          </div>
         </div>
       </div>
       <div v-if="podeVerBloco('documentacao_comercial')" class="bloco margem secao-arquivos">
