@@ -35,6 +35,7 @@
           @atualizar-incluir-na-op="$emit('atualizar-incluir-na-op', $event)"
           @atualizar-incluir-na-op-pasta="$emit('atualizar-incluir-na-op-pasta', $event)" />
       </template>
+      <br>
       <div v-if="podeIncluirPasta() || podeIncluirArquivo()" class="botoes-pasta dropdown-wrap" :class="{ 'dropdown-aberto': dropdownAberto }" ref="dropdownPastaRef">
         <button type="button" class="acao-secundaria btn-adicionar" @click.stop="toggleDropdown"
           :aria-expanded="dropdownAberto">
