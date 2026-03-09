@@ -47,7 +47,7 @@
         </div>
         <SecaoArquivos :produto="produto" tipo="documentacao_comercial" :current-user-id="currentUserId"
           :visualizacao="visualizacaoArquivos" @baixar="baixar" @baixar-para-edicao="baixarParaEdicao"
-          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="carregarProduto"
+          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="recarregarProduto"
           @excluir-pasta="excluirPasta" @mover="moverArquivo"
           @atualizar-incluir-na-op="atualizarIncluirNaOpLocal"
           @atualizar-incluir-na-op-pasta="atualizarIncluirNaOpPastaLocal"
@@ -62,7 +62,7 @@
         </div>
         <SecaoArquivos :produto="produto" tipo="documentacao_produto" :current-user-id="currentUserId"
           :visualizacao="visualizacaoArquivos" @baixar="baixar" @baixar-para-edicao="baixarParaEdicao"
-          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="carregarProduto"
+          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="recarregarProduto"
           @excluir-pasta="excluirPasta" @mover="moverArquivo"
           @atualizar-incluir-na-op="atualizarIncluirNaOpLocal"
           @atualizar-incluir-na-op-pasta="atualizarIncluirNaOpPastaLocal"
@@ -77,7 +77,7 @@
         </div>
         <SecaoArquivos :produto="produto" tipo="documentos_producao" :current-user-id="currentUserId"
           :visualizacao="visualizacaoArquivos" @baixar="baixar" @baixar-para-edicao="baixarParaEdicao"
-          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="carregarProduto"
+          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="recarregarProduto"
           @excluir-pasta="excluirPasta" @mover="moverArquivo"
           @atualizar-incluir-na-op="atualizarIncluirNaOpLocal"
           @atualizar-incluir-na-op-pasta="atualizarIncluirNaOpPastaLocal"
@@ -143,7 +143,7 @@
 
 <script>
 import serviceGestaoArquivos from "@/services/serviceGestaoArquivos";
-import websocketService from "@/services/websocketService";
+import { getWebSocketService } from "@/services/websocketService";
 import {
   carregarFuncionalidades,
   podeVerBloco as permissaoPodeVerBloco,
@@ -160,7 +160,6 @@ export default {
   data() {
     return {
       serviceGestaoArquivos,
-      unsubscribeWs: null,
       produto: null,
       currentUserId: null,
       carregando: true,
@@ -195,27 +194,31 @@ export default {
       carregarFuncionalidades(),
       this.carregarProduto(),
     ]);
-    this.subscribeWebSocket();
+    getWebSocketService().addListener(this.handleWebSocketMessage);
   },
   beforeUnmount() {
-    if (this.unsubscribeWs) {
-      this.unsubscribeWs();
-      this.unsubscribeWs = null;
-    }
+    getWebSocketService().removeListener(this.handleWebSocketMessage);
   },
   methods: {
     podeVerBloco(tipo) {
       return permissaoPodeVerBloco(tipo);
     },
-    subscribeWebSocket() {
-      if (this.unsubscribeWs) {
-        this.unsubscribeWs();
-        this.unsubscribeWs = null;
+    /** Mesmo padrão do GruposView: mensagem { message, produto_cod } broadcast pelo servidor. */
+    handleWebSocketMessage(event) {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.message === "atualizarGestaoArquivos" && data.produto_cod == this.produto_cod) {
+          this.carregarProdutoSilencioso();
+        }
+      } catch {
+        return;
       }
-      const channel = websocketService.channelGestaoArquivosProduto(this.produto_cod);
-      this.unsubscribeWs = websocketService.subscribe(channel, () => {
-        this.carregarProdutoSilencioso();
-      });
+    },
+    /** Notifica outros clientes para recarregar (mesmo padrão do GruposView com atualizarRotina). */
+    notificarAtualizacaoArquivos() {
+      getWebSocketService().send(
+        JSON.stringify({ message: "atualizarGestaoArquivos", produto_cod: this.produto_cod })
+      );
     },
     async carregarProduto() {
       this.carregando = true;
@@ -285,6 +288,7 @@ export default {
         const data = await serviceGestaoArquivos.criarPasta(this.produto_cod, this.tipoUpload, this.novaPastaNome.trim(), this.novaPastaPaiId);
         this.adicionarPastaLocal(this.tipoUpload, this.novaPastaPaiId, data);
         this.fecharNovaPasta();
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao criar pasta.");
       } finally {
@@ -295,6 +299,7 @@ export default {
       try {
         await serviceGestaoArquivos.excluirPasta(pastaId);
         this.removerPastaLocal(pastaId);
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao excluir pasta.");
       }
@@ -305,6 +310,7 @@ export default {
       try {
         await serviceGestaoArquivos.moverArquivo(raizId, pastaId ?? null);
         this.moverArquivoNaArvore(tipo, raizId, pastaId ?? null);
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao mover arquivo.");
       }
@@ -499,6 +505,7 @@ export default {
         }
         this.fecharUpload();
         await this.carregarProdutoSilencioso();
+        this.notificarAtualizacaoArquivos();
       } finally {
         this.enviando = false;
       }
@@ -515,6 +522,7 @@ export default {
       try {
         await serviceGestaoArquivos.downloadParaEdicao(arquivo.id, arquivo.nome);
         await this.carregarProdutoSilencioso();
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         const msg =
           e.response?.data?.error ||
@@ -524,6 +532,7 @@ export default {
         try {
           await serviceGestaoArquivos.cancelarEdicao(arquivo.id);
           await this.carregarProdutoSilencioso();
+          this.notificarAtualizacaoArquivos();
         } catch {
           // Ignora falha ao desbloquear (ex.: já desbloqueado ou 403)
         }
@@ -533,6 +542,7 @@ export default {
       try {
         await serviceGestaoArquivos.cancelarEdicao(arquivo.id);
         await this.carregarProdutoSilencioso();
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao cancelar edição.");
       }
@@ -544,9 +554,15 @@ export default {
       try {
         await serviceGestaoArquivos.excluirArquivo(raiz.id);
         this.removerArquivoLocal(raiz.id);
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao excluir arquivo.");
       }
+    },
+    /** Chamado no @recarregar (ex.: nova versão enviada no ListaArquivos). */
+    async recarregarProduto() {
+      await this.carregarProduto();
+      this.notificarAtualizacaoArquivos();
     },
   },
 };
