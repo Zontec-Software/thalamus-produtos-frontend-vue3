@@ -1,7 +1,7 @@
 <template>
   <div class="lista-arquivos">
     <div v-if="!itens.length" class="estado-vazio estado-vazio-menor">
-      Nenhum arquivo nesta categoria.
+      <!-- Nenhum arquivo nesta categoria. -->
     </div>
     <template v-else>
       <div
@@ -11,24 +11,38 @@
         :class="{
           'em-edicao': item.versaoMaisRecente.em_edicao,
           'dropdown-aberto': dropdownAbertoId === item.raiz.id,
+          'sem-drag': desabilitarDrag || !podeArrastarMoverArquivo(),
         }"
-        draggable="true"
-        @dragstart="onDragStart($event, item)"
+        :draggable="!desabilitarDrag && podeArrastarMoverArquivo()"
+        @dragstart="onDragStartConditional($event, item)"
       >
         <div class="arquivo-info">
           <i :class="item.versaoMaisRecente.url ? 'fa-solid fa-link icone-link' : 'fa-solid fa-file-lines icone-arquivo'"></i>
           <div class="arquivo-detalhes">
             <div class="titulo-linha">
-              <span class="nome">{{ item.versaoMaisRecente.nome }}</span>
+              <template v-if="item.versaoMaisRecente.url">
+                <a v-if="podeBaixarArquivo()" :href="item.versaoMaisRecente.url" target="_blank" class="nome nome-link">{{ item.versaoMaisRecente.nome }}</a>
+                <span v-else class="nome nome-desabilitado">{{ item.versaoMaisRecente.nome }}</span>
+              </template>
+              <a
+                v-else-if="podeBaixarArquivo() && !(item.versaoMaisRecente.em_edicao && !euSouOEditor(item))"                href="#"
+                class="nome nome-link"
+                title="Abrir em nova aba"
+                @click.prevent="abrirArquivoEmNovaAba(item)"
+              >{{ item.versaoMaisRecente.nome }}</a>
+              <span v-else class="nome">{{ item.versaoMaisRecente.nome }}</span>
               <span class="versao-badge">v{{ item.versaoMaisRecente.versao }}</span>
               <span v-if="item.versaoMaisRecente.em_edicao" class="badge-edicao">Em edição</span>
               <span v-if="item.totalVersoes > 1" class="badge-versoes">{{ item.totalVersoes }} versões</span>
             </div>
+            <div v-if="mostrarCaminho && item.pastaPath" class="meta caminho-pasta">
+              <i class="fa-solid fa-folder"></i> {{ item.pastaPath }}
+            </div>
             <div class="meta">
-              <template v-if="item.versaoMaisRecente.url">
-                <a :href="item.versaoMaisRecente.url" target="_blank" class="link-externo">{{ item.versaoMaisRecente.url }}</a>
-              </template>
-              <template v-else>
+              <!-- <template v-if="item.versaoMaisRecente.url">
+                <a v-if="podeBaixarArquivo()" :href="item.versaoMaisRecente.url" target="_blank" class="link-externo">{{ item.versaoMaisRecente.url }}</a>
+              </template> -->
+              <template v-if="item.versaoMaisRecente.tamanho">
                 {{ formatarTamanho(item.versaoMaisRecente.tamanho) }}
               </template>
               <template v-if="item.versaoMaisRecente.upload_em">
@@ -46,28 +60,37 @@
               </template>
             </div>
             <button
-              v-if="item.totalVersoes > 1"
+              v-if="podeVerHistorico() && item.totalVersoes > 1"
               type="button"
               class="link-historico"
               @click="toggleHistorico(item.raiz.id)"
             >
               <i class="fa-solid fa-clock-rotate-left"></i> Ver histórico ({{ item.totalVersoes }} versões)
             </button>
+            <label v-if="podeAlterarIncluirOpPasta()" class="incluir-na-op">
+              <input
+                type="checkbox"
+                :checked="incluirNaOp(item)"
+                :disabled="atualizandoIncluirNaOpId === item.raiz.id"
+                @change="toggleIncluirNaOp(item)"
+              />
+              <span>Incluir na OP</span>
+            </label>
           </div>
         </div>
-        <div class="arquivo-acoes">
+        <div v-if="temAcoesMenu(item)" class="arquivo-acoes">
           <div class="dropdown-acoes" ref="dropdownContainer">
             <button type="button" class="btn-acoes" title="Ações" @click="toggleDropdown(item)">
               <i class="fa-solid fa-ellipsis-vertical"></i>
             </button>
             <div class="dropdown-menu-acoes" v-show="dropdownAbertoId === item.raiz.id" @click="fecharDropdowns">
-              <template v-if="item.versaoMaisRecente.url">
+              <template v-if="item.versaoMaisRecente.url && podeBaixarArquivo()">
                 <a :href="item.versaoMaisRecente.url" target="_blank" class="dropdown-link">
                   <i class="fa-solid fa-external-link"></i> Abrir link
                 </a>
               </template>
               <template v-else>
-                <button type="button" @click="$emit('baixar', item.versaoMaisRecente)">
+                <button v-if="podeBaixarArquivo()" type="button" @click="$emit('baixar', item.versaoMaisRecente)">
                   <i class="fa-solid fa-download"></i> Baixar
                 </button>
                 <template v-if="item.versaoMaisRecente.em_edicao && euSouOEditor(item)">
@@ -78,13 +101,13 @@
                     <i class="fa-solid fa-xmark"></i> Cancelar edição
                   </button>
                 </template>
-                <template v-else-if="!item.versaoMaisRecente.em_edicao">
+                <template v-else-if="!item.versaoMaisRecente.em_edicao && podeBaixarParaEdicao()">
                   <button type="button" @click="$emit('baixar-para-edicao', item.versaoMaisRecente)">
                     <i class="fa-solid fa-pencil"></i> Baixar para editar
                   </button>
                 </template>
               </template>
-              <button type="button" class="acao-excluir" @click="$emit('excluir', { raiz: item.raiz, versaoMaisRecente: item.versaoMaisRecente })">
+              <button v-if="podeExcluirArquivos()" type="button" class="acao-excluir" @click="$emit('excluir', { raiz: item.raiz, versaoMaisRecente: item.versaoMaisRecente })">
                 <i class="fa-solid fa-trash"></i> Excluir todas as versões
               </button>
             </div>
@@ -104,7 +127,7 @@
               <span class="meta">{{ formatarTamanho(v.tamanho) }} · {{ formatarData(v.upload_em) }} <template v-if="v.upload_por?.name">por {{ v.upload_por.name }}</template></span>
             </div>
             <a v-if="v.url" :href="v.url" target="_blank" class="btn-download-pequeno" title="Abrir link"><i class="fa-solid fa-external-link"></i></a>
-            <button v-else type="button" class="btn-download-pequeno" title="Baixar" @click="$emit('baixar', v)">
+            <button v-else-if="podeBaixarArquivo()" type="button" class="btn-download-pequeno" title="Baixar" @click="$emit('baixar', v)">
               <i class="fa-solid fa-download"></i>
             </button>
           </div>
@@ -139,6 +162,7 @@
 
 <script>
 import serviceGestaoArquivos from "@/services/serviceGestaoArquivos";
+import * as permissao from "@/services/serviceGestaoArquivosPermissao";
 
 export default {
   name: "ListaArquivos",
@@ -146,6 +170,8 @@ export default {
     arquivos: { type: Array, default: () => [] },
     currentUserId: { type: [Number, String], default: null },
     tipo: { type: String, default: null },
+    mostrarCaminho: { type: Boolean, default: false },
+    desabilitarDrag: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -155,12 +181,15 @@ export default {
       enviandoVersao: false,
       dropdownAbertoId: null,
       historicoAbertoId: null,
+      atualizandoIncluirNaOpId: null,
     };
   },
   computed: {
     itens() {
       const list = this.arquivos || [];
-      return list.map((raiz) => {
+      return list.map((entry) => {
+        const raiz = entry.raiz || entry;
+        const pastaPath = entry.pastaPath ?? null;
         const versoes = raiz.versoes || [];
         const versaoMaisRecente = versoes.length ? versoes[0] : raiz;
         const todasVersoes = [raiz, ...versoes].sort((a, b) => (b.versao_numero || 0) - (a.versao_numero || 0));
@@ -169,11 +198,66 @@ export default {
           versaoMaisRecente,
           totalVersoes: todasVersoes.length,
           todasVersoes,
+          pastaPath,
         };
       });
     },
   },
   methods: {
+    podeVerHistorico() {
+      return permissao.podeVerHistorico();
+    },
+    podeAlterarIncluirOpPasta() {
+      return permissao.podeAlterarIncluirOpPasta();
+    },
+    podeBaixarArquivo() {
+      return permissao.podeBaixarArquivo();
+    },
+    podeBaixarParaEdicao() {
+      return permissao.podeBaixarParaEdicao();
+    },
+    podeExcluirArquivos() {
+      return permissao.podeExcluirArquivos();
+    },
+    temAcoesMenu(item) {
+      if (item.versaoMaisRecente?.url) return this.podeBaixarArquivo();
+      return this.podeBaixarArquivo() || this.podeExcluirArquivos() || this.podeBaixarParaEdicao();
+    },
+    podeArrastarMoverArquivo() {
+      return permissao.podeArrastarMoverArquivo();
+    },
+    incluirNaOp(item) {
+      const r = item.raiz || {};
+      return !!(r.incluir_na_op ?? r.incluirNaOp);
+    },
+    async toggleIncluirNaOp(item) {
+      const novoValor = !this.incluirNaOp(item);
+      this.atualizandoIncluirNaOpId = item.raiz.id;
+      try {
+        await serviceGestaoArquivos.atualizarIncluirNaOp(item.raiz.id, novoValor);
+        this.$emit("atualizar-incluir-na-op", { raizId: item.raiz.id, incluirNaOp: novoValor });
+      } catch (e) {
+        const msg = e.response?.data?.error || e.message || "Erro ao atualizar.";
+        alert(typeof msg === "string" ? msg : "Erro ao atualizar.");
+      } finally {
+        this.atualizandoIncluirNaOpId = null;
+      }
+    },
+    async abrirArquivoEmNovaAba(item) {
+      try {
+        await serviceGestaoArquivos.abrirArquivoEmNovaAba(item.versaoMaisRecente.id);
+      } catch (e) {
+        const msg = e.response?.data?.error || e.message || "Erro ao abrir arquivo.";
+        alert(typeof msg === "string" ? msg : "Erro ao abrir arquivo.");
+      }
+    },
+    onDragStartConditional(e, item) {
+      if (this.desabilitarDrag) {
+        e.preventDefault();
+        return;
+      }
+      this.onDragStart(e, item);
+    },
     onDragStart(e, item) {
       e.dataTransfer.setData("application/json", JSON.stringify({ raizId: item.raiz.id, tipo: this.tipo }));
       e.dataTransfer.effectAllowed = "move";
@@ -290,6 +374,12 @@ export default {
 .arquivo-item:active {
   cursor: grabbing;
 }
+.arquivo-item.sem-drag {
+  cursor: default;
+}
+.arquivo-item.sem-drag:active {
+  cursor: default;
+}
 .arquivo-item.dropdown-aberto {
   z-index: 100;
 }
@@ -317,6 +407,12 @@ export default {
   color: var(--cor-primaria);
   word-break: break-all;
 }
+.nome-desabilitado,
+.link-desabilitado {
+  color: #666;
+  cursor: default;
+  text-decoration: none;
+}
 .dropdown-menu-acoes .dropdown-link {
   display: flex;
   align-items: center;
@@ -341,6 +437,14 @@ export default {
 .nome {
   font-weight: 600;
   word-break: break-all;
+}
+.nome.nome-link {
+  color: var(--cor-primaria, #0066cc);
+  text-decoration: none;
+  cursor: pointer;
+}
+.nome.nome-link:hover {
+  text-decoration: underline;
 }
 .versao-badge {
   font-size: 12px;
@@ -369,6 +473,13 @@ export default {
   padding: 2px 6px;
   border-radius: 4px;
 }
+.meta.caminho-pasta {
+  margin-bottom: 2px;
+}
+.meta.caminho-pasta i {
+  margin-right: 4px;
+  opacity: 0.8;
+}
 .meta {
   font-size: 12px;
   color: var(--cor-fonte-fraca);
@@ -388,6 +499,21 @@ export default {
 }
 .link-historico:hover {
   text-decoration: underline;
+}
+.incluir-na-op {
+  display: block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--cor-fonte-fraca);
+  cursor: pointer;
+}
+.incluir-na-op input[type="checkbox"] {
+  margin-right: 8px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.incluir-na-op input:disabled {
+  cursor: not-allowed;
 }
 .arquivo-acoes {
   flex-shrink: 0;

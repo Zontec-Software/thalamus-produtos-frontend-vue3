@@ -126,6 +126,24 @@ async function downloadArquivo(arquivoId, nomeArquivo = "arquivo") {
   return downloadArquivoPorUrl(arquivoId, nomeArquivo, "download-simples");
 }
 
+/**
+ * Abre o arquivo em nova aba (pré-visualização, ex.: PDF no navegador).
+ * Usa a mesma autenticação da API.
+ */
+async function abrirArquivoEmNovaAba(arquivoId) {
+  const response = await api.get(`/gestao-arquivos/arquivo/${arquivoId}/download-simples`, {
+    responseType: "blob",
+  });
+  if (response.status >= 400) {
+    const msg = await lerErroBlob(response.data);
+    const err = new Error(msg);
+    err.response = { data: { error: msg }, status: response.status };
+    throw err;
+  }
+  const url = window.URL.createObjectURL(response.data);
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 /** Download para edição (marca como em edição e baixa). */
 async function downloadParaEdicao(arquivoId, nomeArquivo = "arquivo") {
   return downloadArquivoPorUrl(arquivoId, nomeArquivo, "download-edicao");
@@ -164,6 +182,30 @@ async function moverArquivo(arquivoRaizId, pastaId) {
 }
 
 /**
+ * Atualiza o flag incluir_na_op do arquivo (raiz e versões).
+ * @param {number} arquivoId - id do arquivo raiz ou de qualquer versão
+ * @param {boolean} incluirNaOp
+ */
+async function atualizarIncluirNaOp(arquivoId, incluirNaOp) {
+  const { data } = await api.patch(`/gestao-arquivos/arquivo/${arquivoId}/incluir-na-op`, {
+    incluir_na_op: !!incluirNaOp,
+  });
+  return data;
+}
+
+/**
+ * Atualiza incluir_na_op para todos os arquivos de uma pasta (e subpastas).
+ * @param {number} pastaId - id da pasta
+ * @param {boolean} incluirNaOp
+ */
+async function atualizarIncluirNaOpPasta(pastaId, incluirNaOp) {
+  const { data } = await api.patch(`/gestao-arquivos/pasta/${pastaId}/incluir-na-op`, {
+    incluir_na_op: !!incluirNaOp,
+  });
+  return data;
+}
+
+/**
  * Exclui arquivo (raiz) e todas as versões.
  * @param {number} arquivoId - id do arquivo raiz ou de qualquer versão
  */
@@ -182,9 +224,12 @@ export default {
   excluirPasta,
   getUrlDownload,
   downloadArquivo,
+  abrirArquivoEmNovaAba,
   downloadParaEdicao,
   cancelarEdicao,
   atualizarVersao,
   moverArquivo,
+  atualizarIncluirNaOp,
+  atualizarIncluirNaOpPasta,
   excluirArquivo,
 };
