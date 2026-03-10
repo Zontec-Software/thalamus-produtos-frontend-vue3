@@ -47,7 +47,9 @@
                                     <select v-model="element.tipo_etapa_id"
                                         @change="atualizarEtapa(element.id, { tipo_etapa_id: element.tipo_etapa_id })">
                                         <option hidden></option>
-                                        <option v-for="tipo in tiposEtapa" :key="tipo.id" :value="tipo.id">
+                                        <option v-for="tipo in tiposEtapa" :key="tipo.id" :value="tipo.id"
+                                        :hidden="tipo.sub_setor_id !== element.sub_setor_id || tipo.setor_id !== element.setor_id"
+                                        >
                                             {{ tipo.nome }}
                                         </option>
                                     </select>
