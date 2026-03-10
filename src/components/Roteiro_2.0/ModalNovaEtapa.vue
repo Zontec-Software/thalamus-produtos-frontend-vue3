@@ -20,13 +20,15 @@
                     <label>Etapa</label>
                     <select :required="!novaEtapa.tipo_etapa_id" v-model="novaEtapa.tipo_etapa_id">
                         <option hidden></option>
-                        <option v-for="tipo in tiposEtapa" :key="tipo.id" :value="tipo.id">{{ tipo.nome }}</option>
+                        <option v-for="tipo in tiposEtapa" :key="tipo.id" :value="tipo.id"
+                        :hidden="novaEtapa.sub_setor_id ? tipo.sub_setor_id !== novaEtapa.sub_setor_id : tipo.setor_id !== novaEtapa.setor_id"
+                        >{{ tipo.nome }}</option>
                     </select>
                 </div>
                 <!-- <div><label>Código da Operação</label><input :required="!novaEtapa.cod_operacao"
                         v-model="novaEtapa.cod_operacao" type="text"></div> -->
-                <div><label>Operação</label><input :required="!novaEtapa.operacao" type="text"
-                        v-model="novaEtapa.operacao"></div>
+                <!-- <div><label>Operação</label><input :required="!novaEtapa.operacao" type="text"
+                        v-model="novaEtapa.operacao"></div> -->
                 <div><label>Tempo Padrão</label><input type="text" v-model="novaEtapa.tempo"></div>
             </fieldset>
             <div class="submit direita" v-if="!loading">
@@ -65,7 +67,7 @@ export default {
                 'setor_id',
                 'tipo_etapa_id',
                 // 'cod_operacao', 
-                'operacao'
+                // 'operacao'
             ]
 
             return camposObrigatorios.some(campo => {

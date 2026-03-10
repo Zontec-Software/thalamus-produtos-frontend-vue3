@@ -6,20 +6,30 @@
             </div>
         </div>
         <div class="margem container">
-            <div>
-                <label>Selecione o Setor:</label>
-                <select v-model="setorSelecionadoId" @change="carregarEtapas">
-                    <option :value="null" disabled>Selecione</option>
-                    <option v-for="s in setores" :key="s.id" :value="s.id">{{ s.nome }}</option>
-                </select>
+            <div class="grid-2 margem">
+                <div>
+                    <label>Selecione o Setor</label>
+                    <select v-model="setorSelecionado" @change="filtrarEtapas">
+                        <option :value="{}" disabled>Selecione</option>
+                        <option v-for="s in setores" :key="s.id" :value="s">{{ s.nome }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label>SubSetor</label>
+                    <select v-model="subSetorSelecionado" @change="filtrarEtapas">
+                        <option :value="null" v-if="!setorSelecionado.id" disabled>Selecione um setor primeiro</option>
+                        <option :value="null" v-else disabled>{{ setorSelecionado.filho.length > 0 ? 'Selecione' :
+                            'Nenhum subsetor encontrado' }}</option>
+                        <option v-for="s in setorSelecionado.filho" :key="s.id" :value="s">{{ s.nome }}</option>
+                    </select>
+                </div>
             </div>
-            <br>
             <div class="bloco2 margem">
-                <div class="submit m-b" v-if="setorSelecionadoId">
+                <div class="submit m-b" v-if="setorSelecionado.id">
                     <button @click="abrirModalEtapa()">Cadastrar Etapa</button>
                 </div>
                 <div class="bloco2 margem">
-                    <div v-if="!setorSelecionadoId"> Selecione um setor para visualizar as etapas. </div>
+                    <div v-if="!setorSelecionado.id"> Selecione um setor para visualizar as etapas. </div>
                     <div v-else-if="isLoading" class="loading">
                         <div></div>
                     </div>
@@ -87,8 +97,10 @@ export default {
     data() {
         return {
             setores: [],
-            setorSelecionado: null,
-            setorSelecionadoId: null,
+            subSetores: [],
+            setorSelecionado: {},
+            subSetorSelecionado: {},
+            baseEtapa: [],
             etapas: [],
             carregandoEtapas: false,
             showEtapaModal: false,
@@ -107,7 +119,8 @@ export default {
     },
 
     mounted() {
-        this.carregarSetores()
+        this.carregarSetores();
+        this.carregarEtapas();
     },
 
     computed: {
@@ -117,6 +130,9 @@ export default {
     },
 
     methods: {
+        async carregarEtapas() {
+            this.baseEtapa = await serviceRoteiro3.getTiposEtapa()
+        },
         async carregarSetores() {
             try {
                 this.setores = await serviceRoteiro3.getSetoresRoteiro()
@@ -127,20 +143,18 @@ export default {
             }
         },
 
-        async carregarEtapas() {
-            if (!this.setorSelecionadoId) {
+        async filtrarEtapas() {
+            if (!this.setorSelecionado.id) {
                 this.etapas = []
                 return
             }
-            this.carregandoEtapas = true
             try {
-                const lista = await serviceRoteiro3.getTiposEtapa()
-                const sid = Number(this.setorSelecionadoId)
+                const lista = this.baseEtapa
+                const sid = Number(this.setorSelecionado.id)
                 this.etapas = Array.isArray(lista)
-                    ? lista.filter(e => Number(e.setor_id) === sid)
+                    ? lista.filter(e => Number(e.setor_id) === sid && (Number(e.sub_setor_id) === this.subSetorSelecionado.id || !this.subSetorSelecionado.id))
                     : []
             } catch (e) {
-                console.error('Erro ao carregar etapas:', e)
                 this.toast.error('Erro ao carregar etapas')
                 this.etapas = []
             } finally {
@@ -159,7 +173,7 @@ export default {
         },
 
         async salvarEtapa() {
-            if (!this.setorSelecionadoId) {
+            if (!this.setorSelecionado.id) {
                 this.toast.warning('Selecione um setor antes de salvar.')
                 return
             }
@@ -170,7 +184,7 @@ export default {
             }
 
             this.salvando = true
-            const payload = { nome, setor_id: Number(this.setorSelecionadoId) }
+            const payload = { nome, setor_id: Number(this.setorSelecionado.id), sub_setor_id: this.subSetorSelecionado.id }
 
             try {
                 if (this.etapaForm.id) {
@@ -181,7 +195,8 @@ export default {
                     this.toast.success('Etapa cadastrada com sucesso!')
                 }
                 this.fecharModalEtapa()
-                await this.carregarEtapas()
+                await this.carregarEtapas();
+                this.filtrarEtapas();
             } catch (e) {
                 console.error('Erro ao salvar etapa:', e)
                 this.toast.error('Erro ao salvar etapa')
