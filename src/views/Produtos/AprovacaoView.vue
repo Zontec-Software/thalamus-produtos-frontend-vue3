@@ -94,10 +94,19 @@
                         </div>
                     </div>
                 </fieldset>
-                <div class=" alinha-centro">
+                <div class="alinha-centro">
                     <button @click="aprovarProduto" class="aprovar acao-secundaria bg-sucesso">Aprovar</button>
                     <button @click="reprovarProduto" class="reprovar acao-secundaria bg-erro"
                         style="margin-left: 5px;">Reprovar</button>
+                </div>
+                <div class="aviso-aprovacao aviso-aprovacao--modal">
+                    <div class="aviso-aprovacao__titulo">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Aprovação de produtos</span>
+                    </div>
+                    <p class="aviso-aprovacao__texto">
+                        Use <strong>Aprovar</strong> para liberar a sincronização com o Omie ou <strong>Reprovar</strong> para devolver o produto ao responsável pela edição.
+                    </p>
                 </div>
             </div>
         </div>
@@ -312,5 +321,36 @@ small {
     font-size: 0.9rem;
     display: block;
     margin-top: 5px;
+}
+
+.aviso-aprovacao {
+    background: var(--cor-bg);
+    border: 1px solid var(--cor-primaria-media);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+}
+
+.aviso-aprovacao__titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--cor-primaria);
+}
+
+.aviso-aprovacao__titulo i {
+    font-size: 1.1rem;
+}
+
+.aviso-aprovacao__texto {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--cor-texto);
+}
+
+.aviso-aprovacao--modal {
+    margin-top: 1rem;
 }
 </style>
