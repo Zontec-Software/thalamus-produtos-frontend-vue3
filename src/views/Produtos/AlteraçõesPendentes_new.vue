@@ -7,8 +7,7 @@
     <div class="banner">
       <h2>FICHA DE PRODUTO</h2>
       <h3>Cadastro e Especificações Técnicas</h3>
-      <span class="updated"> 🗓️ Atualizado em: {{ formatarData(produto_original.updated_at) ?? "?" }} — por: {{
-        produto_original.editadoPor ?? "??" }} </span>
+      <span class="updated"> 🗓️ Atualizado em: {{ formatarData(produto_original.updated_at) ?? "?" }} — por: {{ produto_original.editadoPor ?? "??" }} </span>
     </div>
     <!-- INFORMAÇÕES PRINCIPAIS -->
     <div class="section">
@@ -22,11 +21,9 @@
         <!-- Família -->
         <div class="field col-2">
           <label> Família</label>
-          <select v-model="produto_original.familia_id" :title="labelFamiliaSelecionada"
-            @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
+          <select v-model="produto_original.familia_id" :title="labelFamiliaSelecionada" @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
             <option value="">Selecione uma família</option>
-            <option v-for="item in familias" :key="item.id" :value="item.id" :title="item.nome">{{
-              item.nome.toUpperCase() }}</option>
+            <option v-for="item in familias" :key="item.id" :value="item.id" :title="item.nome">{{ item.nome.toUpperCase() }}</option>
           </select>
         </div>
         <!-- Campos básicos dinâmicos -->
@@ -35,61 +32,49 @@
           <div class="field" v-if="campo.tipo === 'Lista' && campo.chave === 'status'">
             <label>{{ campo.label }}</label>
             <!-- STATUS -->
-            <select v-model.number="valoresSelecionados[campo.id]"
-              :title="getLabel(campo.id, valoresSelecionados[campo.id])"
-              :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+            <select v-model.number="valoresSelecionados[campo.id]" :title="getLabel(campo.id, valoresSelecionados[campo.id])" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
               <option value="">Selecione</option>
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="Number(opcao.id)">{{ opcao.valor
-                }}</option>
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="Number(opcao.id)">{{ opcao.valor }}</option>
             </select>
           </div>
           <!-- Lista -->
           <div class="field" v-else-if="campo.tipo === 'Lista'">
             <label>{{ campo.label }}</label>
             <!-- Lista -->
-            <select v-model="valoresSelecionados[campo.id]" :title="getLabel(campo.id, valoresSelecionados[campo.id])"
-              :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+            <select v-model="valoresSelecionados[campo.id]" :title="getLabel(campo.id, valoresSelecionados[campo.id])" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
               <option value="">Selecione</option>
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id" :title="opcao.valor">
-                {{ opcao.valor }} </option>
+                {{ opcao.valor }}
+              </option>
             </select>
           </div>
           <!-- MultiLista -->
           <div class="field" v-else-if="campo.tipo === 'MultiLista'">
             <label>{{ campo.label }}</label>
             <!-- MultiLista -->
-            <select v-model="valoresSelecionados[campo.id]" multiple
-              :title="getLabel(campo.id, valoresSelecionados[campo.id])"
-              :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+            <select v-model="valoresSelecionados[campo.id]" multiple :title="getLabel(campo.id, valoresSelecionados[campo.id])" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id" :title="opcao.valor">
-                {{ opcao.valor }} </option>
+                {{ opcao.valor }}
+              </option>
             </select>
           </div>
           <!-- Texto / Número / Decimal / Data -->
           <div class="field" v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)">
             <label>{{ campo.label }}</label>
-            <input v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
-              :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-              @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+            <input v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
           </div>
         </template>
         <!-- Orçamento -->
         <div class="field col-1">
           <label>Categoria do Orçamento</label>
-          <SelectCategoriaOrcamento v-model="produto_original.id_categoria_orcamento" :dreTree="categoriasOrçamento"
-            @update:modelValue="atualizarPayLoad('id_categoria_orcamento', $event)" />
+          <SelectCategoriaOrcamento v-model="produto_original.id_categoria_orcamento" :dreTree="categoriasOrçamento" @update:modelValue="atualizarPayLoad('id_categoria_orcamento', $event)" />
         </div>
       </div>
       <!-- Áreas de texto -->
       <div class="form-grid form-grid--1 m-t-12">
         <div v-for="campo in camposAreaTexto" :key="campo.id" class="field field--full">
           <label>{{ campo.label }}</label>
-          <QuillEditor theme="snow" :readOnly="isReadOnly || aguardandoAprovaçãoFiscal"
-            v-model:content="valoresSelecionados[campo.id]" content-type="html" class="quill"
-            @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+          <QuillEditor theme="snow" :readOnly="isReadOnly || aguardandoAprovaçãoFiscal" v-model:content="valoresSelecionados[campo.id]" content-type="html" class="quill" @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
         </div>
       </div>
     </div>
@@ -101,8 +86,7 @@
           <div class="legend">Pré-visualização</div>
         </div>
         <div v-else class="gallery__empty">Sem fotos cadastradas</div>
-        <div class="gallery__card gallery__card--thumb" v-for="(foto, idx) in fotosProduto" :key="foto.id || idx"
-          :class="{ 'is-active': indiceAtual === idx }" @click="indiceAtual = idx" v-show="fotosProduto.length > 1">
+        <div class="gallery__card gallery__card--thumb" v-for="(foto, idx) in fotosProduto" :key="foto.id || idx" :class="{ 'is-active': indiceAtual === idx }" @click="indiceAtual = idx" v-show="fotosProduto.length > 1">
           <img :src="foto.url" :alt="foto.nome" />
         </div>
       </div>
@@ -116,26 +100,16 @@
       <div class="grid-4">
         <div v-for="campo in camposFiscaisVisiveis" :key="campo.id" class="field">
           <label>{{ campo.label }}</label>
-          <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-            @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
-            :disabled="aguardandoAprovaçãoFiscal">
-            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
-            </option>
+          <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" :disabled="aguardandoAprovaçãoFiscal">
+            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
           </select>
-          <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-            :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
-            :disabled="aguardandoAprovaçãoFiscal">
-            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id" :title="opcao.valor">{{
-              opcao.valor }}</option>
+          <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" :disabled="aguardandoAprovaçãoFiscal">
+            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id" :title="opcao.valor">{{ opcao.valor }}</option>
           </select>
           <div v-else-if="campo.chave === 'id_cest'">
-            <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-              @input="mascaraCest(campo.id)" maxlength="9" placeholder="00.000.00"
-              :disabled="aguardandoAprovaçãoFiscal" />
+            <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="mascaraCest(campo.id)" maxlength="9" placeholder="00.000.00" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
-          <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-            :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
-            :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
+          <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
         </div>
       </div>
     </div>
@@ -145,28 +119,52 @@
       <div class="grid-3">
         <div v-for="campo in camposAdicionais" :key="campo.id" class="field">
           <label>{{ campo.label }}</label>
-          <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-            @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
-            </option>
+          <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
           </select>
-          <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-            :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
-            </option>
+          <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+            <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
           </select>
-          <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-            :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
-            :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
+          <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
         </div>
       </div>
     </div>
-    <div class="submit m-b direita actions" style="gap: 8px">
-      <button class="acao-secundaria" v-if="!isReadOnly && !isCadastro && produto_original.editavel"
-        @click="finalizarAtualizacao()">Finalizar Edição</button>
-      <button data-allow-when-readonly v-if="!isCadastro && !produto_original.editavel"
-        @click="enviarParaEdicao()">Enviar para Edição</button>
-      <button v-if="!isReadOnly" @click="salvarProduto()">{{ isCadastro ? "Cadastrar Produto" : "Salvar" }}</button>
+
+    <div>
+      <div class="submit m-b direita actions" style="gap: 8px">
+        <button class="acao-secundaria" v-if="!isReadOnly && !isCadastro && produto_original.editavel" @click="finalizarAtualizacao()">Finalizar Edição</button>
+        <button data-allow-when-readonly v-if="!isCadastro && !produto_original.editavel" @click="enviarParaEdicao()">Enviar para Edição</button>
+        <button v-if="!isReadOnly" @click="salvarProduto()">{{ isCadastro ? "Cadastrar Produto" : "Salvar" }}</button>
+      </div>
+
+      <!-- Aviso: rota do catálogo + produto em edição (sem botões aqui) -->
+      <div class="aviso-sistema" v-if="!isCadastro && produto_original.editavel && somenteVisualizacao">
+        <div class="aviso-sistema__titulo">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Produto em modo de edição</span>
+        </div>
+        <p class="aviso-sistema__texto">Este produto está em edição. Você está visualizando pelo catálogo, onde não é possível alterar. Para editar, acesse pelo menu <strong>Produtos em Edição</strong> e abra este produto na lista.</p>
+      </div>
+      <!-- Aviso: modo edição (Salvar / Finalizar) - rota de edição -->
+      <div class="aviso-sistema" v-if="!isCadastro && produto_original.editavel && !somenteVisualizacao">
+        <div class="aviso-sistema__titulo">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Como funciona a edição</span>
+        </div>
+        <ul class="aviso-sistema__lista">
+          <li><strong>Salvar:</strong> guarda as alterações apenas localmente, sem enviar para o Omie. Use para não perder o trabalho.</li>
+          <li><strong>Finalizar Edição:</strong> envia todas as alterações pendentes para o Omie e sincroniza o produto.</li>
+          <li>Após finalizar, o produto volta para o catálogo. Para editar novamente, abra-o pelo catálogo e clique em <strong>Enviar para Edição</strong>.</li>
+        </ul>
+      </div>
+      <!-- Aviso: somente visualização (Enviar para Edição) -->
+      <div class="aviso-sistema" v-if="!isCadastro && !produto_original.editavel">
+        <div class="aviso-sistema__titulo">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Como editar este produto</span>
+        </div>
+        <p class="aviso-sistema__texto">Use o botão <strong>Enviar para Edição</strong>, para liberar as alterações. O produto passará a ficar "Em edição" e você poderá editá-lo (Salvar localmente e Finalizar Edição para sincronizar com o Omie).</p>
+      </div>
     </div>
     <!-- MODAL FOTOS -->
     <div v-if="showModalFotos" class="modal-mask">
@@ -190,8 +188,7 @@
       </div>
     </div>
     <!-- MODAL EDITAR COMBO -->
-    <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
-      @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
+    <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo" @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
   </section>
 </template>
 <script>
@@ -647,7 +644,7 @@ export default {
       this.produto_original.especificacoes = this.produto_original.especificacoes.filter((item) => item != i);
       this.atualizarPayLoad(
         "especificacoes",
-        this.produto_original.especificacoes.map((i) => i.id)
+        this.produto_original.especificacoes.map((i) => i.id),
       );
     },
 
@@ -655,7 +652,7 @@ export default {
       this.produto_original.especificacoes.push(item);
       this.atualizarPayLoad(
         "especificacoes",
-        this.produto_original.especificacoes.map((i) => i.id)
+        this.produto_original.especificacoes.map((i) => i.id),
       );
     },
 
@@ -786,9 +783,7 @@ export default {
         const errosDetalhados = [];
         for (const [campo, mensagens] of Object.entries(responseData.errors)) {
           const nomeCampo = this.obterNomeCampo(campo);
-          const mensagensFormatadas = Array.isArray(mensagens)
-            ? mensagens.map((msg) => this.formatarMensagemValidacao(msg)).join(", ")
-            : this.formatarMensagemValidacao(mensagens);
+          const mensagensFormatadas = Array.isArray(mensagens) ? mensagens.map((msg) => this.formatarMensagemValidacao(msg)).join(", ") : this.formatarMensagemValidacao(mensagens);
           errosDetalhados.push(`${nomeCampo} ${mensagensFormatadas}`);
         }
         if (errosDetalhados.length > 0) {
@@ -1298,7 +1293,6 @@ select::-ms-expand {
 }
 
 @media (max-width: 600px) {
-
   .grid-5,
   .grid-4,
   .grid-3 {
@@ -1330,5 +1324,47 @@ select::-ms-expand {
 
 .field {
   background-color: transparent;
+}
+
+.aviso-sistema {
+  background: var(--cor-bg);
+  border: 1px solid var(--cor-primaria-media);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 1rem;
+}
+
+.aviso-sistema__titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--cor-primaria);
+}
+
+.aviso-sistema__titulo i {
+  font-size: 1.1rem;
+}
+
+.aviso-sistema__lista {
+  margin: 0;
+  padding-left: 1.4rem;
+  line-height: 1.6;
+  color: var(--cor-texto);
+}
+
+.aviso-sistema__lista li {
+  margin-bottom: 6px;
+}
+
+.aviso-sistema__lista li:last-child {
+  margin-bottom: 0;
+}
+
+.aviso-sistema__texto {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--cor-texto);
 }
 </style>
