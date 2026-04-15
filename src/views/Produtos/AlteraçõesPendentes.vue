@@ -41,6 +41,17 @@
               <label>Categoria do Orçamento</label>
               <SelectCategoriaOrcamento v-model="produto_original.id_categoria_orcamento" :dreTree="categoriasOrçamento" @update:modelValue="atualizarPayLoad('id_categoria_orcamento', $event)" />
             </div>
+            <div class="col-1">
+              <label>Item Estocável</label>
+              <select
+                :disabled="isReadOnly"
+                :value="produto_original.estocavel ? 'sim' : 'nao'"
+                @change="onEstocavelSelect($event)"
+              >
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+              </select>
+            </div>
           </div>
           <br />
           <div class="grid">
@@ -209,6 +220,7 @@ export default {
       aguardandoAprovaçãoFiscal: false,
       produto_original: {
         familia_id: null,
+        estocavel: true,
       },
 
       // produto_editado: {},
@@ -223,6 +235,7 @@ export default {
       payLoad: {
         usuario_id: null,
         ncm: "",
+        estocavel: true,
       },
       em_edicao: [],
       blocoVisivel: "informacoes",
@@ -741,6 +754,12 @@ export default {
     salvarTemplate() {
       console.log("aqui");
     },
+    onEstocavelSelect(event) {
+      const sim = event?.target?.value === "sim";
+      this.produto_original.estocavel = sim;
+      this.atualizarPayLoad("estocavel", sim);
+    },
+
     async atualizarPayLoad(chave, valor) {
       if (!chave) return;
       if (this.isReadOnly && !this.isCadastro) return;
@@ -764,6 +783,7 @@ export default {
     },
 
     obterNomeCampo(chave) {
+      if (chave === "estocavel") return "Item Estocável";
       if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
         return chave;
       }
@@ -849,6 +869,7 @@ export default {
           const bruto = {
             ...this.payLoad,
             editavel: true,
+            estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
             familia_id: this.produto_original.familia_id ?? this.payLoad.familia_id ?? null,
             campos_dinamicos,
           };
@@ -873,7 +894,10 @@ export default {
         }
 
         // edição com editavel = false (aplica direto e já manda Omie)
-        const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
+        const payloadAtualizar = {
+          familia_id: this.produto_original.familia_id ?? null,
+          estocavel: !!this.produto_original.estocavel,
+        };
         this.camposSelects
           .filter((campo) => campo.omie === 1)
           .forEach((campo) => {
@@ -950,6 +974,12 @@ export default {
         }
 
         this.em_edicao = resp.em_edicao;
+
+        const est = this.produto_original.estocavel;
+        const estNorm = est === true || est === 1 || est === "1";
+        const estOff = est === false || est === 0 || est === "0";
+        this.produto_original.estocavel = estNorm ? true : estOff ? false : true;
+        this.payLoad.estocavel = this.produto_original.estocavel;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
       }
