@@ -13,7 +13,7 @@
                     Instruções de Montagem
                 </h2>
                 <div class="orientacoes">
-                    <div class="bloco2 orientacao" v-for="o in instrucao.orientacoes" :key="o">
+                    <div class="bloco2 orientacao" v-for="o in instrucao.orientacoes" :key="o.id">
                         <div class="nome">
                             {{ o.nome }}
                         </div>
@@ -21,7 +21,7 @@
                             {{ o.descricao }}
                         </div>
                         <div class="anexos">
-                            <div v-for="(anexo, index) in o.anexos" :key="index" class="anexo">
+                            <div v-for="(anexo, index) in (o.anexos || [])" :key="anexo.id ?? index" class="anexo">
                                 <a v-if="isImage(anexo)" :href="`${this.storageUrl}${anexo.caminho}`" target="_blank">
                                     <img :src="getAnexoUrl(anexo)" alt="Anexo" />
                                     <span>{{ anexo.nome_original }}</span>
@@ -63,7 +63,17 @@ export default {
     },
 
     mounted() {
-        this.instrucao = this.etapa.instrucoes[0] ?? {};
+        const list = Array.isArray(this.etapa.instrucoes) ? this.etapa.instrucoes : [];
+        let instr = {};
+        if (list.length === 1) {
+            instr = list[0];
+        } else if (list.length > 1) {
+            instr = [...list].sort((a, b) => Number(b.id) - Number(a.id))[0];
+        }
+        this.instrucao = {
+            ...instr,
+            orientacoes: Array.isArray(instr.orientacoes) ? instr.orientacoes : []
+        };
     },
 
     methods: {
