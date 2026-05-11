@@ -63,9 +63,20 @@
 
 <script>
 import service from '@/services/serviceRoteiro3';
+import { useToast } from 'vue-toastification';
+
+/** Instrução exibida no modal: evita `instrucoes[0]` vazio quando há duplicatas antigas (bug de sync). */
+function escolherInstrucaoDaEtapa(etapa) {
+    const list = Array.isArray(etapa.instrucoes) ? etapa.instrucoes : [];
+    if (list.length === 0) return null;
+    if (list.length === 1) return list[0];
+    return [...list].sort((a, b) => Number(b.id) - Number(a.id))[0];
+}
 
 export default {
     name: 'ModalInstrucao',
+
+    emits: ['fechar', 'instrucao-criada'],
 
     props: {
         etapa: {
@@ -86,24 +97,46 @@ export default {
             idOrientaçãoEditada: null,
 
             storageUrl: process.env.VUE_APP_ROOT_STORAGE,
+            toast: useToast(),
         }
     },
 
-    mounted() {
-        this.instrucao = this.etapa.instrucoes[0] ?? this.criarInstrucao();
+    async mounted() {
+        await this.inicializarInstrucao();
     },
 
     methods: {
-        async cadastrarOrientacao() {
-            var payload = {
-                nome: `${(this.instrucao.orientacoes.length) + 1}`,
-                descricao: this.novaOrientacao,
-                instrucao_id: this.instrucao.id
+        async inicializarInstrucao() {
+            let instr = escolherInstrucaoDaEtapa(this.etapa);
+            if (!instr) {
+                instr = await this.criarInstrucao();
             }
+            if (!Array.isArray(instr.orientacoes)) {
+                instr.orientacoes = [];
+            }
+            this.instrucao = instr;
+        },
 
-            var response = await service.cadastrarOrientacao(payload);
-            this.instrucao.orientacoes.push(response);
-            this.novaOrientacao = null
+        async cadastrarOrientacao() {
+            if (!Array.isArray(this.instrucao.orientacoes)) {
+                this.instrucao.orientacoes = [];
+            }
+            try {
+                const payload = {
+                    nome: `${this.instrucao.orientacoes.length + 1}`,
+                    descricao: this.novaOrientacao,
+                    instrucao_id: this.instrucao.id
+                };
+                const response = await service.cadastrarOrientacao(payload);
+                this.instrucao.orientacoes.push({
+                    ...response,
+                    anexos: Array.isArray(response.anexos) ? response.anexos : []
+                });
+                this.novaOrientacao = null;
+            } catch (e) {
+                console.error(e);
+                this.toast.error('Não foi possível salvar a orientação.');
+            }
         },
 
         atualizarOrientacao(id, payload) {
@@ -112,20 +145,16 @@ export default {
 
         excluirOrientacao(id) {
             service.excluirOrientacao(id);
-            this.instrucao.orientacoes = this.instrucao.orientacoes.filter(o => o.id != id)
+            const ori = this.instrucao.orientacoes ?? [];
+            this.instrucao.orientacoes = ori.filter(o => o.id != id)
         },
 
         async criarInstrucao() {
-            if (this.etapa.instrucoes.length == 0) {
-                var payload = {
-                    etapa_id: this.etapa.id
-                }
-                var response = await service.cadastrarInstrucao(payload);
-
-                response.orientacoes = []
-
-                this.instrucao = response
-            }
+            const payload = { etapa_id: this.etapa.id };
+            const response = await service.cadastrarInstrucao(payload);
+            response.orientacoes = Array.isArray(response.orientacoes) ? response.orientacoes : [];
+            this.$emit('instrucao-criada', { etapaId: this.etapa.id, instrucao: response });
+            return response;
         },
 
         async excluirAnexo(idOri, idAnexo) {

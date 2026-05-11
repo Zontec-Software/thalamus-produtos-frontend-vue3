@@ -14,7 +14,7 @@
                             <th>Setor</th>
                             <th>SubSetor</th>
                             <th>Etapa</th>
-                            <th>Cod operação</th>
+                            <!-- <th>Cod operação</th> -->
                             <th>Operação</th>
                             <th>Instrução técnica</th>
                             <th>Tempo Padrão</th>
@@ -54,9 +54,9 @@
                                         </option>
                                     </select>
                                 </td>
-                                <td style="text-align:center;">
+                                <!-- <td style="text-align:center;">
                                     <span class="chip bg-cinza" style="font-size:14px;">{{ element.id }}</span>
-                                </td>
+                                </td> -->
                                 <td><input type="text" v-model="element.operacao"
                                         @focusout="atualizarEtapa(element.id, { operacao: element.operacao })"></td>
                                 <td><button data-allow-when-readonly class="acao-secundaria"
@@ -136,7 +136,8 @@
         <ModalNovaEtapa :setores="setores" :tiposEtapa="tiposEtapa" :roteiro_id="roteiro.id" v-if="modalCadastrar && !roteiroVisualizado"
             @fecharModal="fecharModal" />
         <ModalInstrucao v-if="(!readonly && versaoEdicao) && etapaDestacada" :readonly="readonly"
-            :etapa="etapaDestacada" :produto="roteiroAtual.produto" @fechar="etapaDestacada = null" />
+            :etapa="etapaDestacada" :produto="roteiroAtual.produto" @fechar="etapaDestacada = null"
+            @instrucao-criada="registrarInstrucaoNaEtapa" />
         <ModalVisualizacaoInstrucao v-if="(readonly || !versaoEdicao) && etapaDestacada" :etapa="etapaDestacada"
             :produto="roteiroAtual.produto" @fechar="etapaDestacada = null" />
         <!-- Modal Histórico de Versões -->
@@ -288,6 +289,14 @@ export default {
     },
 
     methods: {
+        registrarInstrucaoNaEtapa({ etapaId, instrucao }) {
+            const etapa = this.roteiroAtual.etapas?.find((e) => e.id === etapaId);
+            if (!etapa) return;
+            if (!Array.isArray(etapa.instrucoes)) {
+                etapa.instrucoes = [];
+            }
+            etapa.instrucoes.push(instrucao);
+        },
         async iniciarEdicao() {
             await service.iniciarEdicao(this.produto_cod);
             this.getRoteiro()
