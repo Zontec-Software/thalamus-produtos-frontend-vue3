@@ -64,14 +64,7 @@
 <script>
 import service from '@/services/serviceRoteiro3';
 import { useToast } from 'vue-toastification';
-
-/** Instrução exibida no modal: evita `instrucoes[0]` vazio quando há duplicatas antigas (bug de sync). */
-function escolherInstrucaoDaEtapa(etapa) {
-    const list = Array.isArray(etapa.instrucoes) ? etapa.instrucoes : [];
-    if (list.length === 0) return null;
-    if (list.length === 1) return list[0];
-    return [...list].sort((a, b) => Number(b.id) - Number(a.id))[0];
-}
+import { escolherInstrucaoDaEtapa } from './escolherInstrucaoEtapa';
 
 export default {
     name: 'ModalInstrucao',

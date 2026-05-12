@@ -40,6 +40,8 @@
 </template>
 
 <script>
+import { escolherInstrucaoDaEtapa } from './escolherInstrucaoEtapa';
+
 export default {
     name: 'VisualizarInstrucao',
 
@@ -63,13 +65,7 @@ export default {
     },
 
     mounted() {
-        const list = Array.isArray(this.etapa.instrucoes) ? this.etapa.instrucoes : [];
-        let instr = {};
-        if (list.length === 1) {
-            instr = list[0];
-        } else if (list.length > 1) {
-            instr = [...list].sort((a, b) => Number(b.id) - Number(a.id))[0];
-        }
+        const instr = escolherInstrucaoDaEtapa(this.etapa) ?? {};
         this.instrucao = {
             ...instr,
             orientacoes: Array.isArray(instr.orientacoes) ? instr.orientacoes : []
