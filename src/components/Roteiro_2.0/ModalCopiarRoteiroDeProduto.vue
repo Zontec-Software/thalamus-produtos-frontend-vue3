@@ -47,6 +47,14 @@
                         <table class="tabela-preview">
                             <thead>
                                 <tr>
+                                    <th style="text-align:center;">
+                                        <input
+                                            type="checkbox"
+                                            :checked="isAllEtapasSelecionadas"
+                                            @change="toggleTodasEtapas($event.target.checked)"
+                                            :disabled="!roteiroPreview?.etapas?.length"
+                                        />
+                                    </th>
                                     <th>#</th>
                                     <th>Setor</th>
                                     <th>Etapa</th>
@@ -58,6 +66,13 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(etapa, index) in roteiroPreview.etapas" :key="etapa.id">
+                                    <td style="text-align:center;">
+                                        <input
+                                            type="checkbox"
+                                            :checked="isEtapaSelecionada(etapa.id)"
+                                            @change="toggleEtapa(etapa.id, $event.target.checked)"
+                                        />
+                                    </td>
                                     <td>{{ index + 1 }}</td>
                                     <td>{{ etapa.setor?.nome || '-' }}</td>
                                     <td>{{ etapa.tipo?.nome || '-' }}</td>
@@ -72,6 +87,9 @@
                 </div>
 
                 <p v-if="loadingPreview" class="info">Carregando pré-visualização...</p>
+                <p v-else-if="roteiroPreview?.id" class="info">
+                    {{ etapasSelecionadasCount }} etapa(s) selecionada(s) para cópia.
+                </p>
                 <p class="alerta">
                     Ao confirmar, as etapas do rascunho atual serão substituídas pelos dados da versão selecionada.
                 </p>
@@ -108,6 +126,7 @@ export default {
             versoes: [],
             versaoSelecionadaId: '',
             roteiroPreview: null,
+            etapasSelecionadas: {},
             loadingVersoes: false,
             loadingPreview: false,
             debounceBuscaId: null
@@ -115,7 +134,14 @@ export default {
     },
     computed: {
         podeConfirmar() {
-            return !!this.roteiroPreview?.id && !this.loadingPreview;
+            return !!this.roteiroPreview?.id && !this.loadingPreview && this.etapasSelecionadasCount > 0;
+        },
+        etapasSelecionadasCount() {
+            return Object.values(this.etapasSelecionadas).filter(Boolean).length;
+        },
+        isAllEtapasSelecionadas() {
+            const etapas = this.roteiroPreview?.etapas || [];
+            return etapas.length > 0 && etapas.every((etapa) => this.etapasSelecionadas[etapa.id] === true);
         }
     },
     methods: {
@@ -124,6 +150,7 @@ export default {
             this.versoes = [];
             this.versaoSelecionadaId = '';
             this.roteiroPreview = null;
+            this.etapasSelecionadas = {};
             this.mensagemBusca = '';
 
             if (this.debounceBuscaId) {
@@ -170,6 +197,7 @@ export default {
             this.resultadosProdutos = [];
             this.versaoSelecionadaId = '';
             this.roteiroPreview = null;
+            this.etapasSelecionadas = {};
             await this.carregarVersoes();
         },
         async carregarVersoes() {
@@ -189,22 +217,55 @@ export default {
         async carregarPreviewVersao() {
             if (!this.versaoSelecionadaId) {
                 this.roteiroPreview = null;
+                this.etapasSelecionadas = {};
                 return;
             }
 
             this.loadingPreview = true;
             try {
                 this.roteiroPreview = await serviceRoteiro.getRoteiroPorId(this.versaoSelecionadaId);
+                this.etapasSelecionadas = this.getSelecaoPadraoEtapas(this.roteiroPreview?.etapas);
             } catch (error) {
                 console.error(error);
                 this.roteiroPreview = null;
+                this.etapasSelecionadas = {};
             } finally {
                 this.loadingPreview = false;
             }
         },
         confirmar() {
             if (!this.podeConfirmar) return;
-            this.$emit('confirmar-copia', Number(this.versaoSelecionadaId));
+            this.$emit('confirmar-copia', {
+                roteiroOrigemId: Number(this.versaoSelecionadaId),
+                etapasOrigemIds: this.getEtapasSelecionadasIds()
+            });
+        },
+        getSelecaoPadraoEtapas(etapas = []) {
+            return (etapas || []).reduce((acc, etapa) => {
+                acc[etapa.id] = true;
+                return acc;
+            }, {});
+        },
+        getEtapasSelecionadasIds() {
+            return Object.entries(this.etapasSelecionadas)
+                .filter(([, selecionada]) => selecionada)
+                .map(([id]) => Number(id));
+        },
+        isEtapaSelecionada(etapaId) {
+            return this.etapasSelecionadas[etapaId] === true;
+        },
+        toggleEtapa(etapaId, checked) {
+            this.etapasSelecionadas = {
+                ...this.etapasSelecionadas,
+                [etapaId]: checked
+            };
+        },
+        toggleTodasEtapas(checked) {
+            const etapas = this.roteiroPreview?.etapas || [];
+            this.etapasSelecionadas = etapas.reduce((acc, etapa) => {
+                acc[etapa.id] = checked;
+                return acc;
+            }, {});
         },
         contarInstrucoes(etapa) {
             return etapa?.instrucoes?.length || 0;
