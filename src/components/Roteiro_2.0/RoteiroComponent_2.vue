@@ -326,9 +326,13 @@ export default {
             this.toast.success("Versão publicada com sucesso!");
             this.getRoteiro()
         },
-        async copiarRoteiroDeVersao(roteiroOrigemId) {
+        async copiarRoteiroDeVersao(payload) {
             try {
-                await service.copiarRoteiroDeVersao(this.produto_cod, roteiroOrigemId);
+                await service.copiarRoteiroDeVersao(
+                    this.produto_cod,
+                    payload?.roteiroOrigemId,
+                    payload?.etapasOrigemIds || []
+                );
                 this.modalCopiarRoteiroAberto = false;
                 this.toast.success('Roteiro copiado com sucesso.');
                 this.getRoteiro();

@@ -97,10 +97,11 @@ export default {
         }
     },
 
-    async copiarRoteiroDeVersao(produto_cod, roteiro_origem_id) {
+    async copiarRoteiroDeVersao(produto_cod, roteiro_origem_id, etapas_origem_ids = []) {
         try {
             const response = await api.post(`roteiro_2/${produto_cod}/copiar-roteiro-de-versao`, {
-                roteiro_origem_id
+                roteiro_origem_id,
+                etapas_origem_ids
             });
             return response.data;
         } catch (error) {
