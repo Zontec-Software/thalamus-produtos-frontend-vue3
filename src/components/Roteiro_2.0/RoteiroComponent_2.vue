@@ -10,6 +10,7 @@
                 <table class="tabela">
                     <thead>
                         <tr>
+                            <th></th>
                             <th v-if="!readonly && versaoEdicao" style="width:40px;"></th>
                             <th>Setor</th>
                             <th>SubSetor</th>
@@ -22,8 +23,11 @@
                         </tr>
                     </thead>
                     <draggable v-model="roteiroAtual.etapas" tag="tbody" handle=".handle" animation="200" @end="salvarOrdem" :disabled="!!roteiroVisualizado">
-                        <template #item="{ element }">
+                        <template #item="{ element, index }">
                             <tr>
+                                <td>
+                                    {{ index + 1 }}º
+                                </td>
                                 <td style="text-align:center" class="handle" v-if="!readonly && versaoEdicao">
                                     <i class="bi-list drag-handle"></i>
                                 </td>
