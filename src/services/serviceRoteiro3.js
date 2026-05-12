@@ -97,6 +97,18 @@ export default {
         }
     },
 
+    async copiarRoteiroDeVersao(produto_cod, roteiro_origem_id) {
+        try {
+            const response = await api.post(`roteiro_2/${produto_cod}/copiar-roteiro-de-versao`, {
+                roteiro_origem_id
+            });
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
     async cadastrarEtapa(payload) {
         try {
             const response = await api.post(`roteiro_2/etapa`, payload);

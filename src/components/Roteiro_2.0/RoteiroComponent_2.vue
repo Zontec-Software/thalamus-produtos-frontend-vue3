@@ -26,7 +26,7 @@
                         <template #item="{ element, index }">
                             <tr>
                                 <td>
-                                    {{ index + 1 }}º
+                                    {{ index + 1 }}.
                                 </td>
                                 <td style="text-align:center" class="handle" v-if="!readonly && versaoEdicao">
                                     <i class="bi-list drag-handle"></i>
@@ -63,9 +63,13 @@
                                 </td> -->
                                 <td><input type="text" v-model="element.operacao"
                                         @focusout="atualizarEtapa(element.id, { operacao: element.operacao })"></td>
-                                <td><button data-allow-when-readonly class="acao-secundaria"
+                                <td>
+                                    <div class="alinha-centro">
+                                        <button data-allow-when-readonly class="acao-secundaria"
                                         @click="etapaDestacada = element">Inst.
-                                        Técnica</button></td>
+                                        Técnica</button>
+                                    </div>
+                                </td>
                                 <td><input type="text" v-model="element.tempo"
                                         @focusout="atualizarEtapa(element.id, { tempo: element.tempo })">
                                 </td>
@@ -121,6 +125,7 @@
             </div>
             <div v-if="!readonly && versaoEdicao && !roteiroVisualizado" class="botoes-container">
                 <button class="acao-secundaria" @click="modalCadastrar = true">Adicionar Etapa</button>
+                <button class="acao-secundaria" @click="modalCopiarRoteiroAberto = true">Copiar de outro produto</button>
                 <button @click="publicarVersao()">Publicar Versão</button>
                 <button type="button" class="acao-secundaria btn-historico" data-allow-when-readonly @click="abrirModalHistorico">Ver outras versões</button>
             </div>
@@ -144,6 +149,12 @@
             @instrucao-criada="registrarInstrucaoNaEtapa" />
         <ModalVisualizacaoInstrucao v-if="(readonly || !versaoEdicao) && etapaDestacada" :etapa="etapaDestacada"
             :produto="roteiroAtual.produto" @fechar="etapaDestacada = null" />
+        <ModalCopiarRoteiroDeProduto
+            v-if="modalCopiarRoteiroAberto && !roteiroVisualizado"
+            :produtoCodAtual="produto_cod"
+            @fechar="modalCopiarRoteiroAberto = false"
+            @confirmar-copia="copiarRoteiroDeVersao"
+        />
         <!-- Modal Histórico de Versões -->
         <div v-if="modalHistoricoAberto" class="modal-overlay" @click.self="fecharModalHistorico">
             <div class="modal-historico">
@@ -177,6 +188,7 @@ import service from '@/services/serviceRoteiro3';
 import ModalNovaEtapa from './ModalNovaEtapa.vue';
 import ModalInstrucao from './ModalInstrucao.vue';
 import ModalVisualizacaoInstrucao from './ModalVisualizacaoInstrucao.vue';
+import ModalCopiarRoteiroDeProduto from './ModalCopiarRoteiroDeProduto.vue';
 import draggable from 'vuedraggable'
 import { useToast } from 'vue-toastification'
 
@@ -232,6 +244,7 @@ export default {
         ModalNovaEtapa,
         ModalInstrucao,
         ModalVisualizacaoInstrucao,
+        ModalCopiarRoteiroDeProduto,
         draggable
     },
 
@@ -258,7 +271,8 @@ export default {
             modalHistoricoAberto: false,
             historicoVersoes: [],
             loadingHistorico: false,
-            roteiroVisualizado: null
+            roteiroVisualizado: null,
+            modalCopiarRoteiroAberto: false
         }
     },
 
@@ -311,6 +325,17 @@ export default {
             this.versaoEdicao = false;
             this.toast.success("Versão publicada com sucesso!");
             this.getRoteiro()
+        },
+        async copiarRoteiroDeVersao(roteiroOrigemId) {
+            try {
+                await service.copiarRoteiroDeVersao(this.produto_cod, roteiroOrigemId);
+                this.modalCopiarRoteiroAberto = false;
+                this.toast.success('Roteiro copiado com sucesso.');
+                this.getRoteiro();
+            } catch (error) {
+                const mensagem = error?.response?.data?.message || 'Não foi possível copiar o roteiro selecionado.';
+                this.toast.error(mensagem);
+            }
         },
 
         async criarRoteiro() {
