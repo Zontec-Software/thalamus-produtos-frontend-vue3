@@ -70,7 +70,6 @@
                                         @click="etapaDestacada = element">Inst.
                                         Técnica</button>
                                     </div>
-                                    
                                 </td>
                                 <td><input type="text" v-model="element.tempo"
                                         @focusout="atualizarEtapa(element.id, { tempo: element.tempo })">
