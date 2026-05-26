@@ -33,17 +33,18 @@
                                 </td>
                                 <td>
                                     <select v-model="element.setor"
-                                        @change="atualizarEtapa(element.id, { setor_id: element.setor.id })">
+                                        @change="atualizarEtapa(element.id, { setor_id: element.setor?.id })">
                                         <option :value="null" hidden></option>
-                                        <option hidden :value="element.setor">{{ element.setor.nome }}</option>
+                                        <option v-if="element.setor" hidden :value="element.setor">{{ element.setor.nome }}</option>
                                         <option v-for="s in setores" :key="s.id" :value="s">{{ s.nome }}</option>
                                     </select>
                                 </td>
                                 <td>
                                     <select v-model="element.sub_setor_id"
-                                        @change="atualizarEtapa(element.id, { sub_setor_id: element.sub_setor_id })">
+                                        @change="atualizarEtapa(element.id, { sub_setor_id: element.sub_setor_id })"
+                                        :disabled="!element.setor">
                                         <option :value="null" hidden></option>
-                                        <option v-for="s in element.setor.filho" :key="s.id" :value="s.id">{{ s.nome }}
+                                        <option v-for="s in (element.setor?.filho ?? [])" :key="s.id" :value="s.id">{{ s.nome }}
                                         </option>
                                     </select>
                                 </td>
