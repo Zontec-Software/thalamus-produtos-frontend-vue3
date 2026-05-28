@@ -50,7 +50,7 @@ const funções = {
         // temp produtos acabados e em processo
         //tipo: [4, 5],
         tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        aprovado: true,
+        //aprovado: true,
         paginacao: 1,
         page: pagina,
         //editavel: false, //comentado para nova lógica
