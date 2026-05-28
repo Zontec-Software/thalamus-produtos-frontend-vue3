@@ -177,7 +177,7 @@ export default {
           };
           if (this.exibirApenasEditavel) {
             payload.editavel = true;
-          } else {
+          } else if (!this.somenteVisualizacao) {
             payload.aprovado = true;
           }
           if (this.searchQuery) payload.termo = this.searchQuery;
