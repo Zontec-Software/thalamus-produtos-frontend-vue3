@@ -87,6 +87,18 @@
       </div>
       <div class="bloco2 container" v-if="blocoVisivel === 'informacoes'">
         <fieldset class="margem grid-4">
+          <div>
+            <label>Criticidade *</label>
+            <input
+              type="text"
+              maxlength="60"
+              v-model="produto_original.criticidade"
+              :required="true"
+              :disabled="isReadOnly && !isCadastro"
+              placeholder="Ex.: Alta, Média, Baixa"
+              @input="atualizarPayLoad('criticidade', produto_original.criticidade)"
+            />
+          </div>
           <div v-for="campo in camposAdicionais" :key="campo.id">
             <label>{{ campo.label }}</label>
             <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
@@ -221,6 +233,7 @@ export default {
       produto_original: {
         familia_id: null,
         estocavel: true,
+        criticidade: "",
       },
 
       // produto_editado: {},
@@ -400,6 +413,7 @@ export default {
         this.toast.error("Produto inválido para finalizar.");
         return;
       }
+      if (!this.validarCriticidade()) return;
       this.finalizandoAtualizacao = true;
       try {
         // salvar oque está na tela no staging (indica finalizar para gravar aprovador)
@@ -784,11 +798,27 @@ export default {
 
     obterNomeCampo(chave) {
       if (chave === "estocavel") return "Item Estocável";
+      if (chave === "criticidade") return "Criticidade";
       if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
         return chave;
       }
       const campo = this.camposSelects.find((c) => c.chave === chave);
       return campo?.label || chave;
+    },
+
+    validarCriticidade() {
+      const valor = String(this.produto_original?.criticidade ?? this.payLoad?.criticidade ?? "").trim();
+      if (!valor) {
+        this.toast.error("Criticidade é obrigatória.");
+        return false;
+      }
+      if (valor.length > 60) {
+        this.toast.error("Criticidade deve ter no máximo 60 caracteres.");
+        return false;
+      }
+      this.produto_original.criticidade = valor;
+      this.payLoad.criticidade = valor;
+      return true;
     },
 
     formatarMensagensErro(error) {
@@ -853,6 +883,8 @@ export default {
       this.salvandoProduto = true;
       try {
         this.errors = {};
+        if (!this.validarCriticidade()) return;
+
         const campoCest = this.camposSelects.find((c) => c.chave === "id_cest");
         const cest = campoCest ? this.valoresSelecionados[campoCest.id] : null;
         const regexCest = /^\d{2}\.\d{3}\.\d{2}$/;
@@ -868,6 +900,7 @@ export default {
           const campos_dinamicos = this.buildCamposDinamicosCadastro();
           const bruto = {
             ...this.payLoad,
+            criticidade: this.produto_original.criticidade,
             editavel: true,
             estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
             familia_id: this.produto_original.familia_id ?? this.payLoad.familia_id ?? null,
@@ -980,6 +1013,7 @@ export default {
         const estOff = est === false || est === 0 || est === "0";
         this.produto_original.estocavel = estNorm ? true : estOff ? false : true;
         this.payLoad.estocavel = this.produto_original.estocavel;
+        this.payLoad.criticidade = this.produto_original.criticidade ?? null;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
       }
