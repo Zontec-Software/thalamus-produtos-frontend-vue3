@@ -20,11 +20,13 @@
                         <tr>
                             <th>ID</th>
                             <th>Nome</th>
+                            <th>Produtos</th>
                             <th>Ações</th>
                         </tr>
                         <tr v-for="familia in filteredFamilias" :key="familia.id">
                             <td>{{ familia.id }}</td>
                             <td>{{ familia.nome }}</td>
+                            <td>{{ familia.produtos_count ?? 0 }}</td>
                             <td style=" justify-content:center;">
                                 <div style="display: flex;">
                                     <a style="transform: scale(0.8)" class="icone-editar" title="Editar"
@@ -172,7 +174,10 @@ export default {
                 this.fecharModal();
                 this.carregarFamilias();
             } catch (e) {
-                this.toast.error("Erro ao excluir família");
+                const data = e?.response?.data;
+                const detalhe = data?.error || data?.details?.faultstring || data?.details?.message;
+                const mensagem = [data?.message, detalhe].filter(Boolean).join(" — ") || "Erro ao excluir família";
+                this.toast.error(mensagem);
                 console.error(e);
                 this.excluindo = false;
             }
