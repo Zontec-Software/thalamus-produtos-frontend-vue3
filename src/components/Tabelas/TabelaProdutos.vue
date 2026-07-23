@@ -23,6 +23,9 @@
           <i class="fa-solid fa-caret-down" id="setaBaixoFamiliaProduto" style="display: none"></i>
         </th>
         <th v-if="!exibirAcoes" scope="col" style="white-space: nowrap">
+          <span>Publicação</span>
+        </th>
+        <th scope="col" style="white-space: nowrap">
           <span>Status</span>
         </th>
         <th v-if="exibirAcoes">Ações</th>
@@ -37,6 +40,11 @@
           <td v-if="!exibirAcoes">
             <span v-if="item.editavel">Em edição</span>
             <span v-else>Publicado</span>
+          </td>
+          <td>
+            <span :style="{ color: Number(item.status) === 1 ? 'var(--cor-sucesso)' : 'var(--cor-erro)' }">
+              {{ Number(item.status) === 1 ? "Ativo" : "Inativo" }}
+            </span>
           </td>
           <!-- teste -->
           <td @click.stop v-if="exibirAcoes">
