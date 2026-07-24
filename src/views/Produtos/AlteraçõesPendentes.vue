@@ -88,12 +88,11 @@
       <div class="bloco2 container" v-if="blocoVisivel === 'informacoes'">
         <fieldset class="margem grid-4">
           <div>
-            <label>Criticidade *</label>
+            <label>Criticidade</label>
             <input
               type="text"
               maxlength="60"
               v-model="produto_original.criticidade"
-              :required="true"
               :disabled="isReadOnly && !isCadastro"
               placeholder="Ex.: Alta, Média, Baixa"
               @input="atualizarPayLoad('criticidade', produto_original.criticidade)"
@@ -413,7 +412,7 @@ export default {
         this.toast.error("Produto inválido para finalizar.");
         return;
       }
-      if (!this.validarCriticidade()) return;
+      if (!this.normalizarCriticidade()) return;
       this.finalizandoAtualizacao = true;
       try {
         // salvar oque está na tela no staging (indica finalizar para gravar aprovador)
@@ -806,18 +805,14 @@ export default {
       return campo?.label || chave;
     },
 
-    validarCriticidade() {
+    normalizarCriticidade() {
       const valor = String(this.produto_original?.criticidade ?? this.payLoad?.criticidade ?? "").trim();
-      if (!valor) {
-        this.toast.error("Criticidade é obrigatória.");
-        return false;
-      }
       if (valor.length > 60) {
         this.toast.error("Criticidade deve ter no máximo 60 caracteres.");
         return false;
       }
       this.produto_original.criticidade = valor;
-      this.payLoad.criticidade = valor;
+      this.payLoad.criticidade = valor || null;
       return true;
     },
 
@@ -883,7 +878,7 @@ export default {
       this.salvandoProduto = true;
       try {
         this.errors = {};
-        if (!this.validarCriticidade()) return;
+        if (!this.normalizarCriticidade()) return;
 
         const campoCest = this.camposSelects.find((c) => c.chave === "id_cest");
         const cest = campoCest ? this.valoresSelecionados[campoCest.id] : null;
