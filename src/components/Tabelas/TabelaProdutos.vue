@@ -27,6 +27,30 @@
         </th>
         <th scope="col" style="white-space: nowrap">
           <span>Status</span>
+          <v-menu :close-on-content-click="false">
+            <template v-slot:activator="{ props }">
+              <span
+                class="mdi mdi-filter-variant fonte-maior icone"
+                :class="{ ativo: !filtroStatusCompleto }"
+                v-bind="props"
+                @click.stop
+                title="Filtrar status"
+              ></span>
+            </template>
+            <v-list>
+              <v-list-item>
+                <div style="display: flex; flex-flow: column; gap: 0.5rem">
+                  <div class="alinha-v" v-for="s in statusDisponiveis" :key="s">
+                    <input type="checkbox" :id="'status-' + s" v-model="filtroStatus" :value="s" />
+                    <label :for="'status-' + s" style="margin-bottom: 0">{{ s }}</label>
+                  </div>
+                </div>
+              </v-list-item>
+              <div style="display: flex; justify-content: center; padding: 0.5rem">
+                <span class="chip bg-sucesso" style="cursor: pointer" @click="aplicarFiltroStatus">Filtrar</span>
+              </div>
+            </v-list>
+          </v-menu>
         </th>
         <th v-if="exibirAcoes">Ações</th>
         <!-- <th v-if="exibirAcoes" style="text-align: center">Revisão</th> -->
@@ -110,7 +134,21 @@ export default {
       debounceTimer: null,
       debounceMs: 400,
       ultimoPayloadStr: "",
+      filtroStatus: ["Ativo"],
+      statusDisponiveis: ["Ativo", "Inativo"],
     };
+  },
+  computed: {
+    filtroStatusCompleto() {
+      return this.statusDisponiveis.every((v) => this.filtroStatus.includes(v));
+    },
+    statusApi() {
+      const temAtivo = this.filtroStatus.includes("Ativo");
+      const temInativo = this.filtroStatus.includes("Inativo");
+      if (temAtivo && temInativo) return "all";
+      if (temInativo && !temAtivo) return "0";
+      return "1";
+    },
   },
   async mounted() {
     this.carregarPagina(1);
@@ -131,6 +169,19 @@ export default {
   },
 
   methods: {
+    statusNoPayload(payload) {
+      payload.status = this.statusApi;
+      return payload;
+    },
+
+    aplicarFiltroStatus() {
+      if (!this.filtroStatus.length) {
+        this.filtroStatus = ["Ativo"];
+      }
+      this.ultimoPayloadStr = "";
+      this.carregarPagina(1);
+    },
+
     toListaProdutos(resp) {
       if (Array.isArray(resp)) return resp;
       if (resp && Array.isArray(resp.data)) return resp.data;
@@ -146,12 +197,10 @@ export default {
     },
 
     async pesquisarProdutosGuard() {
-      const payload = {
-        // temp produtos acabados e em processo
-        // tipo: [4, 5],
-        tipo: (this.filtroTipo && this.filtroTipo !== "") ? [Number(this.filtroTipo)] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      const payload = this.statusNoPayload({
+        tipo: this.filtroTipo && this.filtroTipo !== "" ? [Number(this.filtroTipo)] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         ...(this.exibirApenasEditavel ? { editavel: true } : {}),
-      };
+      });
       if (this.searchQuery) payload.termo = this.searchQuery;
       else if (this.filtroFamilia) payload.termo = this.filtroFamilia;
       else if (this.filtro) payload.termo = this.filtro;
@@ -175,27 +224,25 @@ export default {
         let resp;
         const temFiltro = !!this.searchQuery || (!!this.filtroTipo && this.filtroTipo !== "") || !!this.filtroFamilia || !!this.filtro;
 
-        if (temFiltro) {
-          // temp produtos acabados e em processo ((search na pagina de catalogo))
-          // const payload = { tipo: [4, 5] };
-          const payload = { 
-            tipo: (this.filtroTipo && this.filtroTipo !== "") ? [Number(this.filtroTipo)] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-            paginacao: 1,
-            page: pagina,
-          };
-          if (this.exibirApenasEditavel) {
-            payload.editavel = true;
-          } else if (!this.somenteVisualizacao) {
-            payload.aprovado = true;
-          }
-          if (this.searchQuery) payload.termo = this.searchQuery;
-          else if (this.filtroFamilia) payload.termo = this.filtroFamilia;
-          else if (this.filtro) payload.termo = this.filtro;
+        const payloadBase = this.statusNoPayload({
+          tipo: this.filtroTipo && this.filtroTipo !== "" ? [Number(this.filtroTipo)] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+          paginacao: 1,
+          page: pagina,
+        });
 
-          resp = await serviceProdutos.filtrarProdutos(payload);
-        } else {
-          resp = this.exibirApenasEditavel ? await serviceProdutos.getProdutosEditaveis(pagina) : await serviceProdutos.getProdutos(pagina);
+        if (this.exibirApenasEditavel) {
+          payloadBase.editavel = true;
+        } else if (!this.somenteVisualizacao) {
+          payloadBase.aprovado = true;
         }
+
+        if (temFiltro) {
+          if (this.searchQuery) payloadBase.termo = this.searchQuery;
+          else if (this.filtroFamilia) payloadBase.termo = this.filtroFamilia;
+          else if (this.filtro) payloadBase.termo = this.filtro;
+        }
+
+        resp = await serviceProdutos.filtrarProdutos(payloadBase);
 
         if (reqId !== this._reqId) return;
 
@@ -367,5 +414,21 @@ export default {
 .ação {
   font-size: 18px;
   color: var(--cor-fonte-fraca);
+}
+
+.icone {
+  cursor: pointer;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.icone.ativo {
+  border-bottom: 2px solid var(--cor-ok, var(--cor-primaria));
+}
+
+.alinha-v {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 </style>
