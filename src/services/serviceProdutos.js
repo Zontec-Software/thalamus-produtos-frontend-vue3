@@ -103,6 +103,48 @@ const funções = {
     }
   },
 
+  async exportarEstrutura(produtoCod, nomeArquivoSugerido) {
+    try {
+      const response = await api.get(`/estrutura/produto/${produtoCod}/exportar`, {
+        responseType: "blob",
+      });
+
+      const disposition = response.headers?.["content-disposition"] || "";
+      const match = /filename\*?=(?:UTF-8''|")?([^";]+)/i.exec(disposition);
+      const nomeArquivo = match
+        ? decodeURIComponent(match[1].replace(/"/g, ""))
+        : nomeArquivoSugerido || `estrutura_produto_${produtoCod}.xlsx`;
+
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nomeArquivo;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      let msg = "Erro ao exportar estrutura.";
+      const data = error?.response?.data;
+      if (data instanceof Blob) {
+        try {
+          const text = await data.text();
+          const json = JSON.parse(text);
+          msg = json.error || json.message || msg;
+        } catch (_) {
+          /* ignore */
+        }
+      } else if (data?.error || data?.message) {
+        msg = data.error || data.message;
+      } else if (error?.message) {
+        msg = error.message;
+      }
+      console.error(error);
+      throw new Error(msg);
+    }
+  },
+
   async adicionarItemEstrutura(payload) {
     // payloadEsperado: {
     // "produtoP_cod" : 11111, // código do produto pai

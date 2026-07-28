@@ -24,10 +24,22 @@
             </div>
             <div v-for="campo in camposBasicos" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'" v-model.number="valoresSelecionados[campo.id]" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-                <option disabled value="">Selecione</option>
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id">{{ opcao.valor }}</option>
-              </select>
+              <template v-if="campo.tipo === 'Lista' && campo.chave === 'status'">
+                <select
+                  v-model.number="valoresSelecionados[campo.id]"
+                  disabled
+                  title="Status sincronizado com o Omie"
+                >
+                  <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="Number(opcao.id)">{{ opcao.valor }}</option>
+                </select>
+                <small class="hint-status-omie">
+                  {{
+                    isCadastro
+                      ? "Novos produtos entram como Ativo. A inativação deve ser feita no Omie."
+                      : "O status é controlado pelo Omie. Para inativar, faça no Omie; o Thalamus atualiza automaticamente."
+                  }}
+                </small>
+              </template>
               <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
                 <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
@@ -158,6 +170,7 @@
         <ul class="aviso-sistema__lista">
           <li><strong>Salvar:</strong> guarda as alterações apenas localmente, sem enviar para o Omie. Use para não perder o trabalho.</li>
           <li><strong>Finalizar Edição:</strong> envia todas as alterações pendentes para o Omie e sincroniza o produto.</li>
+          <li><strong>Status (Ativo/Inativo):</strong> somente leitura. A inativação deve ser feita no Omie; o Thalamus atualiza automaticamente via integração.</li>
           <li>Após finalizar, o produto volta para o catálogo. Para editar novamente, abra-o pelo catálogo e clique em <strong>Enviar para Edição</strong>.</li>
         </ul>
       </div>
@@ -389,8 +402,13 @@ export default {
     },
 
     buildStagingPayload() {
+      const payLoad = { ...(this.payLoad || {}) };
+      // Status é controlado pelo Omie; não enviar no staging de edição
+      if (!this.isCadastro) {
+        delete payLoad.status;
+      }
       return {
-        ...this.payLoad,
+        ...payLoad,
         campos_dinamicos: this.camposSelects
           .filter((campo) => campo.omie !== 1)
           .map((campo) => {
@@ -776,6 +794,8 @@ export default {
     async atualizarPayLoad(chave, valor) {
       if (!chave) return;
       if (this.isReadOnly && !this.isCadastro) return;
+      // Status é controlado pelo Omie; não entra no staging de edição
+      if (chave === "status" && !this.isCadastro) return;
       this.payLoad[chave] = valor;
     },
     formatarMensagemValidacao(mensagem) {
@@ -1249,5 +1269,13 @@ i:hover {
   margin: 0;
   line-height: 1.6;
   color: var(--cor-texto);
+}
+
+.hint-status-omie {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--cor-fonte-fraca, #666);
 }
 </style>

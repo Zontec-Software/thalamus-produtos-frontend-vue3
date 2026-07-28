@@ -36,7 +36,18 @@
         </div> -->
       <div class="bloco2 sheet margem " v-if="exibirEstruturaERoteiro">
         <div class="section">
-          <div class="section__title">ESTRUTURA DO PRODUTO</div>
+          <div class="section__title section__title-estrutura">
+            <span>ESTRUTURA DO PRODUTO</span>
+            <button
+              type="button"
+              class="btn-exportar-estrutura"
+              title="Baixar planilha da estrutura completa"
+              :disabled="exportandoEstrutura || !produto?.produto_cod"
+              @click="exportarEstrutura"
+            >
+              <i :class="exportandoEstrutura ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-excel'"></i>
+            </button>
+          </div>
           <br />
           <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
             <div class="legenda-item"><span class="produto-tipo-indicador materia-prima"></span>Matéria Prima</div>
@@ -86,6 +97,7 @@ import serviceProdutos from "@/services/serviceProdutos";
 import { sso } from "roboflex-thalamus-sso-lib";
 import AlteraçõesPendentes_new from "./AlteraçõesPendentes_new.vue";
 import RoteiroComponent_2 from "@/components/Roteiro_2.0/RoteiroComponent_2.vue";
+import { useToast } from "vue-toastification";
 
 export default {
   name: "CadastroProduto",
@@ -96,6 +108,10 @@ export default {
     AlteraçõesPendentes_new,
     RoteiroComponent_2
     // ListaComponent
+  },
+  setup() {
+    const toast = useToast();
+    return { toast };
   },
   props: {
     id: { required: true },
@@ -112,6 +128,7 @@ export default {
       tiposProduto: ["Produto em Processo", "Produto Acabado"],
       produto: null,
       mostrarEstrutura: true,
+      exportandoEstrutura: false,
       mostrarModal: false,
       novoItem: {
         codigo: "",
@@ -205,6 +222,20 @@ export default {
     async getEstrutura(id) {
       var estrutura = await serviceProdutos.getEstrutura(id);
       this.produto.filhos = estrutura;
+    },
+    async exportarEstrutura() {
+      if (this.exportandoEstrutura || !this.produto?.produto_cod) return;
+      this.exportandoEstrutura = true;
+      try {
+        const sugestao = `estrutura_produto_${this.produto.cod || this.produto.produto_cod}.xlsx`;
+        await serviceProdutos.exportarEstrutura(this.produto.produto_cod, sugestao);
+        this.toast.success("Planilha da estrutura baixada.");
+      } catch (e) {
+        console.error("Erro ao exportar estrutura:", e);
+        this.toast.error(e?.message || "Não foi possível baixar a estrutura.");
+      } finally {
+        this.exportandoEstrutura = false;
+      }
     },
     abrirModal() {
       this.mostrarModal = true;
@@ -314,6 +345,33 @@ export default {
   padding-bottom: 8px;
   border-bottom: 3px solid var(--cor-primaria-media);
   font-weight: 800;
+}
+
+.section__title-estrutura {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.btn-exportar-estrutura {
+  border: none;
+  background: transparent;
+  color: #217346;
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.btn-exportar-estrutura:hover:not(:disabled) {
+  background: rgba(33, 115, 70, 0.1);
+}
+
+.btn-exportar-estrutura:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .section__title-roteiro {

@@ -31,11 +31,14 @@
           <!-- Lista STATUS (número) -->
           <div class="field" v-if="campo.tipo === 'Lista' && campo.chave === 'status'">
             <label>{{ campo.label }}</label>
-            <!-- STATUS -->
-            <select v-model.number="valoresSelecionados[campo.id]" :title="getLabel(campo.id, valoresSelecionados[campo.id])" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option value="">Selecione</option>
+            <select
+              v-model.number="valoresSelecionados[campo.id]"
+              disabled
+              :title="'Status sincronizado com o Omie'"
+            >
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="Number(opcao.id)">{{ opcao.valor }}</option>
             </select>
+            <small class="hint-status-omie">O status é controlado pelo Omie. Para inativar, faça no Omie.</small>
           </div>
           <!-- Lista -->
           <div class="field" v-else-if="campo.tipo === 'Lista'">
@@ -176,6 +179,7 @@
         <ul class="aviso-sistema__lista">
           <li><strong>Salvar:</strong> guarda as alterações apenas localmente, sem enviar para o Omie. Use para não perder o trabalho.</li>
           <li><strong>Finalizar Edição:</strong> envia todas as alterações pendentes para o Omie e sincroniza o produto.</li>
+          <li><strong>Status (Ativo/Inativo):</strong> somente leitura. A inativação deve ser feita no Omie; o Thalamus atualiza automaticamente via integração.</li>
           <li>Após finalizar, o produto volta para o catálogo. Para editar novamente, abra-o pelo catálogo e clique em <strong>Enviar para Edição</strong>.</li>
         </ul>
       </div>
@@ -1425,5 +1429,13 @@ select::-ms-expand {
   margin: 0;
   line-height: 1.6;
   color: var(--cor-texto);
+}
+
+.hint-status-omie {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--cor-fonte-fraca, #666);
 }
 </style>
