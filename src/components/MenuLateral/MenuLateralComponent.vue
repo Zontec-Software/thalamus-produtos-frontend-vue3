@@ -38,6 +38,9 @@
     <nav class="nav-maior separador" v-if="permissoes.includes(180)">
       <router-link to="/gestao-arquivos" active-class="ativo">Gestão de Arquivos</router-link>
     </nav>
+    <nav class="nav-maior separador" v-if="permissoes.includes(142)">
+      <router-link to="/comercial/faturamento-lm" active-class="ativo">Faturamento LM</router-link>
+    </nav>
   </aside>
 </template>
 <script>
