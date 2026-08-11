@@ -25,6 +25,8 @@ import GestaoArquivosDetalheView from "@/views/GestaoArquivos/GestaoArquivosDeta
 //Serviços
 import CatalogoServicos from "@/views/Serviços/CatalogoServicos.vue";
 import DemandaFamiliasView from "@/views/Serviços/DemandaFamiliasView.vue";
+// Comercial
+import FaturamentoLmView from "@/views/Comercial/FaturamentoLmView.vue";
 
 
 // redireciona usuario para LOGIN baseado no env
@@ -264,6 +266,14 @@ const routes = [
     name: 'CatalogoServico',
     component: CatalogoServicos,
     beforeEnter: guardPermissaoRoute
+  },
+  //Comercial
+  {
+    path: '/comercial/faturamento-lm',
+    name: 'FaturamentoLmView',
+    component: FaturamentoLmView,
+    beforeEnter: guardPermissaoRoute,
+    meta: { funcionalidadeId: 142 },
   },
 
 
