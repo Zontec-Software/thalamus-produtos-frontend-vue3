@@ -30,7 +30,7 @@
             <input
               ref="inputArquivo"
               type="file"
-              accept=".xlsx,.xlsm,.xls"
+              accept=".xlsx,.xlsm"
               :disabled="processando"
               @change="selecionarArquivo"
             />
@@ -170,9 +170,12 @@ export default {
         }
       } catch (error) {
         console.error("Erro ao processar planilha LM:", error);
+        const dados = error?.response?.data || {};
+        const erroDeCampo = Object.values(dados.errors || {})[0]?.[0];
         this.toast.error(
-          error?.response?.data?.error ||
-            error?.response?.data?.message ||
+          dados.error ||
+            erroDeCampo ||
+            dados.message ||
             "Não foi possível iniciar o processamento."
         );
       } finally {
