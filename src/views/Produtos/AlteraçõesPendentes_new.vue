@@ -33,12 +33,13 @@
             <label>{{ campo.label }}</label>
             <select
               v-model.number="valoresSelecionados[campo.id]"
-              disabled
-              :title="'Status sincronizado com o Omie'"
+              :disabled="statusSomenteLeitura"
+              :title="hintStatus"
+              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
             >
               <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="Number(opcao.id)">{{ opcao.valor }}</option>
             </select>
-            <small class="hint-status-omie">O status é controlado pelo Omie. Para inativar, faça no Omie.</small>
+            <small class="hint-status-omie">{{ hintStatus }}</small>
           </div>
           <!-- Lista -->
           <div class="field" v-else-if="campo.tipo === 'Lista'">
@@ -62,9 +63,13 @@
             </select>
           </div>
           <!-- Texto / Número / Decimal / Data -->
-          <div class="field" v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)">
+          <div class="field" v-else-if="isCampoInputSimples(campo.tipo)">
             <label>{{ campo.label }}</label>
             <input v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+          </div>
+          <div class="field" v-else>
+            <label>{{ campo.label }}</label>
+            <input v-model="valoresSelecionados[campo.id]" type="text" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
           </div>
         </template>
         <!-- Orçamento -->
@@ -105,7 +110,7 @@
         </div>
       </div>
       <div class="actions">
-        <button type="button" data-block-when-readonly @click="showModalFotos = true">Gerenciar Fotos</button>
+        <button type="button" data-block-when-readonly @click="showModalFotos = true" :disabled="isTemplate && isCadastro">Gerenciar Fotos</button>
       </div>
     </div>
     <!-- INFORMAÇÕES TÉCNICAS (FISCAIS) -->
@@ -159,7 +164,18 @@
       <div class="submit m-b direita actions" style="gap: 8px">
         <button class="acao-secundaria" v-if="!isReadOnly && !isCadastro && produto_original.editavel" @click="finalizarAtualizacao()">Finalizar Edição</button>
         <button data-allow-when-readonly v-if="!isCadastro && !produto_original.editavel" @click="enviarParaEdicao()">Enviar para Edição</button>
-        <button v-if="!isReadOnly" @click="salvarProduto()">{{ isCadastro ? "Cadastrar Produto" : "Salvar" }}</button>
+        <button v-if="!isReadOnly" @click="salvarProduto()">{{ rotuloBotaoSalvar }}</button>
+      </div>
+
+      <div class="aviso-sistema" v-if="isTemplate && isCadastro">
+        <div class="aviso-sistema__titulo">
+          <i class="fa-solid fa-copy"></i>
+          <span>Novo produto a partir de template</span>
+        </div>
+        <p class="aviso-sistema__texto">
+          Os dados foram copiados do produto <strong>{{ codTemplateOrigem }}</strong>.
+          Informe um <strong>código novo</strong> e ajuste o que precisar. Ao salvar, será criado um produto independente — o original não será alterado.
+        </p>
       </div>
 
       <!-- Aviso: rota do catálogo + produto em edição (sem botões aqui) -->
@@ -177,9 +193,12 @@
           <span>Como funciona a edição</span>
         </div>
         <ul class="aviso-sistema__lista">
-          <li><strong>Salvar:</strong> guarda as alterações apenas localmente, sem enviar para o Omie. Use para não perder o trabalho.</li>
-          <li><strong>Finalizar Edição:</strong> envia todas as alterações pendentes para o Omie e sincroniza o produto.</li>
-          <li><strong>Status (Ativo/Inativo):</strong> somente leitura. A inativação deve ser feita no Omie; o Thalamus atualiza automaticamente via integração.</li>
+          <li v-if="omieHabilitado"><strong>Salvar:</strong> guarda as alterações apenas localmente, sem enviar para o Omie. Use para não perder o trabalho.</li>
+          <li v-else><strong>Salvar:</strong> guarda as alterações no Thalamus. Use para não perder o trabalho.</li>
+          <li v-if="omieHabilitado"><strong>Finalizar Edição:</strong> envia todas as alterações pendentes para o Omie e sincroniza o produto.</li>
+          <li v-else><strong>Finalizar Edição:</strong> aplica as alterações e devolve o produto ao catálogo.</li>
+          <li v-if="omieHabilitado"><strong>Status (Ativo/Inativo):</strong> somente leitura. A inativação deve ser feita no Omie; o Thalamus atualiza automaticamente via integração.</li>
+          <li v-else><strong>Status (Ativo/Inativo):</strong> você altera nesta tela. Novos produtos entram como Ativo.</li>
           <li>Após finalizar, o produto volta para o catálogo. Para editar novamente, abra-o pelo catálogo e clique em <strong>Enviar para Edição</strong>.</li>
         </ul>
       </div>
@@ -189,7 +208,8 @@
           <i class="fa-solid fa-circle-info"></i>
           <span>Como editar este produto</span>
         </div>
-        <p class="aviso-sistema__texto">Use o botão <strong>Enviar para Edição</strong>, para liberar as alterações. O produto passará a ficar "Em edição" e você poderá editá-lo (Salvar localmente e Finalizar Edição para sincronizar com o Omie).</p>
+        <p v-if="omieHabilitado" class="aviso-sistema__texto">Use o botão <strong>Enviar para Edição</strong> para liberar as alterações. O produto passará a ficar "Em edição" e você poderá editá-lo (Salvar localmente e Finalizar Edição para sincronizar com o Omie).</p>
+        <p v-else class="aviso-sistema__texto">Use o botão <strong>Enviar para Edição</strong> para liberar as alterações. O produto passará a ficar "Em edição" e você poderá editá-lo (Salvar e Finalizar Edição para publicar no catálogo).</p>
       </div>
     </div>
     <!-- MODAL FOTOS -->
@@ -229,6 +249,10 @@ import { urlFoto } from "@/services/api";
 import serviceCampos from "@/services/camposPorFamilia-service";
 import { useToast } from "vue-toastification";
 import SelectCategoriaOrcamento from "@/components/SelectCategoriaOrcamento.vue";
+import { getUnidades } from "@/services/serviceUnidades";
+
+const CHAVES_OBRIGATORIAS = ["tipoProduto_id", "cod", "desc", "und", "status"];
+const ORDEM_CAMPOS_PRINCIPAIS = ["tipoProduto_id", "cod", "desc", "und", "status", "ncm"];
 
 export default {
   name: "AlteracoesPendentes_new",
@@ -246,7 +270,7 @@ export default {
   },
   data() {
     return {
-      ordemCamposPrincipais: ["tipoProduto_id", "familia_id", "cod", "desc", "und", "ncm"],
+      ordemCamposPrincipais: ORDEM_CAMPOS_PRINCIPAIS,
 
       funcionalidades: [],
       aguardandoAprovaçãoFiscal: false,
@@ -283,6 +307,9 @@ export default {
       valorCamposDinamicos: [],
       idIndicadorEscala: null,
       categoriasOrçamento: [],
+      unidades: [],
+      omieHabilitado: false,
+      templateCodOrigem: null,
     };
   },
 
@@ -291,14 +318,24 @@ export default {
     return { urlFoto, toast };
   },
   watch: {
-    "produto_original.familia_id": {
-      immediate: true,
-      handler(novaFamiliaId) {
-        if (novaFamiliaId) {
-          this.atualizarPayLoad("familia_id", novaFamiliaId);
-          this.sincronizarCamposComBaseNaFamilia(novaFamiliaId);
+    produto_cod: {
+      async handler(novo, antigo) {
+        if (!novo || novo === antigo || this.isCadastro) return;
+        this.isLoading = true;
+        try {
+          await this.carregarDadosProduto();
+          await this.carregarFotosProduto();
+        } catch (error) {
+          console.error("Erro ao recarregar produto:", error);
+        } finally {
+          this.isLoading = false;
         }
       },
+    },
+    "produto_original.familia_id"(novaFamiliaId, antigaFamiliaId) {
+      if (!novaFamiliaId || novaFamiliaId === antigaFamiliaId) return;
+      this.atualizarPayLoad("familia_id", novaFamiliaId);
+      this.sincronizarCamposComBaseNaFamilia(novaFamiliaId);
     },
   },
 
@@ -329,8 +366,10 @@ export default {
     },
 
     camposFiscaisVisiveis() {
-      const id = this.idIndicadorEscala;
-      const indicador = id ? this.valoresSelecionados[id] : null;
+      if (!this.omieHabilitado || !this.idIndicadorEscala) {
+        return this.camposFiscais;
+      }
+      const indicador = this.valoresSelecionados[this.idIndicadorEscala];
       return this.camposFiscais.filter((c) => c.chave !== "cnpj_fabricante" || indicador === "N");
     },
 
@@ -343,15 +382,55 @@ export default {
       const f = this.familias.find((x) => String(x.id) === String(this.produto_original.familia_id));
       return f ? f.nome : "";
     },
+
+    statusSomenteLeitura() {
+      return this.omieHabilitado || this.isReadOnly || this.isCadastro;
+    },
+
+    hintStatus() {
+      if (this.omieHabilitado) {
+        return this.isCadastro
+          ? "Novos produtos entram como Ativo. A inativação deve ser feita no Omie."
+          : "O status é controlado pelo Omie. Para inativar, faça no Omie; o Thalamus atualiza automaticamente.";
+      }
+      return this.isCadastro
+        ? "Novos produtos entram como Ativo. Você pode inativar depois, na edição."
+        : "Altere Ativo/Inativo nesta tela. A alteração entra em vigor ao finalizar a edição.";
+    },
+
+    rotuloBotaoSalvar() {
+      if (this.isTemplate && this.isCadastro) return "Criar produto";
+      if (this.isCadastro) return "Cadastrar Produto";
+      return "Salvar";
+    },
+
+    codTemplateOrigem() {
+      return this.templateCodOrigem || this.produto_cod || "";
+    },
   },
   async created() {
-    this.funcionalidades = await getPermissao();
+    if (!this.somenteVisualizacao) {
+      this.funcionalidades = await getPermissao();
+    }
     this.blocoVisivel = "informacoes";
 
     this.payLoad.usuario_id = sso.getUsuarioLogado().id;
     this.isLoading = true;
     try {
-      await Promise.all([this.isCadastro ? Promise.resolve() : this.carregarAlteracoes(), this.carregarNcm(), this.carregarCategoriasOrcamento(), this.carregarTiposProduto(), this.isCadastro ? Promise.resolve() : this.carregarFotosProduto(), this.carregarFamilias()]);
+      this.omieHabilitado = await serviceProdutos.empresaTemOmie();
+      await this.carregarUnidades();
+      await this.carregarTiposProduto();
+      await this.carregarFamilias();
+      await Promise.all([
+        this.isTemplate && this.produto_cod
+          ? this.carregarDadosTemplate()
+          : this.isCadastro
+            ? Promise.resolve()
+            : this.carregarDadosProduto(),
+        this.somenteVisualizacao || this.isCadastro ? Promise.resolve() : this.carregarNcm(),
+        this.carregarCategoriasOrcamento(),
+        this.isTemplate && this.isCadastro ? Promise.resolve() : this.isCadastro ? Promise.resolve() : this.carregarFotosProduto(),
+      ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -409,8 +488,12 @@ export default {
     },
 
     buildStagingPayload() {
+      const payLoad = { ...(this.payLoad || {}) };
+      if (!this.isCadastro && this.omieHabilitado) {
+        delete payLoad.status;
+      }
       return {
-        ...this.payLoad,
+        ...payLoad,
         campos_dinamicos: this.camposSelects
           .filter((campo) => campo.omie !== 1)
           .map((campo) => {
@@ -437,7 +520,7 @@ export default {
         // enviar flag finalizar para que o backend grave aprovador_id
         await serviceProdutos.salvarLocal(this.produto_cod, { ...payloadStaging, finalizar: true });
         await serviceProdutos.finalizarAtualizacao(this.produto_cod);
-        this.toast.success("Atualização finalizada e enviada ao Omie!");
+        this.toast.success(this.omieHabilitado ? "Atualização finalizada e enviada ao Omie!" : "Atualização finalizada!");
         // this.$router.push({ name: "ProdutosView" });
       } catch (error) {
         const mensagemErro = this.formatarMensagensErro(error);
@@ -494,6 +577,11 @@ export default {
           valores[campoTipo.id] = this.tipos.map((t) => ({ id: t.id, valor: t.nome }));
         }
 
+        const campoUnd = campos.find((c) => c.chave === "und");
+        if (campoUnd && this.unidades?.length) {
+          valores[campoUnd.id] = this.unidades.map((u) => ({ id: u.cod, valor: `${u.cod} - ${u.nome}` }));
+        }
+
         const campoStatus = campos.find((c) => c.chave === "status");
         if (campoStatus)
           valores[campoStatus.id] = [
@@ -546,30 +634,40 @@ export default {
         }));
 
         const stagedArr = this.valorCamposDinamicos || [];
-        const camposPrincipaisOrdem = ["tipoProduto_id", "cod", "desc", "und", "ncm"];
+        const camposPrincipaisOrdem = ORDEM_CAMPOS_PRINCIPAIS;
         // Campos S/N que recebem default "N" quando vazios (indicador_escala pode ficar vazio)
         const camposSNComDefault = ["cupom_fiscal", "market_place"];
 
         camposMapeados.forEach((campo) => {
+          if (CHAVES_OBRIGATORIAS.includes(campo.chave)) {
+            campo.obrigatorio = true;
+          }
+
           const stagedDyn = stagedArr.find((d) => d.campo_id === campo.id);
           let valorAtual;
 
           if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
             const lista = Array.isArray(stagedDyn?.valor_id) ? stagedDyn.valor_id : [];
             valorAtual = campo.tipo === "Lista" ? (lista.length ? lista[0] : "") : lista;
-          } else if (["Texto", "Número", "Decimal", "Data", "AreaTexto"].includes(campo.tipo)) {
+          } else if (this.isCampoInputSimples(campo.tipo) || campo.tipo === "AreaTexto") {
             valorAtual = stagedDyn && Object.prototype.hasOwnProperty.call(stagedDyn, "valor") ? stagedDyn.valor : null;
           }
 
-          const precisaFallback = valorAtual === undefined || valorAtual === null || (campo.tipo === "Lista" && valorAtual === "");
+          const precisaFallback = valorAtual === undefined || valorAtual === null || valorAtual === "" || (campo.tipo === "Lista" && valorAtual === "");
           if (precisaFallback) {
-            const doProduto = this.produto_original[campo.chave];
+            const doProduto = this.valorFixoDoProduto(campo.chave);
             if (doProduto !== undefined && doProduto !== null && doProduto !== "") {
               valorAtual = doProduto;
             }
           }
 
+          if (campo.chave === "status" && (valorAtual === null || valorAtual === undefined || valorAtual === "") && this.isCadastro) {
+            valorAtual = 1;
+          }
           if (campo.chave === "status" && valorAtual !== null && valorAtual !== "") {
+            valorAtual = typeof valorAtual === "string" ? Number(valorAtual) : valorAtual;
+          }
+          if (campo.chave === "tipoProduto_id" && valorAtual !== null && valorAtual !== "") {
             valorAtual = typeof valorAtual === "string" ? Number(valorAtual) : valorAtual;
           }
           if (camposSNComDefault.includes(campo.chave) && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
@@ -612,6 +710,42 @@ export default {
       }
     },
 
+    isCampoInputSimples(tipo) {
+      return ["Texto", "Número", "Decimal", "Data", "integer", "Integer", "int"].includes(tipo);
+    },
+
+    valorFixoDoProduto(chave) {
+      const aliases = {
+        peso_liq: ["peso_liq", "peso_liquido"],
+        peso_liquido: ["peso_liquido", "peso_liq"],
+        dias_crossdocking: ["dias_crossdocking", "dias_de_crossdocking"],
+        dias_de_crossdocking: ["dias_de_crossdocking", "dias_crossdocking"],
+      };
+      const keys = aliases[chave] || [chave];
+      for (const k of keys) {
+        const v = this.produto_original?.[k];
+        if (v !== undefined && v !== null && v !== "") return v;
+      }
+      return null;
+    },
+
+    aplicarAliasesProduto(produto) {
+      if (!produto) return produto;
+      if ((produto.peso_liq === undefined || produto.peso_liq === null || produto.peso_liq === "") && produto.peso_liquido != null && produto.peso_liquido !== "") {
+        produto.peso_liq = produto.peso_liquido;
+      }
+      if ((produto.peso_liquido === undefined || produto.peso_liquido === null || produto.peso_liquido === "") && produto.peso_liq != null && produto.peso_liq !== "") {
+        produto.peso_liquido = produto.peso_liq;
+      }
+      if ((produto.dias_crossdocking === undefined || produto.dias_crossdocking === null || produto.dias_crossdocking === "") && produto.dias_de_crossdocking != null && produto.dias_de_crossdocking !== "") {
+        produto.dias_crossdocking = produto.dias_de_crossdocking;
+      }
+      if ((produto.dias_de_crossdocking === undefined || produto.dias_de_crossdocking === null || produto.dias_de_crossdocking === "") && produto.dias_crossdocking != null && produto.dias_crossdocking !== "") {
+        produto.dias_de_crossdocking = produto.dias_crossdocking;
+      }
+      return produto;
+    },
+
     formatarData(data) {
       if (!data) return "-";
       try {
@@ -639,6 +773,10 @@ export default {
 
     async adicionarFoto(event) {
       if (this.isReadOnly) return;
+      if (this.isTemplate && this.isCadastro) {
+        this.toast.info("Salve o produto primeiro para adicionar fotos.");
+        return;
+      }
       const file = event.target.files[0];
       if (!file) return;
       if (this.fotosProduto.length >= 4) {
@@ -749,6 +887,7 @@ export default {
     async atualizarPayLoad(chave, valor) {
       if (!chave) return;
       if (this.isReadOnly && !this.isCadastro) return;
+      if (chave === "status" && !this.isCadastro && this.omieHabilitado) return;
       this.payLoad[chave] = valor;
     },
 
@@ -863,20 +1002,36 @@ export default {
         }
 
         if (this.isCadastro) {
+          const cod = String(this.payLoad.cod ?? this.produto_original.cod ?? "").trim();
+          if (!cod) {
+            this.toast.error("Informe o código do novo produto.");
+            return;
+          }
           const campos_dinamicos = this.buildCamposDinamicosCadastro();
           const bruto = {
             ...this.payLoad,
+            cod,
             criticidade: this.produto_original.criticidade,
             editavel: true,
             estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
             familia_id: this.produto_original.familia_id ?? this.payLoad.familia_id ?? null,
+            id_categoria_orcamento:
+              this.produto_original.id_categoria_orcamento ?? this.payLoad.id_categoria_orcamento ?? null,
             campos_dinamicos,
           };
           const payload = this.normalizeCadastroPayload(bruto);
           if (this.projetoId) payload.projeto_id = Number(this.projetoId);
-          await serviceProdutos.cadastrarProdutoOMIE(payload);
-          this.toast.success("Produto enviado com sucesso!");
-          // this.$router.push({ name: "CatalogoView" });
+          const resposta = await serviceProdutos.cadastrarProdutoOMIE(payload);
+          const msg = this.isTemplate ? "Produto criado a partir do template!" : "Produto enviado com sucesso!";
+          this.toast.success(msg);
+          if (this.isTemplate) {
+            const novoCod = resposta?.produto?.produto_cod ?? null;
+            if (novoCod) {
+              this.$router.push({ name: "cadastroProduto", params: { id: novoCod } });
+            } else {
+              this.$router.push({ name: "ProdutosView" });
+            }
+          }
           return;
         }
 
@@ -930,6 +1085,37 @@ export default {
       }
     },
 
+    async carregarDadosProduto() {
+      if (!this.produto_cod || this.isCadastro) return;
+      await this.carregarAlteracoes();
+      const familiaId = this.produto_original?.familia_id;
+      if (familiaId) {
+        await this.sincronizarCamposComBaseNaFamilia(familiaId);
+      }
+    },
+
+    async carregarDadosTemplate() {
+      if (!this.produto_cod) return;
+      await this.carregarAlteracoes();
+      this.templateCodOrigem = this.produto_original.cod || this.produto_cod;
+      const familiaId = this.produto_original?.familia_id;
+      if (familiaId) {
+        await this.sincronizarCamposComBaseNaFamilia(familiaId);
+      }
+      this.limparCodigoParaNovoProduto();
+      this.fotosProduto = [];
+      this.indiceAtual = 0;
+    },
+
+    limparCodigoParaNovoProduto() {
+      this.produto_original.cod = "";
+      delete this.payLoad.cod;
+      const campoCod = this.camposSelects.find((c) => c.chave === "cod");
+      if (campoCod) {
+        this.valoresSelecionados[campoCod.id] = "";
+      }
+    },
+
     async carregarAlteracoes() {
       if (!this.produto_cod) return;
       try {
@@ -948,14 +1134,20 @@ export default {
           });
 
         if (this.somenteVisualizacao) {
-          this.produto_original = resp.produto_original;
           this.valorCamposDinamicos = toCompact(resp.campos_dinamicos || []);
+          this.produto_original = this.aplicarAliasesProduto(resp.produto_original);
         } else {
-          this.produto_original = resp.produto_editado;
-          const dinStaging = Array.isArray(resp.produto_editado?.campos_dinamicos) ? resp.produto_editado.campos_dinamicos : null;
-          this.valorCamposDinamicos = dinStaging ?? toCompact(resp.campos_dinamicos || []);
+          this.valorCamposDinamicos =
+            Array.isArray(resp.produto_editado?.campos_dinamicos) && resp.produto_editado.campos_dinamicos.length
+              ? resp.produto_editado.campos_dinamicos
+              : toCompact(resp.campos_dinamicos || []);
+          this.produto_original = this.aplicarAliasesProduto(resp.produto_editado);
         }
         this.em_edicao = resp.em_edicao;
+
+        if (this.produto_original?.familia_id != null && this.produto_original.familia_id !== "") {
+          this.produto_original.familia_id = Number(this.produto_original.familia_id);
+        }
 
         const est = this.produto_original.estocavel;
         const estNorm = est === true || est === 1 || est === "1";
@@ -994,6 +1186,15 @@ export default {
         this.tipos = (lista || []).sort((a, b) => a.nome.localeCompare(b.nome));
       } catch (error) {
         console.error("Erro ao carregar Tipos de Produto:", error);
+      }
+    },
+
+    async carregarUnidades() {
+      try {
+        this.unidades = (await getUnidades()) || [];
+      } catch (error) {
+        console.error("Erro ao carregar unidades de medida:", error);
+        this.unidades = [];
       }
     },
   },

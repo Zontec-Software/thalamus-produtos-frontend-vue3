@@ -19,19 +19,12 @@
         </div>
         <ul class="aviso-catalogo__lista">
           <li>No catálogo você sempre visualiza a <strong>versão oficial</strong> de cada produto (última publicada). Mesmo que um produto esteja "Em edição", você verá a versão oficial.</li>
-          <li><strong>Publicado</strong> = versão oficial (já no Omie). <strong>Em edição</strong> = alterações em andamento, ainda não publicadas.</li>
+          <li v-if="omieHabilitado"><strong>Publicado</strong> = versão oficial (já no Omie). <strong>Em edição</strong> = alterações em andamento, ainda não publicadas.</li>
+          <li v-else><strong>Publicado</strong> = versão oficial no catálogo. <strong>Em edição</strong> = alterações em andamento, ainda não publicadas.</li>
         </ul>
       </div>
       <div class="bloco margem">
-        <div style="display: flex; justify-content: end">
-          <div style="margin-bottom: 16px; width: 220px">
-            <select v-model="filtroTipo" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px">
-              <option value="">Todos os tipos</option>
-              <option v-for="tipo in tiposProduto" :key="tipo.id" :value="tipo.id">{{ tipo.tipo_cod }} - {{ tipo.nome }}</option>
-            </select>
-          </div>
-        </div>
-        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroTipo="filtroTipo" :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" :exibirAcoes="false" :somenteVisualizacao="true" />
+        <TabelaProdutos ref="tabela" :searchQuery="searchQuery" :filtro="filtro" :filtroFamilia="filtroFamilia" :exibirApenasEditavel="false" :exibirAcoes="false" :somenteVisualizacao="true" />
         <!-- <NovosProdutos v-if="blocoVisivel == 'novosProdutos'"></NovosProdutos> -->
       </div>
     </div>
@@ -39,10 +32,8 @@
 </template>
 <script>
 import TabelaProdutos from "@/components/Tabelas/TabelaProdutos.vue";
-// import BotaoFlutuante from "@/components/Botão/BotaoFlutuante.vue";
 import { getPermissao } from "@/services/permissao-service";
 import serviceProdutos from "@/services/serviceProdutos";
-// import NovosProdutos from "@/components/Tabelas/NovosProdutos.vue";
 
 export default {
   name: "ControleProdutos",
@@ -53,34 +44,23 @@ export default {
   },
   data() {
     return {
-      tiposProduto: [],
       searchQuery: "",
       filtro: "",
       blocoVisivel: "catalogo",
       funcionalidades: [],
-      filtroTipo: "",
       filtroFamilia: "",
-      familiasProduto: [],
+      omieHabilitado: false,
     };
   },
   async created() {
     this.funcionalidades = await getPermissao();
-
-    try {
-      this.tiposProduto = await serviceProdutos.listarTiposProduto();
-    } catch (error) {
-      console.error("Erro ao buscar tipos de produto:", error);
-    }
-
+    this.omieHabilitado = await serviceProdutos.empresaTemOmie();
     this.blocoVisivel = this.funcionalidades.includes(113) ? "catalogo" : "novosProdutos";
   },
 
   methods: {
     cadastrarProduto() {
-      this.$router.push({
-        name: "cadastroProduto",
-        params: { id: "Produto Acabado" },
-      });
+      this.$router.push({ name: "cadastroProdutoNovo" });
     },
     mostrarBloco(bloco) {
       if (this.blocoVisivel === bloco) {

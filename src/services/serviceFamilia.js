@@ -1,8 +1,10 @@
 import { api } from "roboflex-thalamus-request-handler";
 
-async function listarFamilias() {
+async function listarFamilias(options = {}) {
     try {
-        const response = await api.get('familia/listar');
+        const response = await api.get('familia/listar', {
+            params: options.incluirInativas ? { status: 'all' } : {},
+        });
         return response.data;
     } catch (error) {
         console.error("Erro ao buscar familias:", error);

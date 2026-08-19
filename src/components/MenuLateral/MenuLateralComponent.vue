@@ -23,6 +23,7 @@
       <!-- <router-link to="/parametrosTeste" active-class="ativo">Parametros de Teste</router-link>
       <router-link to="/gabarito" active-class="ativo">Gabaritos</router-link> -->
       <router-link to="/familia" active-class="ativo">Famílias de Produtos</router-link>
+      <router-link to="/tipo-produto" active-class="ativo">Tipo de Produto</router-link>
       <router-link to="/configurar" active-class="ativo">Campos por Família</router-link>
       <!-- <router-link to="/codificacoes" active-class="ativo">Codificação de Serviços</router-link> -->
     </nav>

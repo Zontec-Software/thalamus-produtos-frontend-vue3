@@ -63,8 +63,6 @@
 <script>
 import serviceProdutos from "@/services/serviceProdutos";
 
-const TIPOS_GESTAO_ARQUIVOS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-
 export default {
   name: "GestaoArquivosView",
   data() {
@@ -86,7 +84,6 @@ export default {
       this.carregando = true;
       try {
         const payload = {
-          tipo: TIPOS_GESTAO_ARQUIVOS,
           paginacao: 1,
           page: this.paginaAtual,
         };

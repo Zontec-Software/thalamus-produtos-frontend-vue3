@@ -1,38 +1,60 @@
 <template>
-  <div class="item-container" @click="toggle" :class="{
-    'has-children': hasChildren,
-    'is-open': isOpen,
-    'destaque-vermelho': item.destaque,
-  }">
+  <div
+    class="item-container"
+    @click="toggle"
+    :class="{
+      'has-children': hasChildren,
+      'is-open': isOpen,
+      'destaque-vermelho': item.destaque,
+    }"
+  >
     <i :class="caretIcon"></i>
     <span :class="classeProduto" class="tipo-produto"></span>
     <div class="item-description alinha-v" :title="item.desc ?? item.produto_desc">
-      <span> {{ item.produto_codigo ?? item.cod }} - {{ item.desc ?? item.produto_desc }} </span>
-      <span> - </span>
-      <div class="qtdUnidade" v-if="item.qt && item.unidade" @click.stop>
-        <!-- <input type="text" :readonly="!editavel" @blur="atualizaItem(item.id, 'qt', itemCopia.qt)"
-          v-model="itemCopia.qt"> -->
-        <span> {{ item.qt }}</span>
+      <span>{{ item.produto_codigo ?? item.cod }} - {{ item.desc ?? item.produto_desc }}</span>
+      <span v-if="exibirQuantidade"> - </span>
+      <div class="qtdUnidade" v-if="exibirQuantidade" @click.stop>
+        <input
+          v-if="editavel && item.id"
+          type="text"
+          @blur="atualizaItem(item.id, 'qt', itemCopia.qt)"
+          v-model="itemCopia.qt"
+        />
+        <span v-else>{{ item.qt }}</span>
         <span>{{ item.unidade }}</span>
       </div>
-      <!-- <i class="bi bi-trash" v-if="editavel" @click.stop="confirmarRemocao(item)"
-        style="font-size: 15px; cursor: pointer; color: red; margin-left: .5rem"></i> -->
+      <i
+        v-if="editavel && item.id"
+        class="bi bi-trash"
+        @click.stop="confirmarRemocao(item)"
+        style="font-size: 15px; cursor: pointer; color: red; margin-left: 0.5rem"
+      ></i>
     </div>
   </div>
   <div v-if="isOpen" class="child-items">
-    <EstruturaComponent v-for="(childItem, index) in itemCopia.filhos" :key="index" :item="childItem"
-      @removerItem="removerItem" :editavel="podeEditar" :unidades="unidades" />
-    <!-- <div v-if="iniciarAberto || item.destaque" class="add-item">
+    <EstruturaComponent
+      v-for="(childItem, index) in itemCopia.filhos"
+      :key="childItem.id ?? index"
+      :item="childItem"
+      @removerItem="removerItem"
+      @atualizar="$emit('atualizar')"
+      :editavel="editavel"
+      :unidades="unidades"
+    />
+    <div v-if="editavel && codigoPai" class="add-item">
       <i class="bi bi-plus-square"></i>
-      <AutoCompleteComponent @adicionarItem="adicionarItem" @abrirModalNovoItem="abrirModal" />
-    </div> -->
+      <AutoCompleteComponent
+        :substituir="false"
+        :id="autocompleteId"
+        @adicionarItem="adicionarItem"
+      />
+    </div>
   </div>
-  <!-- MODAL -->
   <div class="modal-mask" v-if="modalConfirmacao" @click="fecharModalConfirmacao()">
     <div class="jm margem" @click.stop>
       <div class="alinha-centro">
         <h3>Confirmar Remoção</h3>
-        <p>Tem certeza que deseja remover?</p>
+        <p>Tem certeza que deseja remover este item da estrutura?</p>
       </div>
       <div class="submit direita">
         <button @click="removerConfirmado">Remover</button>
@@ -40,34 +62,41 @@
       </div>
     </div>
   </div>
-  <!--END MODAL -->
 </template>
 <script>
-//import AutoCompleteComponent from '@/components/AutoComplete/AutoCompleteComponent.vue';
+import AutoCompleteComponent from "@/components/AutoComplete/AutoCompleteComponent.vue";
 import serviceProdutos from "@/services/serviceProdutos";
+
 export default {
   name: "EstruturaComponent",
   components: {
-    //AutoCompleteComponent,
+    AutoCompleteComponent,
   },
   props: {
     item: { Required: true },
     iniciarAberto: { type: Boolean, default: false },
-    editavel: { Required: true },
-    unidades: { type: Array },
+    editavel: { type: Boolean, default: false },
+    unidades: { type: Array, default: () => [] },
   },
   data() {
     return {
-      podeEditar: true,
       itemCopia: this.item,
       isOpen: this.iniciarAberto,
       modalConfirmacao: false,
       itemParaRemocao: null,
     };
   },
+  watch: {
+    item: {
+      deep: true,
+      handler(val) {
+        this.itemCopia = val;
+      },
+    },
+  },
   computed: {
     hasChildren() {
-      return this.item?.filhos?.length > 0 ? true : false;
+      return (this.itemCopia?.filhos?.length ?? 0) > 0 || this.editavel;
     },
     caretIcon() {
       return this.hasChildren
@@ -75,6 +104,15 @@ export default {
           ? "bi-caret-down-square"
           : "bi-caret-right-square"
         : "bi-dash-square";
+    },
+    codigoPai() {
+      return this.item?.produto_cod ?? null;
+    },
+    autocompleteId() {
+      return `estrutura-add-${this.codigoPai ?? "root"}`;
+    },
+    exibirQuantidade() {
+      return this.item.id && (this.item.qt != null || this.editavel);
     },
     classeProduto() {
       switch (this.item.tipo?.nome ?? this.item.produto_tipo) {
@@ -103,42 +141,55 @@ export default {
       this.itemParaRemocao = null;
     },
     removerConfirmado() {
-      if (this.itemParaRemocao) {
-        if (this.itemParaRemocao.id === this.item.id) {
-          this.$emit('removerItem', this.item.id);
-        } else {
-          this.removerItem(this.itemParaRemocao.id);
-        }
+      if (this.itemParaRemocao?.id) {
+        this.removerItem(this.itemParaRemocao.id);
       }
       this.fecharModalConfirmacao();
     },
-    removerItem(id) {
-      this.itemCopia.filhos = this.itemCopia.filhos.filter(item => item.id !== id);
-      serviceProdutos.removerItemEstrutura(id)
-    },
-    async adicionarItem(i) {
-      console.log(i, this.item)
-      // if (this.item.filhos.map(i => i.produtoF_cod).includes(i.produto_cod)) {
-      //   return;
-      // }
-      // var payload = {
-      //   produtoP_cod: this.item.produto_cod, // código do produto pai
-      //   produtoF_cod: i.produto_cod, // código do produto filho
-      //   qt: 1,
-      //   unidade: "UN"
-      // }
-      // await serviceProdutos.adicionarItemEstrutura(payload);
-      // this.$emit("atualizar", this.item.produto_cod);
-    },
-    async atualizaItem(id, itemEditado, valor) {
-      var payload = {
-        [itemEditado]: valor,
+    async removerItem(id) {
+      try {
+        await serviceProdutos.removerItemEstrutura(id);
+        if (Array.isArray(this.itemCopia.filhos)) {
+          this.itemCopia.filhos = this.itemCopia.filhos.filter((item) => item.id !== id);
+        }
+        this.$emit("atualizar");
+      } catch (error) {
+        console.error("Erro ao remover item da estrutura:", error);
       }
-      await serviceProdutos.atualizarItemEstrutura(id, payload)
+    },
+    async adicionarItem(produto) {
+      if (!this.codigoPai || !produto?.produto_cod) return;
+
+      const filhos = this.itemCopia.filhos || [];
+      if (filhos.some((f) => String(f.produto_cod) === String(produto.produto_cod))) {
+        return;
+      }
+
+      const payload = {
+        produtoP_cod: this.codigoPai,
+        produtoF_cod: produto.produto_cod,
+        qt: 1,
+      };
+
+      try {
+        await serviceProdutos.adicionarItemEstrutura(payload);
+        this.isOpen = true;
+        this.$emit("atualizar");
+      } catch (error) {
+        console.error("Erro ao adicionar item na estrutura:", error);
+      }
+    },
+    async atualizaItem(id, campo, valor) {
+      if (!id || valor === this.item[campo]) return;
+      try {
+        await serviceProdutos.atualizarItemEstrutura(id, { [campo]: valor });
+        this.$emit("atualizar");
+      } catch (error) {
+        console.error("Erro ao atualizar item da estrutura:", error);
+      }
     },
     toggle() {
       if (this.hasChildren) {
-        this.podeEditar = !this.podeEditar;
         this.isOpen = !this.isOpen;
       }
     },
@@ -149,16 +200,18 @@ export default {
 .qtdUnidade {
   background-color: var(--cor-cinza);
   border-radius: 6px;
-  padding: 0 calc(var(--margem)/2);
+  padding: 0 calc(var(--margem) / 2);
   width: 9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
 
-  input {
-    width: 6rem;
-    height: 2rem;
-    background: none;
-    border-color: transparent;
-  }
-
+.qtdUnidade input {
+  width: 6rem;
+  height: 2rem;
+  background: none;
+  border-color: transparent;
 }
 
 .bi-trash:hover {
@@ -188,7 +241,7 @@ export default {
   text-overflow: ellipsis;
   margin: 0 0.5rem;
   cursor: pointer;
-  gap: .5rem;
+  gap: 0.5rem;
 }
 
 .child-items {
@@ -203,6 +256,7 @@ export default {
   display: flex;
   align-items: center;
   margin-top: 5px;
+  gap: 0.5rem;
 }
 
 i {
@@ -240,44 +294,5 @@ i {
 
 .produto-acabado {
   background-color: #00ff15;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.modal {
-  background-color: white;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 10000;
-  max-width: 500px;
-  width: 100%;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-body {
-  margin: 10px 0;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
 }
 </style>

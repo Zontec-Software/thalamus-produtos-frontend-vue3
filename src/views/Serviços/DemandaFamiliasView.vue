@@ -33,6 +33,9 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr v-if="filteredFamilias.length === 0">
+                            <td colspan="3" style="text-align: center;">Nenhuma família cadastrada</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -132,8 +135,10 @@ export default {
         async carregarFamilias() {
             try {
                 const response = await serviceDemandaServicos.listarFamilias();
-                this.familias = response.data || response;
+                const payload = response?.data ?? response;
+                this.familias = Array.isArray(payload) ? payload : [];
             } catch (error) {
+                this.familias = [];
                 this.toast.error('Erro ao listar famílias')
                 console.error("Erro ao listar famílias:", error);
             }
