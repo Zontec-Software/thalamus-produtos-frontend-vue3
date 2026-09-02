@@ -16,7 +16,7 @@
     "core-js": "^3.8.3",
     "dotenv": "^16.4.7",
     "roboflex-thalamus-componentes-vue3-lib": "^0.1.63",
-    "roboflex-thalamus-request-handler": "^1.0.8",
+    "roboflex-thalamus-request-handler": "^1.0.10",
     "roboflex-thalamus-sso-lib": "^1.0.8",
     "roboflex-thalamus-utils-lib": "^1.0.6",
     "sass-loader": "^16.0.5",
