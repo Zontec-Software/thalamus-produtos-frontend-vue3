@@ -34,7 +34,7 @@
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-      <div class="bloco2 sheet margem " v-if="exibirEstruturaERoteiro">
+      <div class="bloco2 sheet margem " v-if="exibirEstrutura">
         <div class="section">
           <div class="section__title section__title-estrutura">
             <span>ESTRUTURA DO PRODUTO</span>
@@ -55,14 +55,20 @@
             </div>
             <div class="legenda-item"><span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado</div>
           </div>
-          <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto"
-            @atualizar="getEstrutura" :editavel="false" :unidades="unidades" />
+          <EstruturaComponent
+            v-if="mostrarEstrutura && produto"
+            :iniciarAberto="true"
+            :item="produto"
+            @atualizar="atualizarEstrutura"
+            :editavel="estruturaEditavel"
+            :unidades="unidades"
+          />
           <div class="alinha-centro" v-else>
             <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
           </div>
         </div>
       </div>
-      <div class="bloco2 sheet margem" v-if="exibirEstruturaERoteiro">
+      <div class="bloco2 sheet margem" v-if="exibirRoteiro">
         <div class="section">
           <div>
             <div class="section__title section__title-roteiro">
@@ -154,17 +160,40 @@ export default {
     isEdicao() {
       return !!this.id && /^\d+$/.test(String(this.id));
     },
-    exibirEstruturaERoteiro() {
-      const tipoId = this.produto?.tipo?.id;
-      return this.isEdicao && (tipoId === 4 || tipoId === 5);
+    exibirEstrutura() {
+      return this.isEdicao && !!this.produto?.tipo?.possui_estrutura;
+    },
+    exibirRoteiro() {
+      return this.isEdicao && !!this.produto?.tipo?.possui_roteiro;
+    },
+    estruturaEditavel() {
+      return !this.somenteVisualizacao && this.isEdicao;
     },
   },
 
   async created() {
     this.usuarioLogado = sso.getUsuarioLogado();
     this.usuarioId = this.usuarioLogado.id;
+    if (this.somenteVisualizacao) {
+      // Catálogo: a ficha carrega os dados; evita produto-buscar + estrutura duplicados
+      this.produto = { produto_cod: this.id, filhos: [] };
+      this.mostrarEstrutura = false;
+      return;
+    }
     this.unidades = await getUnidades();
     await this.getProduto();
+  },
+  watch: {
+    id(novoId, antigoId) {
+      if (novoId && String(novoId) !== String(antigoId)) {
+        if (this.somenteVisualizacao) {
+          this.produto = { produto_cod: novoId, filhos: [] };
+          this.mostrarEstrutura = false;
+          return;
+        }
+        this.getProduto();
+      }
+    },
   },
   methods: {
     listarProdutos(payload) {
@@ -206,7 +235,8 @@ export default {
         // edição existente
         const produtoEditado = await serviceProdutos.getProdutoByCod(this.id);
         this.produto = produtoEditado ?? { filhos: [] };
-        if (produtoEditado) {
+        const exibeEstrutura = !!produtoEditado?.tipo?.possui_estrutura;
+        if (produtoEditado && exibeEstrutura) {
           this.getEstrutura(produtoEditado.produto_cod);
           this.mostrarEstrutura = true;
         } else {
@@ -222,6 +252,10 @@ export default {
     async getEstrutura(id) {
       var estrutura = await serviceProdutos.getEstrutura(id);
       this.produto.filhos = estrutura;
+    },
+    async atualizarEstrutura() {
+      if (!this.produto?.produto_cod) return;
+      await this.getEstrutura(this.produto.produto_cod);
     },
     async exportarEstrutura() {
       if (this.exportandoEstrutura || !this.produto?.produto_cod) return;
