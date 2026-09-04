@@ -484,6 +484,15 @@ export default {
         delete p.dias_de_crossdocking;
       }
       if ("null" in p) delete p.null;
+
+      // Select de status fica desabilitado no cadastro; payload às vezes sai "".
+      // Novos produtos entram como Ativo (1). Com Omie o backend também força 1.
+      if (p.status === "" || p.status === null || p.status === undefined || Number.isNaN(Number(p.status))) {
+        p.status = 1;
+      } else {
+        p.status = Number(p.status);
+      }
+
       return p;
     },
 
@@ -888,6 +897,10 @@ export default {
       if (!chave) return;
       if (this.isReadOnly && !this.isCadastro) return;
       if (chave === "status" && !this.isCadastro && this.omieHabilitado) return;
+      if (chave === "status" && (valor === "" || valor === null || valor === undefined)) {
+        if (!this.isCadastro) return;
+        valor = 1;
+      }
       this.payLoad[chave] = valor;
     },
 
