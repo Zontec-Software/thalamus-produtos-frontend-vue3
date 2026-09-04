@@ -1,18 +1,35 @@
 import { api } from "roboflex-thalamus-request-handler";
 
+function paramsTipo(filtroTipo) {
+  const bruto = Array.isArray(filtroTipo)
+    ? filtroTipo
+    : filtroTipo === undefined || filtroTipo === null || filtroTipo === ""
+      ? []
+      : [filtroTipo];
+  const ids = [...new Set(bruto.map((v) => Number(v)).filter((id) => Number.isFinite(id) && id > 0))];
+  if (!ids.length) return {};
+  return { tipo: ids };
+}
+
+let omieHabilitadoCache = null;
+
 const funções = {
-  // '1',  'Mercadoria para Revenda'
-  // '2', 'Matéria Prima'
-  // '3', 'Embalagem'
-  // '4', 'Produto em Processo'
-  // '5', 'Produto Acabado'
-  // '6', 'Subproduto',
-  // '7', 'Produto Intermediário',
-  // '8' , 'Material de Uso e Consumo',
-  // '9', 'Ativo Imobilizado',
-  // '10, 'Serviços',
-  // '11', 'Outros Insumos',
-  // '12, 'Outras',
+  paramsTipo,
+
+  async empresaTemOmie({ force = false } = {}) {
+    if (omieHabilitadoCache !== null && !force) {
+      return omieHabilitadoCache;
+    }
+    try {
+      const { data } = await api.get("/auth/me");
+      omieHabilitadoCache = !!data?.omie_habilitado;
+      return omieHabilitadoCache;
+    } catch (error) {
+      console.error("Erro ao consultar integração Omie da empresa:", error);
+      return false;
+    }
+  },
+
   async filtrarProdutos(payload) {
     return await api.get("/produto-filtrar", { params: payload });
   },
@@ -47,13 +64,8 @@ const funções = {
   async getProdutos(pagina = 1) {
     try {
       const payload = {
-        // temp produtos acabados e em processo
-        //tipo: [4, 5],
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        //aprovado: true,
         paginacao: 1,
         page: pagina,
-        //editavel: false, //comentado para nova lógica
       };
 
       const response = await api.get("/produto-filtrar", { params: payload });
@@ -67,9 +79,6 @@ const funções = {
   async getProdutosEditaveis(pagina = 1) {
     try {
       const payload = {
-        // temp produtos acabados e em processo
-        //tipo: [4, 5],
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         paginacao: 1,
         page: pagina,
         editavel: true,
@@ -184,7 +193,7 @@ const funções = {
     try {
       // base de filtros: sempre manda "tipo"
       const base = {
-        tipo: filtroTipo ? [filtroTipo] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        ...paramsTipo(filtroTipo),
       };
 
       // manda "termo"
@@ -216,9 +225,7 @@ const funções = {
 
   async getTipoeFamilias() {
     try {
-      const payload = {
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      };
+      const payload = {};
 
       const responseProdutos = await api.get("/produto-filtrar", {
         params: payload,
@@ -394,6 +401,10 @@ const funções = {
       console.error("Erro ao finalizar cadastro:", error);
       throw error;
     }
+  },
+
+  async finalizarCadastro(id, payload) {
+    return this.finalizarAtualizacao(id, payload);
   },
 
   //ALTERA APENAS NO THALAMUS

@@ -5,8 +5,5 @@ module.exports = defineConfig({
   devServer: {
     allowedHosts: "all",
     host: 'localhost',
-    client: {
-      webSocketURL: 'ws://localhost:8080/ws',
-    },
   },
 })

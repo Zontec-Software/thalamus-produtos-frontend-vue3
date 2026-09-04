@@ -35,7 +35,9 @@ export default {
     },
     methods: {
         async getProdutos() {
-            this.opcoes = await serviceProdutos.getProdutos()
+            const resp = await serviceProdutos.getProdutos();
+            const lista = Array.isArray(resp?.data) ? resp.data : Array.isArray(resp) ? resp : [];
+            this.opcoes = lista;
         },
         mostrarInput() {
             this.mostrarBotao = false;
