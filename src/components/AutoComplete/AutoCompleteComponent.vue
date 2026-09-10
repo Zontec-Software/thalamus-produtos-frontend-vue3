@@ -3,19 +3,31 @@
         <div v-if="mostrarBotao" class="tags">
             <a @click="mostrarInput()">Substituir</a>
         </div>
-        <input v-else :id="id" @blur="fecharLista" @focus="mostrarLista = true" type="text"
-            v-model="itemSelecionado.desc" placeholder="Adicionar item" />
-        <ul v-if="mostrarLista" class="lista">
-            <!-- <li v-if="!substituir" @click="novoLembrete">Novo Lembrete <i class="fa-solid fa-lightbulb"
-                    style="color: red;"></i></li> -->
-            <li v-for="item in opcoesFiltradas" :key="item.id" @click="adicionarItem(item)">
-                {{ item.cod }} - {{ item.desc }}
-            </li>
+        <input v-else :id="id" @blur="fecharLista" @focus="mostrarLista = true" @input="onDigitar" type="text"
+            v-model="termo" placeholder="Adicionar item (mín. 3 caracteres)" autocomplete="off" />
+        <ul v-if="mostrarLista && !mostrarBotao" class="lista">
+            <li v-if="!termoValido" class="dica">Digite pelo menos {{ MIN_CARACTERES }} caracteres para buscar.</li>
+            <li v-else-if="buscando" class="dica">Buscando…</li>
+            <li v-else-if="!opcoes.length" class="dica">Nenhum produto encontrado.</li>
+            <template v-else>
+                <li class="dica">
+                    {{ opcoes.length }} produto(s) encontrado(s)<span v-if="temMais"> — exibindo
+                        {{ MAX_EXIBIDOS }}, refine a busca</span>
+                </li>
+                <li v-for="item in opcoesVisiveis" :key="item.id" @mousedown.prevent="adicionarItem(item)">
+                    {{ item.cod }} - {{ item.desc }}
+                </li>
+            </template>
         </ul>
     </div>
 </template>
 <script>
 import serviceProdutos from '@/services/serviceProdutos'
+
+const DEBOUNCE_MS = 350;
+const MIN_CARACTERES = 3;
+const MAX_EXIBIDOS = 30;
+
 export default {
     name: 'AutoComplete',
     props: {
@@ -24,20 +36,62 @@ export default {
     },
     data() {
         return {
+            MIN_CARACTERES,
+            MAX_EXIBIDOS,
             mostrarBotao: this.substituir,
             mostrarLista: false,
-            itemSelecionado: { desc: '' },
-            opcoes: []
+            termo: '',
+            opcoes: [],
+            buscando: false,
+            debounceId: null,
+            requisicaoAtual: null,
         };
     },
-    mounted() {
-        this.getProdutos()
+    beforeUnmount() {
+        clearTimeout(this.debounceId);
+        this.requisicaoAtual?.abort();
+    },
+    computed: {
+        termoValido() {
+            return this.termo.trim().length >= MIN_CARACTERES;
+        },
+        opcoesVisiveis() {
+            return this.opcoes.slice(0, MAX_EXIBIDOS);
+        },
+        temMais() {
+            return this.opcoes.length > MAX_EXIBIDOS;
+        },
     },
     methods: {
-        async getProdutos() {
-            const resp = await serviceProdutos.getProdutos();
-            const lista = Array.isArray(resp?.data) ? resp.data : Array.isArray(resp) ? resp : [];
-            this.opcoes = lista;
+        onDigitar() {
+            this.mostrarLista = true;
+            clearTimeout(this.debounceId);
+            this.requisicaoAtual?.abort();
+            this.opcoes = [];
+
+            if (!this.termoValido) {
+                this.buscando = false;
+                return;
+            }
+
+            this.buscando = true;
+            this.debounceId = setTimeout(this.buscarProdutos, DEBOUNCE_MS);
+        },
+        async buscarProdutos() {
+            const controller = new AbortController();
+            this.requisicaoAtual = controller;
+
+            try {
+                this.opcoes = await serviceProdutos.buscarProdutosPorTermo(this.termo, { signal: controller.signal });
+            } catch (error) {
+                if (error?.code === 'ERR_CANCELED') return;
+                this.opcoes = [];
+            } finally {
+                if (this.requisicaoAtual === controller) {
+                    this.requisicaoAtual = null;
+                    this.buscando = false;
+                }
+            }
         },
         mostrarInput() {
             this.mostrarBotao = false;
@@ -46,7 +100,8 @@ export default {
             })
         },
         adicionarItem(item) {
-            this.itemSelecionado = { desc: '' };
+            this.termo = '';
+            this.opcoes = [];
             item.filhos = [];
             this.$emit('adicionarItem', item)
         },
@@ -60,14 +115,6 @@ export default {
             this.$emit('abrirModalNovoItem');
             this.mostrarLista = false;
         }
-    },
-    computed: {
-        opcoesFiltradas() {
-            return this.opcoes.filter(item =>
-                item.desc?.toLowerCase().includes(this.itemSelecionado.desc?.toLowerCase()) ||
-                item.cod?.toLowerCase().includes(this.itemSelecionado.desc?.toLowerCase())
-            );
-        },
     },
 }
 </script>
@@ -92,7 +139,7 @@ input {
 
 .lista {
     background-color: var(--cor-bg);
-    width: 16rem;
+    width: 24rem;
     position: absolute;
     list-style-type: none;
     padding: 0;
@@ -100,7 +147,8 @@ input {
     margin-left: .4rem;
     color: var(--cor-fonte) !important;
     max-height: 20rem;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     z-index: 9999;
 
     li {
@@ -113,6 +161,16 @@ input {
 
     li:hover {
         background-color: var(--cor-primaria-fraca);
+    }
+
+    li.dica {
+        cursor: default;
+        color: var(--cor-fonte-fraca);
+        font-size: 12px;
+    }
+
+    li.dica:hover {
+        background-color: var(--cor-bg);
     }
 }
 </style>

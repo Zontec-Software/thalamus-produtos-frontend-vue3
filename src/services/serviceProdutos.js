@@ -76,6 +76,22 @@ const funções = {
     }
   },
 
+  /** Busca no servidor por código/descrição. Sem `paginacao`, o backend devolve todos os resultados do termo. */
+  async buscarProdutosPorTermo(termo, { signal } = {}) {
+    try {
+      const params = { termo: String(termo ?? "").trim() };
+      const response = await api.get("/produto-filtrar", { params, signal });
+      const dados = response.data;
+
+      return Array.isArray(dados?.data) ? dados.data : Array.isArray(dados) ? dados : [];
+    } catch (error) {
+      if (error?.code !== "ERR_CANCELED") {
+        console.error("Erro ao buscar produtos por termo:", error);
+      }
+      throw error;
+    }
+  },
+
   async getProdutosEditaveis(pagina = 1) {
     try {
       const payload = {
