@@ -180,8 +180,9 @@
             </div>
         </div>
     </section>
-    <div v-else-if="!readonly && !loading" class="alinha-centro">
-        <button @click="criarRoteiro()">Criar Roteiro</button>
+    <div v-else-if="!loading" class="alinha-centro">
+        <button v-if="!readonly" @click="criarRoteiro()">Criar Roteiro</button>
+        <span v-else style="color: var(--cor-erro); font-size: 20px">Roteiro não encontrado</span>
     </div>
 </template>
 
