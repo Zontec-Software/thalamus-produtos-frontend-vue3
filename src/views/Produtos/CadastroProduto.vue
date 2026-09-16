@@ -174,23 +174,12 @@ export default {
   async created() {
     this.usuarioLogado = sso.getUsuarioLogado();
     this.usuarioId = this.usuarioLogado.id;
-    if (this.somenteVisualizacao) {
-      // Catálogo: a ficha carrega os dados; evita produto-buscar + estrutura duplicados
-      this.produto = { produto_cod: this.id, filhos: [] };
-      this.mostrarEstrutura = false;
-      return;
-    }
     this.unidades = await getUnidades();
     await this.getProduto();
   },
   watch: {
     id(novoId, antigoId) {
       if (novoId && String(novoId) !== String(antigoId)) {
-        if (this.somenteVisualizacao) {
-          this.produto = { produto_cod: novoId, filhos: [] };
-          this.mostrarEstrutura = false;
-          return;
-        }
         this.getProduto();
       }
     },
