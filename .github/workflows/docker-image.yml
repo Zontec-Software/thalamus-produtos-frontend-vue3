@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ "producao", "homologacao" ]
 
+env:
+  KUBE_CONFIG: ${{ github.ref_name == 'producao' && secrets.KUBE_CONFIG || secrets.KUBE_CONFIG_HML}}
+  NAMESPACE: ${{ github.ref_name == 'producao' && 'thalamus-prd' || 'thalamus-hml' }}
+  AMBIENTE:  ${{ github.ref_name == 'producao' && 'production' || 'staging' }}
+  IMAGE_TAG:  ${{ github.ref_name == 'producao' && 'latest' || 'hml' }}
+
 jobs:
 
   build:
@@ -19,38 +25,24 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # Faz o build da imagem para ambiente de homologacao
-    - name: Build imagem docker Homologacao
-      if: github.ref == 'refs/heads/homologacao'
-      run: docker build . --build-arg AMBIENTE=staging -t devroboflex/thalamus-produtos-frontend:hml
+    # Faz o build da imagem 
+    - name: Build imagem docker
+      run: docker build . --build-arg AMBIENTE=${{ env.AMBIENTE }} -t devroboflex/thalamus-produtos-frontend:${{ env.IMAGE_TAG }}
 
-    - name: Push imagem docker homologacao
-      if: github.ref == 'refs/heads/homologacao'
-      run: docker push devroboflex/thalamus-produtos-frontend:hml
-
-    # Faz o build da imagem para o ambiente de producao
-    - name: Build imagem docker Produção
-      if: github.ref == 'refs/heads/producao'
-      run: docker build . --build-arg AMBIENTE=production -t devroboflex/thalamus-produtos-frontend:latest
-
-    - name: Push imagem docker Producao
-      if: github.ref == 'refs/heads/producao'
-      run: docker push devroboflex/thalamus-produtos-frontend:latest
+    - name: Push imagem docker 
+      run: docker push devroboflex/thalamus-portal-frontend:${{ env.IMAGE_TAG }}
 
     - name: Setup kubeconfig
-      if: github.ref == 'refs/heads/producao'
       run: |
         mkdir -p $HOME/.kube
-        echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+        echo "${{ env.KUBE_CONFIG }}" > $HOME/.kube/config
         chmod 600 $HOME/.kube/config
     
     - name: Install kubectl
-      if: github.ref == 'refs/heads/producao'
       uses: azure/setup-kubectl@v3
       with:
         version: 'v1.28.0'
 
-    - name: Deploy
-      if: github.ref == 'refs/heads/producao'
+    - name: Deploy 
       run: |
-        kubectl -n thalamus-prd rollout restart deployment/thalamus-produtos
+        kubectl -n ${{ env.NAMESPACE }} rollout restart deployment/thalamus-produtos
