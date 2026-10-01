@@ -30,7 +30,7 @@ jobs:
       run: docker build . --build-arg AMBIENTE=${{ env.AMBIENTE }} -t devroboflex/thalamus-produtos-frontend:${{ env.IMAGE_TAG }}
 
     - name: Push imagem docker 
-      run: docker push devroboflex/thalamus-portal-frontend:${{ env.IMAGE_TAG }}
+      run: docker push devroboflex/thalamus-produtos-frontend:${{ env.IMAGE_TAG }}
 
     - name: Setup kubeconfig
       run: |
