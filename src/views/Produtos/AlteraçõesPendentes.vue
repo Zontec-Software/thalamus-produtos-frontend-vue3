@@ -59,6 +59,17 @@
                 <option value="nao">Não</option>
               </select>
             </div>
+            <div class="col-1">
+              <label>Patrimoniável</label>
+              <select
+                :disabled="isReadOnly"
+                :value="produto_original.patrimoniavel ? 'sim' : 'nao'"
+                @change="onPatrimoniavelSelect($event)"
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
           </div>
           <br />
           <div class="grid">
@@ -248,6 +259,7 @@ export default {
       produto_original: {
         familia_id: null,
         estocavel: true,
+        patrimoniavel: false,
         criticidade: "",
       },
 
@@ -264,6 +276,7 @@ export default {
         usuario_id: null,
         ncm: "",
         estocavel: true,
+        patrimoniavel: false,
       },
       em_edicao: [],
       blocoVisivel: "informacoes",
@@ -892,6 +905,11 @@ export default {
       this.produto_original.estocavel = sim;
       this.atualizarPayLoad("estocavel", sim);
     },
+    onPatrimoniavelSelect(event) {
+      const sim = event?.target?.value === "sim";
+      this.produto_original.patrimoniavel = sim;
+      this.atualizarPayLoad("patrimoniavel", sim);
+    },
 
     async atualizarPayLoad(chave, valor) {
       if (!chave) return;
@@ -922,6 +940,7 @@ export default {
 
     obterNomeCampo(chave) {
       if (chave === "estocavel") return "Item Estocável";
+      if (chave === "patrimoniavel") return "Patrimoniável";
       if (chave === "criticidade") return "Criticidade";
       if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
         return chave;
@@ -1023,6 +1042,7 @@ export default {
             criticidade: this.produto_original.criticidade,
             editavel: true,
             estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
+            patrimoniavel: this.produto_original.patrimoniavel ?? this.payLoad.patrimoniavel ?? false,
             familia_id: this.produto_original.familia_id ?? this.payLoad.familia_id ?? null,
             id_categoria_orcamento:
               this.produto_original.id_categoria_orcamento ?? this.payLoad.id_categoria_orcamento ?? null,
@@ -1052,6 +1072,7 @@ export default {
         const payloadAtualizar = {
           familia_id: this.produto_original.familia_id ?? null,
           estocavel: !!this.produto_original.estocavel,
+          patrimoniavel: !!this.produto_original.patrimoniavel,
         };
         this.camposSelects
           .filter((campo) => campo.omie === 1)
@@ -1147,6 +1168,10 @@ export default {
         const estOff = est === false || est === 0 || est === "0";
         this.produto_original.estocavel = estNorm ? true : estOff ? false : true;
         this.payLoad.estocavel = this.produto_original.estocavel;
+
+        const pat = this.produto_original.patrimoniavel;
+        this.produto_original.patrimoniavel = pat === true || pat === 1 || pat === "1";
+        this.payLoad.patrimoniavel = this.produto_original.patrimoniavel;
         this.payLoad.criticidade = this.produto_original.criticidade ?? null;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
