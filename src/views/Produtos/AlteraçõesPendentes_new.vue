@@ -99,6 +99,19 @@
             <option value="sim">Sim</option>
           </select>
         </div>
+        <div class="field col-1">
+          <label>Seriável</label>
+          <select
+            :disabled="isReadOnly"
+            :value="produto_original.seriavel ? 'sim' : 'nao'"
+            @change="onSeriavelSelect($event)"
+          >
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+          <small v-if="produto_original.seriavel && produto_original.prefixo_serie">Prefixo {{ produto_original.prefixo_serie }}</small>
+          <small v-else-if="produto_original.seriavel">O prefixo é atribuído ao finalizar a edição.</small>
+        </div>
       </div>
       <!-- Áreas de texto -->
       <div class="form-grid form-grid--1 m-t-12">
@@ -289,6 +302,7 @@ export default {
         familia_id: null,
         estocavel: true,
         patrimoniavel: false,
+        seriavel: false,
         criticidade: "",
       },
 
@@ -305,6 +319,7 @@ export default {
         ncm: "",
         estocavel: true,
         patrimoniavel: false,
+        seriavel: false,
       },
       em_edicao: [],
       blocoVisivel: "informacoes",
@@ -541,7 +556,10 @@ export default {
         const payloadStaging = this.buildStagingPayload();
         // enviar flag finalizar para que o backend grave aprovador_id
         await serviceProdutos.salvarLocal(this.produto_cod, { ...payloadStaging, finalizar: true });
-        await serviceProdutos.finalizarAtualizacao(this.produto_cod);
+        const resposta = await serviceProdutos.finalizarAtualizacao(this.produto_cod);
+        if (resposta?.produto?.prefixo_serie) {
+          this.produto_original.prefixo_serie = resposta.produto.prefixo_serie;
+        }
         this.toast.success(this.omieHabilitado ? "Atualização finalizada e enviada ao Omie!" : "Atualização finalizada!");
         // this.$router.push({ name: "ProdutosView" });
       } catch (error) {
@@ -910,6 +928,11 @@ export default {
       this.produto_original.patrimoniavel = sim;
       this.atualizarPayLoad("patrimoniavel", sim);
     },
+    onSeriavelSelect(event) {
+      const sim = event?.target?.value === "sim";
+      this.produto_original.seriavel = sim;
+      this.atualizarPayLoad("seriavel", sim);
+    },
 
     async atualizarPayLoad(chave, valor) {
       if (!chave) return;
@@ -942,6 +965,7 @@ export default {
     obterNomeCampo(chave) {
       if (chave === "estocavel") return "Item Estocável";
       if (chave === "patrimoniavel") return "Patrimoniável";
+      if (chave === "seriavel") return "Seriável";
       if (chave === "criticidade") return "Criticidade";
       if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
         return chave;
@@ -1047,6 +1071,7 @@ export default {
             editavel: true,
             estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
             patrimoniavel: this.produto_original.patrimoniavel ?? this.payLoad.patrimoniavel ?? false,
+            seriavel: this.produto_original.seriavel ?? this.payLoad.seriavel ?? false,
             familia_id: this.produto_original.familia_id ?? this.payLoad.familia_id ?? null,
             id_categoria_orcamento:
               this.produto_original.id_categoria_orcamento ?? this.payLoad.id_categoria_orcamento ?? null,
@@ -1080,6 +1105,7 @@ export default {
           familia_id: this.produto_original.familia_id ?? null,
           estocavel: !!this.produto_original.estocavel,
           patrimoniavel: !!this.produto_original.patrimoniavel,
+          seriavel: !!this.produto_original.seriavel,
         };
         this.camposSelects
           .filter((campo) => campo.omie === 1)
@@ -1192,6 +1218,9 @@ export default {
         const pat = this.produto_original.patrimoniavel;
         this.produto_original.patrimoniavel = pat === true || pat === 1 || pat === "1";
         this.payLoad.patrimoniavel = this.produto_original.patrimoniavel;
+        const ser = this.produto_original.seriavel;
+        this.produto_original.seriavel = ser === true || ser === 1 || ser === "1";
+        this.payLoad.seriavel = this.produto_original.seriavel;
         this.payLoad.criticidade = this.produto_original.criticidade ?? null;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
