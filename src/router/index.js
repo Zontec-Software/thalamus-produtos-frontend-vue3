@@ -19,12 +19,15 @@ import CatalogoView from "@/views/Produtos/CatalogoView.vue";
 import NovaFicha from '@/views/Produtos/AlteraçõesPendentes_new.vue'
 import EtapasView from '@/views/Produtos/EtapasView.vue'
 import FamiliaView from '@/views/Produtos/FamiliasView.vue'
+import TiposProdutoView from '@/views/Produtos/TiposProdutoView.vue'
 // Gestão de Arquivos
 import GestaoArquivosView from "@/views/GestaoArquivos/GestaoArquivosView.vue";
 import GestaoArquivosDetalheView from "@/views/GestaoArquivos/GestaoArquivosDetalheView.vue";
 //Serviços
 import CatalogoServicos from "@/views/Serviços/CatalogoServicos.vue";
 import DemandaFamiliasView from "@/views/Serviços/DemandaFamiliasView.vue";
+// Comercial
+import FaturamentoLmView from "@/views/Comercial/FaturamentoLmView.vue";
 
 
 // redireciona usuario para LOGIN baseado no env
@@ -240,6 +243,12 @@ const routes = [
     beforeEnter: guardPermissaoRoute
   },
   {
+    path: '/tipo-produto',
+    name: 'TiposProdutoView',
+    component: TiposProdutoView,
+    beforeEnter: guardPermissaoRoute
+  },
+  {
     path: '/gestao-arquivos',
     name: 'GestaoArquivosView',
     component: GestaoArquivosView,
@@ -264,6 +273,14 @@ const routes = [
     name: 'CatalogoServico',
     component: CatalogoServicos,
     beforeEnter: guardPermissaoRoute
+  },
+  //Comercial
+  {
+    path: '/comercial/faturamento-lm',
+    name: 'FaturamentoLmView',
+    component: FaturamentoLmView,
+    beforeEnter: guardPermissaoRoute,
+    meta: { funcionalidadeId: 142 },
   },
 
 

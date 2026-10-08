@@ -38,84 +38,101 @@
             <label>Família</label>
             <span>{{ produto.familia_produto?.familia_nome ?? "-" }}</span>
           </div>
-          <div>
-            <label>Unidade</label>
-            <span>{{ produto.und ?? "-" }}</span>
-          </div>
         </div>
       </div>
-      <div class="bloco margem secao-arquivos">
+      <div v-if="podeVerBloco('documentacao_comercial')" class="bloco margem secao-arquivos">
         <div class="secao-header">
-          <h4><i class="fa-solid fa-file-lines"></i> Documentação da Proposta Comercial</h4>
-          <button type="button" class="bloco acao-primaria" @click="abrirUpload('documentacao_comercial')">
-            <i class="fa-solid fa-upload"></i> Enviar arquivo
-          </button>
+          <h4 class="secao-titulo"><i class="fa-solid fa-file-lines"></i> Documentação da Proposta Comercial</h4>
+          <SeletorVisualizacaoArquivos v-model="visualizacaoArquivos" />
         </div>
-        <ListaArquivos
-          :arquivos="produto.arquivos_documentacao_comercial || produto.arquivosDocumentacaoComercial || []"
-          :current-user-id="currentUserId"
-          @baixar="baixar"
-          @baixar-para-edicao="baixarParaEdicao"
-          @cancelar-edicao="cancelarEdicao"
-          @excluir="excluir"
-          @recarregar="carregarProduto"
-        />
+        <SecaoArquivos :produto="produto" tipo="documentacao_comercial" :current-user-id="currentUserId"
+          :visualizacao="visualizacaoArquivos" @baixar="baixar" @baixar-para-edicao="baixarParaEdicao"
+          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="recarregarProduto"
+          @excluir-pasta="excluirPasta" @mover="moverArquivo"
+          @atualizar-incluir-na-op="atualizarIncluirNaOpLocal"
+          @atualizar-incluir-na-op-pasta="atualizarIncluirNaOpPastaLocal"
+          @abrir-upload="(tipo, pastaId) => abrirUpload(tipo, pastaId)"
+          @abrir-nova-pasta="(tipo, pastaId) => abrirNovaPasta(tipo, pastaId)" />
       </div>
 
-      <div class="bloco margem secao-arquivos">
+      <div v-if="podeVerBloco('documentacao_produto')" class="bloco margem secao-arquivos">
         <div class="secao-header">
-          <h4><i class="fa-solid fa-box"></i> Documentação do Produto</h4>
-          <button type="button" class="bloco acao-primaria" @click="abrirUpload('documentacao_produto')">
-            <i class="fa-solid fa-upload"></i> Enviar arquivo
-          </button>
+          <h4 class="secao-titulo"><i class="fa-solid fa-box"></i> Documentação do Produto</h4>
+          <SeletorVisualizacaoArquivos v-model="visualizacaoArquivos" />
         </div>
-        <ListaArquivos
-          :arquivos="produto.arquivos_documentacao_produto || produto.arquivosDocumentacaoProduto || []"
-          :current-user-id="currentUserId"
-          @baixar="baixar"
-          @baixar-para-edicao="baixarParaEdicao"
-          @cancelar-edicao="cancelarEdicao"
-          @excluir="excluir"
-          @recarregar="carregarProduto"
-        />
+        <SecaoArquivos :produto="produto" tipo="documentacao_produto" :current-user-id="currentUserId"
+          :visualizacao="visualizacaoArquivos" @baixar="baixar" @baixar-para-edicao="baixarParaEdicao"
+          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="recarregarProduto"
+          @excluir-pasta="excluirPasta" @mover="moverArquivo"
+          @atualizar-incluir-na-op="atualizarIncluirNaOpLocal"
+          @atualizar-incluir-na-op-pasta="atualizarIncluirNaOpPastaLocal"
+          @abrir-upload="(tipo, pastaId) => abrirUpload(tipo, pastaId)"
+          @abrir-nova-pasta="(tipo, pastaId) => abrirNovaPasta(tipo, pastaId)" />
       </div>
 
-      <div class="bloco margem secao-arquivos">
+      <div v-if="podeVerBloco('documentos_producao')" class="bloco margem secao-arquivos">
         <div class="secao-header">
-          <h4><i class="fa-solid fa-gear"></i> Documentos para Produção</h4>
-          <button type="button" class="bloco acao-primaria" @click="abrirUpload('documentos_producao')">
-            <i class="fa-solid fa-upload"></i> Enviar arquivo
-          </button>
+          <h4 class="secao-titulo"><i class="fa-solid fa-gear"></i> Documentos para Produção</h4>
+          <SeletorVisualizacaoArquivos v-model="visualizacaoArquivos" />
         </div>
-        <ListaArquivos
-          :arquivos="produto.arquivos_documentos_producao || produto.arquivosDocumentosProducao || []"
-          :current-user-id="currentUserId"
-          @baixar="baixar"
-          @baixar-para-edicao="baixarParaEdicao"
-          @cancelar-edicao="cancelarEdicao"
-          @excluir="excluir"
-          @recarregar="carregarProduto"
-        />
+        <SecaoArquivos :produto="produto" tipo="documentos_producao" :current-user-id="currentUserId"
+          :visualizacao="visualizacaoArquivos" @baixar="baixar" @baixar-para-edicao="baixarParaEdicao"
+          @cancelar-edicao="cancelarEdicao" @excluir="excluir" @recarregar="recarregarProduto"
+          @excluir-pasta="excluirPasta" @mover="moverArquivo"
+          @atualizar-incluir-na-op="atualizarIncluirNaOpLocal"
+          @atualizar-incluir-na-op-pasta="atualizarIncluirNaOpPastaLocal"
+          @abrir-upload="(tipo, pastaId) => abrirUpload(tipo, pastaId)"
+          @abrir-nova-pasta="(tipo, pastaId) => abrirNovaPasta(tipo, pastaId)" />
       </div>
     </template>
 
-    <!-- Modal upload -->
+    <!-- Modal upload (arquivo ou link) -->
     <div v-if="modalUpload" class="overlay" @click.self="fecharUpload">
-      <div class="jm" style="min-width: 360px;">
-        <header class="separador">
-          <h4>Enviar arquivo</h4>
-          <button type="button" class="fechar" @click="fecharUpload">&times;</button>
-        </header>
+      <div class="jm margem" style="min-width: 50vw">
+        <h2>Enviar arquivo ou link</h2>
+        <div class="grid-1">
+          <div>
+            <label class="block">Arquivo (máx. {{ serviceGestaoArquivos.MAX_FILE_SIZE_MB }} MB)</label>
+            <input type="file" ref="inputArquivo" @change="onFileSelect" />
+          </div>
+          <div>
+            <label class="block">Nome / título do link (opcional)</label>
+            <input v-model="linkNome" type="text" class="campo-full" placeholder="Ex.: Manual do produto" />
+          </div>
+          <div>
+            <label class="block">Link (opcional)</label>
+            <input v-model="linkUrl" type="url" class="campo-full" placeholder="https://..." />
+          </div>
+          <p v-if="!podeEnviar && (linkUrl || linkNome || arquivoSelecionado)" class="fonte-menor aviso">
+            Preencha ao menos: um arquivo ou URL + nome do link.
+          </p>
+          <div class="linha margem-topo botoes-modal">
+            <button type="button" class="acao-secundaria" @click="fecharUpload">Cancelar</button>
+            <button type="button" class="acao-primaria" :disabled="!podeEnviar || enviando"
+              @click="enviarArquivoOuLink">
+              {{ enviando ? "Enviando..." : "Enviar" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal nova pasta -->
+    <div v-if="modalNovaPasta" class="overlay" @click.self="fecharNovaPasta">
+      <div class="jm margem" style="min-width: 50vw">
+        <h4>Nova pasta</h4>
+        <button type="button" class="fechar" @click="fecharNovaPasta">&times;</button>
         <div class="margem">
           <p class="fonte-menor">{{ tipoUploadLabel }}</p>
           <div class="linha margem-topo">
-            <input type="file" ref="inputArquivo" @change="onFileSelect" />
+            <label class="block">Nome da pasta</label>
+            <input v-model="novaPastaNome" type="text" class="campo-full" placeholder="Ex.: Manuais" />
           </div>
-          <div class="linha margem-topo">
-            <button type="button" class="bloco acao-secundaria" @click="fecharUpload">Cancelar</button>
-            <button type="button" class="bloco acao-primaria" :disabled="!arquivoSelecionado || enviando"
-              @click="enviarArquivo">
-              {{ enviando ? "Enviando..." : "Enviar" }}
+          <div class="submit direita">
+            <button type="button" class="acao-secundaria" @click="fecharNovaPasta">Cancelar</button>
+            <button type="button" class="acao-primaria" :disabled="!novaPastaNome.trim() || enviandoPasta"
+              @click="criarPasta">
+              {{ enviandoPasta ? "Criando..." : "Criar pasta" }}
             </button>
           </div>
         </div>
@@ -126,16 +143,23 @@
 
 <script>
 import serviceGestaoArquivos from "@/services/serviceGestaoArquivos";
-import ListaArquivos from "./ListaArquivos.vue";
+import { getWebSocketService } from "@/services/websocketService";
+import {
+  carregarFuncionalidades,
+  podeVerBloco as permissaoPodeVerBloco,
+} from "@/services/serviceGestaoArquivosPermissao";
+import SecaoArquivos from "./SecaoArquivos.vue";
+import SeletorVisualizacaoArquivos from "./SeletorVisualizacaoArquivos.vue";
 
 export default {
   name: "GestaoArquivosDetalheView",
-  components: { ListaArquivos },
+  components: { SecaoArquivos, SeletorVisualizacaoArquivos },
   props: {
     produto_cod: { type: String, required: true },
   },
   data() {
     return {
+      serviceGestaoArquivos,
       produto: null,
       currentUserId: null,
       carregando: true,
@@ -144,6 +168,14 @@ export default {
       tipoUpload: null,
       arquivoSelecionado: null,
       enviando: false,
+      linkUrl: "",
+      linkNome: "",
+      pastaIdSelecionada: null,
+      modalNovaPasta: false,
+      novaPastaNome: "",
+      novaPastaPaiId: null,
+      enviandoPasta: false,
+      visualizacaoArquivos: "pastas", // 'pastas' | 'lista'
     };
   },
   computed: {
@@ -151,11 +183,43 @@ export default {
       const t = serviceGestaoArquivos.TIPOS_ARQUIVO.find((x) => x.value === this.tipoUpload);
       return t ? t.label : this.tipoUpload || "";
     },
+    podeEnviar() {
+      const temArquivo = !!this.arquivoSelecionado;
+      const temLink = !!(this.linkUrl?.trim() && this.linkNome?.trim());
+      return temArquivo || temLink;
+    },
   },
   async created() {
-    await this.carregarProduto();
+    await Promise.all([
+      carregarFuncionalidades(),
+      this.carregarProduto(),
+    ]);
+    getWebSocketService().addListener(this.handleWebSocketMessage);
+  },
+  beforeUnmount() {
+    getWebSocketService().removeListener(this.handleWebSocketMessage);
   },
   methods: {
+    podeVerBloco(tipo) {
+      return permissaoPodeVerBloco(tipo);
+    },
+    /** Mesmo padrão do GruposView: mensagem { message, produto_cod } broadcast pelo servidor. */
+    handleWebSocketMessage(event) {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.message === "atualizarGestaoArquivos" && data.produto_cod == this.produto_cod) {
+          this.carregarProdutoSilencioso();
+        }
+      } catch {
+        return;
+      }
+    },
+    /** Notifica outros clientes para recarregar (mesmo padrão do GruposView com atualizarRotina). */
+    notificarAtualizacaoArquivos() {
+      getWebSocketService().send(
+        JSON.stringify({ message: "atualizarGestaoArquivos", produto_cod: this.produto_cod })
+      );
+    },
     async carregarProduto() {
       this.carregando = true;
       this.erro = null;
@@ -170,14 +234,29 @@ export default {
         this.carregando = false;
       }
     },
+    /** Recarrega produto em background sem mostrar loading (mantém pastas abertas e evita piscar a tela). */
+    async carregarProdutoSilencioso() {
+      if (!this.produto) return;
+      try {
+        const data = await serviceGestaoArquivos.buscarProduto(this.produto_cod);
+        this.produto = data.produto ?? data;
+        const rawId = data.current_user_id ?? this.produto?.current_user_id ?? null;
+        this.currentUserId = rawId != null ? Number(rawId) || rawId : null;
+      } catch {
+        // Em falha silenciosa, ignora para não derrubar a tela
+      }
+    },
     formatarData(val) {
       if (!val) return "-";
       const d = new Date(val);
       return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("pt-BR");
     },
-    abrirUpload(tipo) {
+    abrirUpload(tipo, pastaId) {
       this.tipoUpload = tipo;
+      this.pastaIdSelecionada = pastaId != null ? pastaId : null;
       this.arquivoSelecionado = null;
+      this.linkUrl = "";
+      this.linkNome = "";
       this.modalUpload = true;
       this.$nextTick(() => {
         if (this.$refs.inputArquivo) this.$refs.inputArquivo.value = "";
@@ -187,20 +266,246 @@ export default {
       this.modalUpload = false;
       this.tipoUpload = null;
       this.arquivoSelecionado = null;
+      this.pastaIdSelecionada = null;
+      this.linkUrl = "";
+      this.linkNome = "";
+    },
+    abrirNovaPasta(tipo, pastaId) {
+      this.tipoUpload = tipo;
+      this.novaPastaNome = "";
+      this.novaPastaPaiId = pastaId != null ? pastaId : null;
+      this.modalNovaPasta = true;
+    },
+    fecharNovaPasta() {
+      this.modalNovaPasta = false;
+      this.novaPastaNome = "";
+      this.novaPastaPaiId = null;
+    },
+    async criarPasta() {
+      if (!this.novaPastaNome.trim() || !this.tipoUpload) return;
+      this.enviandoPasta = true;
+      try {
+        const data = await serviceGestaoArquivos.criarPasta(this.produto_cod, this.tipoUpload, this.novaPastaNome.trim(), this.novaPastaPaiId);
+        this.adicionarPastaLocal(this.tipoUpload, this.novaPastaPaiId, data);
+        this.fecharNovaPasta();
+        this.notificarAtualizacaoArquivos();
+      } catch (e) {
+        alert(e.response?.data?.error || "Erro ao criar pasta.");
+      } finally {
+        this.enviandoPasta = false;
+      }
+    },
+    async excluirPasta(pastaId) {
+      try {
+        await serviceGestaoArquivos.excluirPasta(pastaId);
+        this.removerPastaLocal(pastaId);
+        this.notificarAtualizacaoArquivos();
+      } catch (e) {
+        alert(e.response?.data?.error || "Erro ao excluir pasta.");
+      }
+    },
+    async moverArquivo(payload) {
+      const { raizId, pastaId, tipo } = payload || {};
+      if (raizId == null || !tipo || !this.produto) return;
+      try {
+        await serviceGestaoArquivos.moverArquivo(raizId, pastaId ?? null);
+        this.moverArquivoNaArvore(tipo, raizId, pastaId ?? null);
+        this.notificarAtualizacaoArquivos();
+      } catch (e) {
+        alert(e.response?.data?.error || "Erro ao mover arquivo.");
+      }
+    },
+    getArquivosEPastasPorTipo(tipo) {
+      const arqKey = { documentacao_comercial: "arquivos_documentacao_comercial", documentacao_produto: "arquivos_documentacao_produto", documentos_producao: "arquivos_documentos_producao" }[tipo];
+      const arqKey2 = { documentacao_comercial: "arquivosDocumentacaoComercial", documentacao_produto: "arquivosDocumentacaoProduto", documentos_producao: "arquivosDocumentosProducao" }[tipo];
+      const pastKey = { documentacao_comercial: "pastas_documentacao_comercial", documentacao_produto: "pastas_documentacao_produto", documentos_producao: "pastas_documentos_producao" }[tipo];
+      const pastKey2 = { documentacao_comercial: "pastasDocumentacaoComercial", documentacao_produto: "pastasDocumentacaoProduto", documentos_producao: "pastasDocumentosProducao" }[tipo];
+      const arquivos = this.produto[arqKey] || this.produto[arqKey2] || [];
+      const pastas = this.produto[pastKey] || this.produto[pastKey2] || [];
+      return { arquivos, pastas };
+    },
+    findAndRemoveFile(arquivos, pastas, raizId) {
+      const idx = (arquivos || []).findIndex((f) => f.id === raizId);
+      if (idx >= 0) return { file: arquivos[idx], list: arquivos, index: idx };
+      for (const p of pastas || []) {
+        const list = p.arquivos || [];
+        const j = list.findIndex((f) => f.id === raizId);
+        if (j >= 0) return { file: list[j], list, index: j };
+        const found = this.findAndRemoveFile([], p.subpastas || [], raizId);
+        if (found) return found;
+      }
+      return null;
+    },
+    findPastaById(pastas, pastaId) {
+      for (const p of pastas || []) {
+        if (p.id === pastaId) return p;
+        const sub = this.findPastaById(p.subpastas || [], pastaId);
+        if (sub) return sub;
+      }
+      return null;
+    },
+    findArquivoRaizById(arquivos, pastas, raizId) {
+      const arq = (arquivos || []).find((f) => f.id === raizId);
+      if (arq) return arq;
+      for (const p of pastas || []) {
+        const f = (p.arquivos || []).find((a) => a.id === raizId);
+        if (f) return f;
+        const sub = this.findArquivoRaizById([], p.subpastas || [], raizId);
+        if (sub) return sub;
+      }
+      return null;
+    },
+    setIncluirNaOpEmArquivosDaPasta(pasta, incluirNaOp) {
+      for (const arq of pasta.arquivos || []) {
+        arq.incluir_na_op = incluirNaOp;
+        if (arq.versoes) for (const v of arq.versoes) v.incluir_na_op = incluirNaOp;
+      }
+      for (const sub of pasta.subpastas || []) this.setIncluirNaOpEmArquivosDaPasta(sub, incluirNaOp);
+    },
+    atualizarIncluirNaOpLocal(payload) {
+      const { raizId, incluirNaOp } = payload || {};
+      if (raizId == null || this.produto == null) return;
+      const tipos = ["documentacao_comercial", "documentacao_produto", "documentos_producao"];
+      for (const tipo of tipos) {
+        const { arquivos, pastas } = this.getArquivosEPastasPorTipo(tipo);
+        const arq = this.findArquivoRaizById(arquivos, pastas, raizId);
+        if (arq) {
+          arq.incluir_na_op = !!incluirNaOp;
+          if (arq.versoes) for (const v of arq.versoes) v.incluir_na_op = !!incluirNaOp;
+          return;
+        }
+      }
+    },
+    atualizarIncluirNaOpPastaLocal(payload) {
+      const { pastaId, incluirNaOp } = payload || {};
+      if (pastaId == null || this.produto == null) return;
+      const tipos = ["documentacao_comercial", "documentacao_produto", "documentos_producao"];
+      for (const tipo of tipos) {
+        const { pastas } = this.getArquivosEPastasPorTipo(tipo);
+        const pasta = this.findPastaById(pastas, pastaId);
+        if (pasta) {
+          this.setIncluirNaOpEmArquivosDaPasta(pasta, !!incluirNaOp);
+          return;
+        }
+      }
+    },
+    moverArquivoNaArvore(tipo, raizId, pastaId) {
+      const { arquivos, pastas } = this.getArquivosEPastasPorTipo(tipo);
+      const found = this.findAndRemoveFile(arquivos, pastas, raizId);
+      if (!found) return;
+      found.list.splice(found.index, 1);
+      if (pastaId == null) {
+        arquivos.push(found.file);
+      } else {
+        const folder = this.findPastaById(pastas, pastaId);
+        if (folder) {
+          if (!folder.arquivos) folder.arquivos = [];
+          folder.arquivos.push(found.file);
+        }
+      }
+    },
+    /** Coleta todos os arquivos de uma pasta e suas subpastas (para mover para a raiz ao excluir pasta). */
+    coletarArquivosDaPasta(pasta) {
+      const out = [...(pasta.arquivos || [])];
+      for (const sub of pasta.subpastas || []) this.coletarArquivosDaPasta(sub).forEach((a) => out.push(a));
+      return out;
+    },
+    /** Encontra pasta e a lista/índice onde está (para remoção). */
+    findPastaEParent(listaPastas, pastaId) {
+      for (let i = 0; i < (listaPastas || []).length; i++) {
+        const p = listaPastas[i];
+        if (p.id === pastaId) return { pasta: p, parentList: listaPastas, index: i };
+        const sub = this.findPastaEParent(p.subpastas || [], pastaId);
+        if (sub) return sub;
+      }
+      return null;
+    },
+    adicionarPastaLocal(tipo, pastaPaiId, pastaApi) {
+      const { pastas } = this.getArquivosEPastasPorTipo(tipo);
+      const nova = {
+        id: pastaApi.id,
+        nome: pastaApi.nome,
+        arquivos: [],
+        subpastas: [],
+      };
+      if (pastaPaiId == null) pastas.push(nova);
+      else {
+        const pai = this.findPastaById(pastas, pastaPaiId);
+        if (pai) {
+          if (!pai.subpastas) pai.subpastas = [];
+          pai.subpastas.push(nova);
+        }
+      }
+    },
+    removerPastaLocal(pastaId) {
+      const tipos = ["documentacao_comercial", "documentacao_produto", "documentos_producao"];
+      for (const tipo of tipos) {
+        const { arquivos, pastas } = this.getArquivosEPastasPorTipo(tipo);
+        const found = this.findPastaEParent(pastas, pastaId);
+        if (found) {
+          const { pasta, parentList, index } = found;
+          this.coletarArquivosDaPasta(pasta).forEach((a) => arquivos.push(a));
+          parentList.splice(index, 1);
+          return;
+        }
+      }
+    },
+    removerArquivoLocal(raizId) {
+      const tipos = ["documentacao_comercial", "documentacao_produto", "documentos_producao"];
+      for (const tipo of tipos) {
+        const { arquivos, pastas } = this.getArquivosEPastasPorTipo(tipo);
+        const found = this.findAndRemoveFile(arquivos, pastas, raizId);
+        if (found) {
+          found.list.splice(found.index, 1);
+          return;
+        }
+      }
     },
     onFileSelect(e) {
       const f = e.target?.files?.[0];
       this.arquivoSelecionado = f || null;
     },
-    async enviarArquivo() {
-      if (!this.arquivoSelecionado || !this.tipoUpload) return;
+    async enviarArquivoOuLink() {
+      if (!this.tipoUpload) return;
+      const temLink = !!(this.linkUrl?.trim() && this.linkNome?.trim());
+      const temArquivo = !!this.arquivoSelecionado;
+      if (!temLink && !temArquivo) return;
+
       this.enviando = true;
+      const erros = [];
       try {
-        await serviceGestaoArquivos.uploadArquivo(this.produto_cod, this.arquivoSelecionado, this.tipoUpload);
+        if (temLink) {
+          try {
+            await serviceGestaoArquivos.cadastrarLink(
+              this.produto_cod,
+              this.linkUrl.trim(),
+              this.linkNome.trim(),
+              this.tipoUpload,
+              this.pastaIdSelecionada
+            );
+          } catch (e) {
+            erros.push(e.response?.data?.error || "Erro ao cadastrar link.");
+          }
+        }
+        if (temArquivo) {
+          try {
+            await serviceGestaoArquivos.uploadArquivo(
+              this.produto_cod,
+              this.arquivoSelecionado,
+              this.tipoUpload,
+              this.pastaIdSelecionada
+            );
+          } catch (e) {
+            erros.push(e.response?.data?.error || "Erro ao enviar arquivo.");
+          }
+        }
+        if (erros.length > 0) {
+          alert(erros.join("\n"));
+          return;
+        }
         this.fecharUpload();
-        await this.carregarProduto();
-      } catch (e) {
-        alert(e.response?.data?.error || "Erro ao enviar arquivo.");
+        await this.carregarProdutoSilencioso();
+        this.notificarAtualizacaoArquivos();
       } finally {
         this.enviando = false;
       }
@@ -216,7 +521,8 @@ export default {
     async baixarParaEdicao(arquivo) {
       try {
         await serviceGestaoArquivos.downloadParaEdicao(arquivo.id, arquivo.nome);
-        await this.carregarProduto();
+        await this.carregarProdutoSilencioso();
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         const msg =
           e.response?.data?.error ||
@@ -225,7 +531,8 @@ export default {
         alert(typeof msg === "string" ? msg : JSON.stringify(msg));
         try {
           await serviceGestaoArquivos.cancelarEdicao(arquivo.id);
-          await this.carregarProduto();
+          await this.carregarProdutoSilencioso();
+          this.notificarAtualizacaoArquivos();
         } catch {
           // Ignora falha ao desbloquear (ex.: já desbloqueado ou 403)
         }
@@ -234,7 +541,8 @@ export default {
     async cancelarEdicao(arquivo) {
       try {
         await serviceGestaoArquivos.cancelarEdicao(arquivo.id);
-        await this.carregarProduto();
+        await this.carregarProdutoSilencioso();
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao cancelar edição.");
       }
@@ -245,10 +553,16 @@ export default {
       if (!confirm(`Excluir o arquivo "${nome}" e todas as versões?`)) return;
       try {
         await serviceGestaoArquivos.excluirArquivo(raiz.id);
-        await this.carregarProduto();
+        this.removerArquivoLocal(raiz.id);
+        this.notificarAtualizacaoArquivos();
       } catch (e) {
         alert(e.response?.data?.error || "Erro ao excluir arquivo.");
       }
+    },
+    /** Chamado no @recarregar (ex.: nova versão enviada no ListaArquivos). */
+    async recarregarProduto() {
+      await this.carregarProduto();
+      this.notificarAtualizacaoArquivos();
     },
   },
 };
@@ -259,12 +573,74 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
-.secao-header h4 {
+.secao-header .secao-titulo {
   margin: 0;
   font-size: 1rem;
+}
+
+.secao-botoes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tipo-envio {
+  display: flex;
+  gap: 4px;
+}
+
+.tipo-envio .tab {
+  padding: 8px 12px;
+  border: 1px solid var(--cor-separador);
+  background: var(--cor-bg);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.tipo-envio .tab.ativo {
+  background: var(--cor-primaria-fraca);
+  border-color: var(--cor-primaria);
+}
+
+.campo-full {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.block {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.botoes-modal {
+  display: flex;
+  gap: 8px;
+}
+
+.margem-topo {
+  margin-top: 12px;
+}
+
+.modal-upload .linha {
+  margin-top: 10px;
+}
+
+.modal-upload .linha:first-of-type {
+  margin-top: 0;
+}
+
+.modal-upload .aviso {
+  margin-top: 8px;
+  color: var(--cor-alerta, #856404);
+  font-size: 13px;
 }
 
 /* Permite que o dropdown de ações dos arquivos não seja cortado pelo bloco */

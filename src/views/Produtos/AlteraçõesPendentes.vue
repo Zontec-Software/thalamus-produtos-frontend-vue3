@@ -4,8 +4,12 @@
   </div>
   <section class="bloco section" v-readonly="isReadOnly" v-else>
     <div class="margem" style="text-align: right">
-      <strong> {{ `Atualizado em: ${formatarData(produto_original.updated_at) ?? "?"} - por:
-        ${produto_original.editadoPor ?? "??"}` }} </strong>
+      <strong>
+        {{
+          `Atualizado em: ${formatarData(produto_original.updated_at) ?? "?"} - por:
+        ${produto_original.editadoPor ?? "??"}`
+        }}
+      </strong>
     </div>
     <div class="margem container">
       <div class="grid-4 container">
@@ -13,53 +17,78 @@
           <div class="grid-4">
             <div>
               <label>Família</label>
-              <select v-model="produto_original.familia_id"
-                @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
+              <select v-model="produto_original.familia_id" @change="atualizarPayLoad('familia_id', produto_original.familia_id)">
                 <option disabled value="">Selecione uma família</option>
                 <option v-for="item in familias" :key="item.id" :value="item.id">{{ item.nome.toUpperCase() }}</option>
               </select>
             </div>
             <div v-for="campo in camposBasicos" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <select v-if="campo.tipo === 'Lista' && campo.chave === 'status'"
-                v-model.number="valoresSelecionados[campo.id]"
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <template v-if="campo.tipo === 'Lista' && campo.chave === 'status'">
+                <select
+                  v-model.number="valoresSelecionados[campo.id]"
+                  :disabled="statusSomenteLeitura"
+                  :title="hintStatus"
+                  @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])"
+                >
+                  <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="Number(opcao.id)">{{ opcao.valor }}</option>
+                </select>
+                <small class="hint-status-omie">{{ hintStatus }}</small>
+              </template>
+              <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
                 <option disabled value="">Selecione</option>
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id"
-                  :value="campo.chave === 'status' ? Number(opcao.id) : opcao.id">{{ opcao.valor }}</option>
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
               </select>
-              <select v-else-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]"
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-                <option disabled value="">Selecione</option>
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
-                </option>
+              <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
               </select>
-              <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-                @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-                <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
-                </option>
-              </select>
-              <input v-else-if="['Texto', 'Número', 'Decimal', 'Data'].includes(campo.tipo)"
-                v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'"
-                :required="campo.obrigatorio && !valoresSelecionados[campo.id]"
-                @input="onInputDecimal($event, campo)" />
+              <input v-else-if="isCampoInputSimples(campo.tipo)" v-model="valoresSelecionados[campo.id]" :type="campo.tipo === 'Data' ? 'date' : 'text'" :required="campo.obrigatorio && !valoresSelecionados[campo.id]" @input="onInputDecimal($event, campo)" />
             </div>
             <div class="col-2">
               <label>Categoria do Orçamento</label>
-              <SelectCategoriaOrcamento v-model="produto_original.id_categoria_orcamento" :dreTree="categoriasOrçamento"
-                @update:modelValue="atualizarPayLoad('id_categoria_orcamento', $event)" />
+              <SelectCategoriaOrcamento v-model="produto_original.id_categoria_orcamento" :dreTree="categoriasOrçamento" @update:modelValue="atualizarPayLoad('id_categoria_orcamento', $event)" />
+            </div>
+            <div class="col-1">
+              <label>Item Estocável</label>
+              <select
+                :disabled="isReadOnly"
+                :value="produto_original.estocavel ? 'sim' : 'nao'"
+                @change="onEstocavelSelect($event)"
+              >
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+              </select>
+            </div>
+            <div class="col-1">
+              <label>Patrimoniável</label>
+              <select
+                :disabled="isReadOnly"
+                :value="produto_original.patrimoniavel ? 'sim' : 'nao'"
+                @change="onPatrimoniavelSelect($event)"
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
+            <div class="col-1">
+              <label>Seriável</label>
+              <select
+                :disabled="isReadOnly"
+                :value="produto_original.seriavel ? 'sim' : 'nao'"
+                @change="onSeriavelSelect($event)"
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+              <small v-if="produto_original.seriavel && produto_original.prefixo_serie">Prefixo {{ produto_original.prefixo_serie }}</small>
+              <small v-else-if="produto_original.seriavel">O prefixo é atribuído ao finalizar a edição.</small>
             </div>
           </div>
           <br />
           <div class="grid">
             <div v-for="campo in camposAreaTexto" :key="campo.id">
               <label>{{ campo.label }}</label>
-              <QuillEditor theme="snow" :readOnly="isReadOnly || aguardandoAprovaçãoFiscal"
-                v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px"
-                @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
+              <QuillEditor theme="snow" :readOnly="isReadOnly || aguardandoAprovaçãoFiscal" v-model:content="valoresSelecionados[campo.id]" content-type="html" style="height: 150px" @blur="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" />
             </div>
           </div>
         </div>
@@ -67,16 +96,13 @@
         <div class="bloco2 margem col-1 alinha-centro">
           <div>
             <div v-if="fotosProduto.length > 0" class="carousel">
-              <img v-for="(foto, index) in fotosProduto" :key="index" :src="foto.url" :alt="foto.nome" class="imagem"
-                @click="indiceAtual = index"
-                :style="{ border: indiceAtual === index ? '2px solid var(--cor-primaria)' : 'none' }" />
+              <img v-for="(foto, index) in fotosProduto" :key="index" :src="foto.url" :alt="foto.nome" class="imagem" @click="indiceAtual = index" :style="{ border: indiceAtual === index ? '2px solid var(--cor-primaria)' : 'none' }" />
             </div>
             <div v-else>
               <span>Sem fotos cadastradas.</span>
             </div>
             <br />
-            <a data-block-when-readonly style="cursor: pointer; border: 1px solid; color: var(--cor-primaria)"
-              class="icone-camera" @click="showModalFotos = true"> Gerenciar Fotos </a>
+            <a data-block-when-readonly style="cursor: pointer; border: 1px solid; color: var(--cor-primaria)" class="icone-camera" @click="showModalFotos = true"> Gerenciar Fotos </a>
           </div>
         </div>
         <!-- END FOTOS -->
@@ -85,30 +111,33 @@
       <div class="grid-4 container">
         <div class="bloco3 col-4">
           <div class="tags m-b" style="cursor: pointer">
-            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')"> Informações
-              Adicionais </a>
-            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')"> Recomendações Fiscais
-            </a>
+            <a :class="{ ativo: blocoVisivel === 'informacoes' }" @click="mostrarBloco('informacoes')"> Informações Adicionais </a>
+            <a :class="{ ativo: blocoVisivel === 'fiscais' }" @click="mostrarBloco('fiscais')"> Recomendações Fiscais </a>
           </div>
         </div>
       </div>
       <div class="bloco2 container" v-if="blocoVisivel === 'informacoes'">
         <fieldset class="margem grid-4">
+          <div>
+            <label>Criticidade</label>
+            <input
+              type="text"
+              maxlength="60"
+              v-model="produto_original.criticidade"
+              :disabled="isReadOnly && !isCadastro"
+              placeholder="Ex.: Alta, Média, Baixa"
+              @input="atualizarPayLoad('criticidade', produto_original.criticidade)"
+            />
+          </div>
           <div v-for="campo in camposAdicionais" :key="campo.id">
             <label>{{ campo.label }}</label>
-            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
-              </option>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
             </select>
-            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
-              </option>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
             </select>
-            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" :value="valoresSelecionados[campo.id] ?? ''"
-              :required="campo.obrigatorio" @input="onInputDecimal($event, campo)"
-              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" :value="valoresSelecionados[campo.id] ?? ''" :required="campo.obrigatorio" @input="onInputDecimal($event, campo)" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
           </div>
         </fieldset>
       </div>
@@ -116,24 +145,16 @@
         <fieldset class="margem grid-4">
           <div v-for="campo in camposFiscaisVisiveis" :key="campo.id">
             <label>{{ campo.label }}</label>
-            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-              @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor == "" ? 'Nenhum' : opcao.valor }}
-              </option>
+            <select v-if="campo.tipo === 'Lista'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor == "" ? "Nenhum" : opcao.valor }}</option>
             </select>
-            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple
-              :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
-              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}
-              </option>
+            <select v-else-if="campo.tipo === 'MultiLista'" v-model="valoresSelecionados[campo.id]" multiple :required="campo.obrigatorio" @change="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])">
+              <option v-for="opcao in valoresSelects[campo.id]" :key="opcao.id" :value="opcao.id">{{ opcao.valor }}</option>
             </select>
             <div v-else-if="campo.chave === 'id_cest'">
-              <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio"
-                @input="mascaraCest(campo.id)" maxlength="9" placeholder="00.000.00"
-                :disabled="aguardandoAprovaçãoFiscal" />
+              <input type="text" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="mascaraCest(campo.id)" maxlength="9" placeholder="00.000.00" :disabled="aguardandoAprovaçãoFiscal" />
             </div>
-            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]"
-              :required="campo.obrigatorio" @input="onInputDecimal($event, campo)"
-              :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
+            <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="onInputDecimal($event, campo)" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" :disabled="aguardandoAprovaçãoFiscal" />
           </div>
         </fieldset>
       </div>
@@ -148,13 +169,45 @@
         </button>
         <!-- Salvar/Cadastrar -->
         <button v-if="!isReadOnly" type="button" :disabled="salvandoProduto || finalizandoAtualizacao || enviandoParaEdicao" @click="salvarProduto()">
-          {{ salvandoProduto ? "Salvando…" : (isCadastro ? "Cadastrar Produto" : "Salvar") }}
+          {{ salvandoProduto ? "Salvando…" : isCadastro ? "Cadastrar Produto" : "Salvar" }}
         </button>
+      </div>
+      <!-- Aviso: rota do catálogo + produto em edição (sem botões aqui) -->
+      <div class="aviso-sistema" v-if="!isCadastro && produto_original.editavel && somenteVisualizacao">
+        <div class="aviso-sistema__titulo">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Produto em modo de edição</span>
+        </div>
+        <p class="aviso-sistema__texto">Este produto está em edição. Você está visualizando pelo catálogo, onde não é possível alterar. Para editar, acesse pelo menu <strong>Produtos em Edição</strong> e abra este produto na lista.</p>
+      </div>
+      <!-- Aviso: modo edição (Salvar / Finalizar) - rota de edição -->
+      <div class="aviso-sistema" v-if="!isCadastro && produto_original.editavel && !somenteVisualizacao">
+        <div class="aviso-sistema__titulo">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Como funciona a edição</span>
+        </div>
+        <ul class="aviso-sistema__lista">
+          <li v-if="omieHabilitado"><strong>Salvar:</strong> guarda as alterações apenas localmente, sem enviar para o Omie. Use para não perder o trabalho.</li>
+          <li v-else><strong>Salvar:</strong> guarda as alterações no Thalamus. Use para não perder o trabalho.</li>
+          <li v-if="omieHabilitado"><strong>Finalizar Edição:</strong> envia todas as alterações pendentes para o Omie e sincroniza o produto.</li>
+          <li v-else><strong>Finalizar Edição:</strong> aplica as alterações e devolve o produto ao catálogo.</li>
+          <li v-if="omieHabilitado"><strong>Status (Ativo/Inativo):</strong> somente leitura. A inativação deve ser feita no Omie; o Thalamus atualiza automaticamente via integração.</li>
+          <li v-else><strong>Status (Ativo/Inativo):</strong> você altera nesta tela. Novos produtos entram como Ativo.</li>
+          <li>Após finalizar, o produto volta para o catálogo. Para editar novamente, abra-o pelo catálogo e clique em <strong>Enviar para Edição</strong>.</li>
+        </ul>
+      </div>
+      <!-- Aviso: somente visualização (Enviar para Edição) -->
+      <div class="aviso-sistema" v-if="!isCadastro && !produto_original.editavel">
+        <div class="aviso-sistema__titulo">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Como editar este produto</span>
+        </div>
+        <p v-if="omieHabilitado" class="aviso-sistema__texto">Use o botão <strong>Enviar para Edição</strong> para liberar as alterações. O produto passará a ficar "Em edição" e você poderá editá-lo (Salvar localmente e Finalizar Edição para sincronizar com o Omie).</p>
+        <p v-else class="aviso-sistema__texto">Use o botão <strong>Enviar para Edição</strong> para liberar as alterações. O produto passará a ficar "Em edição" e você poderá editá-lo (Salvar e Finalizar Edição para publicar no catálogo).</p>
       </div>
     </div>
   </section>
-  <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo"
-    @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
+  <ModalEditarCombo :itemEditado="itemEditado" v-if="showModalEditarCombo" @fecharModal="(showModalEditarCombo = false), atualizarSelect()" />
   <!-- MODAL FOTOS -->
   <div v-if="showModalFotos" class="modal-mask">
     <div class="modal-container" style="height: min-content; width: 50rem">
@@ -191,6 +244,10 @@ import { urlFoto } from "@/services/api";
 import serviceCampos from "@/services/camposPorFamilia-service";
 import { useToast } from "vue-toastification";
 import SelectCategoriaOrcamento from "@/components/SelectCategoriaOrcamento.vue";
+import { getUnidades } from "@/services/serviceUnidades";
+
+const CHAVES_OBRIGATORIAS = ["tipoProduto_id", "cod", "desc", "und", "status"];
+const ORDEM_CAMPOS_PRINCIPAIS = ["tipoProduto_id", "cod", "desc", "und", "status", "ncm"];
 
 export default {
   name: "AlteracoesProduto",
@@ -204,15 +261,20 @@ export default {
     isTemplate: { required: false },
     isCadastro: { required: true },
     somenteVisualizacao: { type: Boolean, default: false },
+    projetoId: { type: [String, Number], default: null },
   },
   data() {
     return {
-      ordemCamposPrincipais: ["tipoProduto_id", "familia_id", "cod", "desc", "und", "ncm"],
+      ordemCamposPrincipais: ORDEM_CAMPOS_PRINCIPAIS,
 
       funcionalidades: [],
       aguardandoAprovaçãoFiscal: false,
       produto_original: {
         familia_id: null,
+        estocavel: true,
+        patrimoniavel: false,
+        seriavel: false,
+        criticidade: "",
       },
 
       // produto_editado: {},
@@ -227,6 +289,9 @@ export default {
       payLoad: {
         usuario_id: null,
         ncm: "",
+        estocavel: true,
+        patrimoniavel: false,
+        seriavel: false,
       },
       em_edicao: [],
       blocoVisivel: "informacoes",
@@ -243,10 +308,12 @@ export default {
       idIndicadorEscala: null,
 
       categoriasOrçamento: [],
+      unidades: [],
 
       salvandoProduto: false,
       finalizandoAtualizacao: false,
       enviandoParaEdicao: false,
+      omieHabilitado: false,
     };
   },
 
@@ -255,14 +322,24 @@ export default {
     return { urlFoto, toast };
   },
   watch: {
-    "produto_original.familia_id": {
-      immediate: true,
-      handler(novaFamiliaId) {
-        if (novaFamiliaId) {
-          this.atualizarPayLoad("familia_id", novaFamiliaId);
-          this.sincronizarCamposComBaseNaFamilia(novaFamiliaId);
+    produto_cod: {
+      async handler(novo, antigo) {
+        if (!novo || novo === antigo || this.isCadastro) return;
+        this.isLoading = true;
+        try {
+          await this.carregarDadosProduto();
+          await this.carregarFotosProduto();
+        } catch (error) {
+          console.error("Erro ao recarregar produto:", error);
+        } finally {
+          this.isLoading = false;
         }
       },
+    },
+    "produto_original.familia_id"(novaFamiliaId, antigaFamiliaId) {
+      if (!novaFamiliaId || novaFamiliaId === antigaFamiliaId) return;
+      this.atualizarPayLoad("familia_id", novaFamiliaId);
+      this.sincronizarCamposComBaseNaFamilia(novaFamiliaId);
     },
   },
 
@@ -295,9 +372,28 @@ export default {
     },
 
     camposFiscaisVisiveis() {
-      const id = this.idIndicadorEscala;
-      const indicador = id ? this.valoresSelecionados[id] : null;
+      // Com Omie, CNPJ do fabricante só vale quando a escala é "N".
+      // Sem Omie (ou sem o campo de escala na ficha), o switch da família manda.
+      if (!this.omieHabilitado || !this.idIndicadorEscala) {
+        return this.camposFiscais;
+      }
+      const indicador = this.valoresSelecionados[this.idIndicadorEscala];
       return this.camposFiscais.filter((c) => c.chave !== "cnpj_fabricante" || indicador === "N");
+    },
+
+    statusSomenteLeitura() {
+      return this.omieHabilitado || this.isReadOnly || this.isCadastro;
+    },
+
+    hintStatus() {
+      if (this.omieHabilitado) {
+        return this.isCadastro
+          ? "Novos produtos entram como Ativo. A inativação deve ser feita no Omie."
+          : "O status é controlado pelo Omie. Para inativar, faça no Omie; o Thalamus atualiza automaticamente.";
+      }
+      return this.isCadastro
+        ? "Novos produtos entram como Ativo. Você pode inativar depois, na edição."
+        : "Altere Ativo/Inativo nesta tela. A alteração entra em vigor ao finalizar a edição.";
     },
   },
   async created() {
@@ -307,7 +403,16 @@ export default {
     this.payLoad.usuario_id = sso.getUsuarioLogado().id;
     this.isLoading = true;
     try {
-      await Promise.all([this.isCadastro ? Promise.resolve() : this.carregarAlteracoes(), this.carregarNcm(), this.carregarCategoriasOrcamento(), this.carregarTiposProduto(), this.isCadastro ? Promise.resolve() : this.carregarFotosProduto(), this.carregarFamilias()]);
+      this.omieHabilitado = await serviceProdutos.empresaTemOmie();
+      await this.carregarUnidades();
+      await this.carregarTiposProduto();
+      await this.carregarFamilias();
+      await Promise.all([
+        this.isCadastro ? Promise.resolve() : this.carregarDadosProduto(),
+        this.carregarNcm(),
+        this.carregarCategoriasOrcamento(),
+        this.isCadastro ? Promise.resolve() : this.carregarFotosProduto(),
+      ]);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -320,12 +425,10 @@ export default {
 
       v = v.replace(/,/g, ".");
 
-
       if (/^\d+(\.\d{4,})$/.test(v)) {
         this.toast.error("O valor não pode ter mais de três casas decimais.");
 
         v = v.replace(/^(\d+\.\d{0,3}).*$/, "$1");
-
 
         e.target.value = v;
       }
@@ -366,12 +469,25 @@ export default {
       }
 
       if ("null" in p) delete p.null;
+
+      // Select de status fica desabilitado no cadastro; payload às vezes sai "".
+      // Novos produtos entram como Ativo (1). Com Omie o backend também força 1.
+      if (p.status === "" || p.status === null || p.status === undefined || Number.isNaN(Number(p.status))) {
+        p.status = 1;
+      } else {
+        p.status = Number(p.status);
+      }
+
       return p;
     },
 
     buildStagingPayload() {
+      const payLoad = { ...(this.payLoad || {}) };
+      if (!this.isCadastro && this.omieHabilitado) {
+        delete payLoad.status;
+      }
       return {
-        ...this.payLoad,
+        ...payLoad,
         campos_dinamicos: this.camposSelects
           .filter((campo) => campo.omie !== 1)
           .map((campo) => {
@@ -393,6 +509,7 @@ export default {
         this.toast.error("Produto inválido para finalizar.");
         return;
       }
+      if (!this.normalizarCriticidade()) return;
       this.finalizandoAtualizacao = true;
       try {
         // salvar oque está na tela no staging (indica finalizar para gravar aprovador)
@@ -400,9 +517,12 @@ export default {
         await serviceProdutos.salvarLocal(this.produto_cod, { ...payloadStaging, finalizar: true });
 
         // aplica staging no produto + envia ao Omie
-        await serviceProdutos.finalizarAtualizacao(this.produto_cod);
+        const resposta = await serviceProdutos.finalizarAtualizacao(this.produto_cod);
+        if (resposta?.produto?.prefixo_serie) {
+          this.produto_original.prefixo_serie = resposta.produto.prefixo_serie;
+        }
 
-        this.toast.success("Atualização finalizada e enviada ao Omie!");
+        this.toast.success(this.omieHabilitado ? "Atualização finalizada e enviada ao Omie!" : "Atualização finalizada!");
         this.$router.push({ name: "ProdutosView" });
       } catch (error) {
         const mensagemErro = this.formatarMensagensErro(error);
@@ -472,6 +592,11 @@ export default {
           valores[campoTipo.id] = this.tipos.map((t) => ({ id: t.id, valor: t.nome }));
         }
 
+        const campoUnd = campos.find((c) => c.chave === "und");
+        if (campoUnd && this.unidades?.length) {
+          valores[campoUnd.id] = this.unidades.map((u) => ({ id: u.cod, valor: `${u.cod} - ${u.nome}` }));
+        }
+
         const campoStatus = campos.find((c) => c.chave === "status");
         if (campoStatus) {
           valores[campoStatus.id] = [
@@ -527,10 +652,15 @@ export default {
 
         const stagedArr = this.valorCamposDinamicos || [];
 
-        const camposPrincipaisOrdem = ["tipoProduto_id", "cod", "desc", "und", "ncm"];
-        const camposSN = ["cupom_fiscal", "market_place", "indicador_escala"];
+        const camposPrincipaisOrdem = ORDEM_CAMPOS_PRINCIPAIS;
+        // Campos S/N que recebem default "N" quando vazios (indicador_escala pode ficar vazio)
+        const camposSNComDefault = ["cupom_fiscal", "market_place"];
 
         camposMapeados.forEach((campo) => {
+          if (CHAVES_OBRIGATORIAS.includes(campo.chave)) {
+            campo.obrigatorio = true;
+          }
+
           const stagedDyn = stagedArr.find((d) => d.campo_id === campo.id);
 
           let valorAtual;
@@ -539,24 +669,30 @@ export default {
           if (campo.tipo === "Lista" || campo.tipo === "MultiLista") {
             const lista = Array.isArray(stagedDyn?.valor_id) ? stagedDyn.valor_id : [];
             valorAtual = campo.tipo === "Lista" ? (lista.length ? lista[0] : "") : lista;
-          } else if (["Texto", "Número", "Decimal", "Data", "AreaTexto"].includes(campo.tipo)) {
+          } else if (this.isCampoInputSimples(campo.tipo) || campo.tipo === "AreaTexto") {
             valorAtual = stagedDyn && Object.prototype.hasOwnProperty.call(stagedDyn, "valor") ? stagedDyn.valor : null;
           }
 
-          // fixos do produto (desc, cod, und, etc.)
-          const precisaFallback = valorAtual === undefined || valorAtual === null || (campo.tipo === "Lista" && valorAtual === "");
+          // fixos do produto (desc, cod, und, peso_liq, etc.)
+          const precisaFallback = valorAtual === undefined || valorAtual === null || valorAtual === "" || (campo.tipo === "Lista" && valorAtual === "");
           if (precisaFallback) {
-            const doProduto = this.produto_original[campo.chave];
+            const doProduto = this.valorFixoDoProduto(campo.chave);
             if (doProduto !== undefined && doProduto !== null && doProduto !== "") {
               valorAtual = doProduto;
             }
           }
 
           // Ajustes e defaults
+          if (campo.chave === "status" && (valorAtual === null || valorAtual === undefined || valorAtual === "") && this.isCadastro) {
+            valorAtual = 1;
+          }
           if (campo.chave === "status" && valorAtual !== null && valorAtual !== "") {
             valorAtual = typeof valorAtual === "string" ? Number(valorAtual) : valorAtual;
           }
-          if (camposSN.includes(campo.chave) && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
+          if (campo.chave === "tipoProduto_id" && valorAtual !== null && valorAtual !== "") {
+            valorAtual = typeof valorAtual === "string" ? Number(valorAtual) : valorAtual;
+          }
+          if (camposSNComDefault.includes(campo.chave) && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
             valorAtual = "N";
           }
           if (campo.chave === "origem_mercadoria" && (valorAtual === null || valorAtual === undefined || valorAtual === "")) {
@@ -597,6 +733,42 @@ export default {
         default:
           return "input";
       }
+    },
+
+    isCampoInputSimples(tipo) {
+      return ["Texto", "Número", "Decimal", "Data", "integer", "Integer", "int"].includes(tipo);
+    },
+
+    valorFixoDoProduto(chave) {
+      const aliases = {
+        peso_liq: ["peso_liq", "peso_liquido"],
+        peso_liquido: ["peso_liquido", "peso_liq"],
+        dias_crossdocking: ["dias_crossdocking", "dias_de_crossdocking"],
+        dias_de_crossdocking: ["dias_de_crossdocking", "dias_crossdocking"],
+      };
+      const keys = aliases[chave] || [chave];
+      for (const k of keys) {
+        const v = this.produto_original?.[k];
+        if (v !== undefined && v !== null && v !== "") return v;
+      }
+      return null;
+    },
+
+    aplicarAliasesProduto(produto) {
+      if (!produto) return produto;
+      if ((produto.peso_liq === undefined || produto.peso_liq === null || produto.peso_liq === "") && produto.peso_liquido != null && produto.peso_liquido !== "") {
+        produto.peso_liq = produto.peso_liquido;
+      }
+      if ((produto.peso_liquido === undefined || produto.peso_liquido === null || produto.peso_liquido === "") && produto.peso_liq != null && produto.peso_liq !== "") {
+        produto.peso_liquido = produto.peso_liq;
+      }
+      if ((produto.dias_crossdocking === undefined || produto.dias_crossdocking === null || produto.dias_crossdocking === "") && produto.dias_de_crossdocking != null && produto.dias_de_crossdocking !== "") {
+        produto.dias_crossdocking = produto.dias_de_crossdocking;
+      }
+      if ((produto.dias_de_crossdocking === undefined || produto.dias_de_crossdocking === null || produto.dias_de_crossdocking === "") && produto.dias_crossdocking != null && produto.dias_crossdocking !== "") {
+        produto.dias_de_crossdocking = produto.dias_crossdocking;
+      }
+      return produto;
     },
 
     formatarData(data) {
@@ -746,9 +918,30 @@ export default {
     salvarTemplate() {
       console.log("aqui");
     },
+    onEstocavelSelect(event) {
+      const sim = event?.target?.value === "sim";
+      this.produto_original.estocavel = sim;
+      this.atualizarPayLoad("estocavel", sim);
+    },
+    onPatrimoniavelSelect(event) {
+      const sim = event?.target?.value === "sim";
+      this.produto_original.patrimoniavel = sim;
+      this.atualizarPayLoad("patrimoniavel", sim);
+    },
+    onSeriavelSelect(event) {
+      const sim = event?.target?.value === "sim";
+      this.produto_original.seriavel = sim;
+      this.atualizarPayLoad("seriavel", sim);
+    },
+
     async atualizarPayLoad(chave, valor) {
       if (!chave) return;
       if (this.isReadOnly && !this.isCadastro) return;
+      if (chave === "status" && !this.isCadastro && this.omieHabilitado) return;
+      if (chave === "status" && (valor === "" || valor === null || valor === undefined)) {
+        if (!this.isCadastro) return;
+        valor = 1;
+      }
       this.payLoad[chave] = valor;
     },
     formatarMensagemValidacao(mensagem) {
@@ -769,11 +962,26 @@ export default {
     },
 
     obterNomeCampo(chave) {
+      if (chave === "estocavel") return "Item Estocável";
+      if (chave === "patrimoniavel") return "Patrimoniável";
+      if (chave === "seriavel") return "Seriável";
+      if (chave === "criticidade") return "Criticidade";
       if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
         return chave;
       }
       const campo = this.camposSelects.find((c) => c.chave === chave);
       return campo?.label || chave;
+    },
+
+    normalizarCriticidade() {
+      const valor = String(this.produto_original?.criticidade ?? this.payLoad?.criticidade ?? "").trim();
+      if (valor.length > 60) {
+        this.toast.error("Criticidade deve ter no máximo 60 caracteres.");
+        return false;
+      }
+      this.produto_original.criticidade = valor;
+      this.payLoad.criticidade = valor || null;
+      return true;
     },
 
     formatarMensagensErro(error) {
@@ -817,9 +1025,7 @@ export default {
         const errosDetalhados = [];
         for (const [campo, mensagens] of Object.entries(responseData.errors)) {
           const nomeCampo = this.obterNomeCampo(campo);
-          const mensagensFormatadas = Array.isArray(mensagens)
-            ? mensagens.map((msg) => this.formatarMensagemValidacao(msg)).join(", ")
-            : this.formatarMensagemValidacao(mensagens);
+          const mensagensFormatadas = Array.isArray(mensagens) ? mensagens.map((msg) => this.formatarMensagemValidacao(msg)).join(", ") : this.formatarMensagemValidacao(mensagens);
           errosDetalhados.push(`${nomeCampo} ${mensagensFormatadas}`);
         }
         if (errosDetalhados.length > 0) {
@@ -840,6 +1046,8 @@ export default {
       this.salvandoProduto = true;
       try {
         this.errors = {};
+        if (!this.normalizarCriticidade()) return;
+
         const campoCest = this.camposSelects.find((c) => c.chave === "id_cest");
         const cest = campoCest ? this.valoresSelecionados[campoCest.id] : null;
         const regexCest = /^\d{2}\.\d{3}\.\d{2}$/;
@@ -855,12 +1063,19 @@ export default {
           const campos_dinamicos = this.buildCamposDinamicosCadastro();
           const bruto = {
             ...this.payLoad,
+            criticidade: this.produto_original.criticidade,
             editavel: true,
+            estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
+            patrimoniavel: this.produto_original.patrimoniavel ?? this.payLoad.patrimoniavel ?? false,
+            seriavel: this.produto_original.seriavel ?? this.payLoad.seriavel ?? false,
             familia_id: this.produto_original.familia_id ?? this.payLoad.familia_id ?? null,
+            id_categoria_orcamento:
+              this.produto_original.id_categoria_orcamento ?? this.payLoad.id_categoria_orcamento ?? null,
             campos_dinamicos,
           };
 
           const payload = this.normalizeCadastroPayload(bruto);
+          if (this.projetoId) payload.projeto_id = Number(this.projetoId);
 
           await serviceProdutos.cadastrarProdutoOMIE(payload);
           this.toast.success("Produto enviado com sucesso!");
@@ -879,7 +1094,12 @@ export default {
         }
 
         // edição com editavel = false (aplica direto e já manda Omie)
-        const payloadAtualizar = { familia_id: this.produto_original.familia_id ?? null };
+        const payloadAtualizar = {
+          familia_id: this.produto_original.familia_id ?? null,
+          estocavel: !!this.produto_original.estocavel,
+          patrimoniavel: !!this.produto_original.patrimoniavel,
+          seriavel: !!this.produto_original.seriavel,
+        };
         this.camposSelects
           .filter((campo) => campo.omie === 1)
           .forEach((campo) => {
@@ -920,6 +1140,15 @@ export default {
         console.error("Erro ao salvar produto:", error);
       }
     },
+    async carregarDadosProduto() {
+      if (!this.produto_cod || this.isCadastro) return;
+      await this.carregarAlteracoes();
+      const familiaId = this.produto_original?.familia_id;
+      if (familiaId) {
+        await this.sincronizarCamposComBaseNaFamilia(familiaId);
+      }
+    },
+
     async carregarAlteracoes() {
       if (!this.produto_cod) return;
 
@@ -943,19 +1172,36 @@ export default {
 
         if (this.somenteVisualizacao) {
           // readonly => mostrar original (fixos) + dinamicos originais
-          this.produto_original = resp.produto_original;
           this.valorCamposDinamicos = toCompact(resp.campos_dinamicos || []);
+          this.produto_original = this.aplicarAliasesProduto(resp.produto_original);
         } else {
           // edição => mostrar editado (fixos)
-          this.produto_original = resp.produto_editado;
-
-          // dinâmicos: prioriza staging; se não tem, cai pro original normalizado
-          const dinStaging = Array.isArray(resp.produto_editado?.campos_dinamicos) ? resp.produto_editado.campos_dinamicos : null;
-
-          this.valorCamposDinamicos = dinStaging ?? toCompact(resp.campos_dinamicos || []);
+          this.valorCamposDinamicos =
+            Array.isArray(resp.produto_editado?.campos_dinamicos) && resp.produto_editado.campos_dinamicos.length
+              ? resp.produto_editado.campos_dinamicos
+              : toCompact(resp.campos_dinamicos || []);
+          this.produto_original = this.aplicarAliasesProduto(resp.produto_editado);
         }
 
         this.em_edicao = resp.em_edicao;
+
+        if (this.produto_original?.familia_id != null && this.produto_original.familia_id !== "") {
+          this.produto_original.familia_id = Number(this.produto_original.familia_id);
+        }
+
+        const est = this.produto_original.estocavel;
+        const estNorm = est === true || est === 1 || est === "1";
+        const estOff = est === false || est === 0 || est === "0";
+        this.produto_original.estocavel = estNorm ? true : estOff ? false : true;
+        this.payLoad.estocavel = this.produto_original.estocavel;
+
+        const pat = this.produto_original.patrimoniavel;
+        this.produto_original.patrimoniavel = pat === true || pat === 1 || pat === "1";
+        this.payLoad.patrimoniavel = this.produto_original.patrimoniavel;
+        const ser = this.produto_original.seriavel;
+        this.produto_original.seriavel = ser === true || ser === 1 || ser === "1";
+        this.payLoad.seriavel = this.produto_original.seriavel;
+        this.payLoad.criticidade = this.produto_original.criticidade ?? null;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
       }
@@ -989,6 +1235,15 @@ export default {
         this.tipos = (lista || []).sort((a, b) => a.nome.localeCompare(b.nome));
       } catch (error) {
         console.error("Erro ao carregar Tipos de Produto:", error);
+      }
+    },
+
+    async carregarUnidades() {
+      try {
+        this.unidades = (await getUnidades()) || [];
+      } catch (error) {
+        console.error("Erro ao carregar unidades de medida:", error);
+        this.unidades = [];
       }
     },
   },
@@ -1154,5 +1409,55 @@ i:hover {
 .adicionarItem:hover {
   transition: all 200ms linear;
   color: var(--cor-fonte);
+}
+
+.aviso-sistema {
+  background: var(--cor-bg);
+  border: 1px solid var(--cor-primaria-media);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 1rem;
+}
+
+.aviso-sistema__titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--cor-primaria);
+}
+
+.aviso-sistema__titulo i {
+  font-size: 1.1rem;
+}
+
+.aviso-sistema__lista {
+  margin: 0;
+  padding-left: 1.4rem;
+  line-height: 1.6;
+  color: var(--cor-texto);
+}
+
+.aviso-sistema__lista li {
+  margin-bottom: 6px;
+}
+
+.aviso-sistema__lista li:last-child {
+  margin-bottom: 0;
+}
+
+.aviso-sistema__texto {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--cor-texto);
+}
+
+.hint-status-omie {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--cor-fonte-fraca, #666);
 }
 </style>

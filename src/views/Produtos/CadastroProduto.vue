@@ -23,9 +23,10 @@
     <div style="display: flex; flex-flow: column" v-if="produto">
       <div class="bloco2 margem">
         <AlteraçõesPendentes v-if="!somenteVisualizacao" :produto_cod="isEdicao ? produto.produto_cod : null"
-          :isCadastro="!isEdicao" :isTemplate="isTemplate" :somenteVisualizacao="somenteVisualizacao" />
+          :isCadastro="!isEdicao" :isTemplate="isTemplate" :somenteVisualizacao="somenteVisualizacao"
+          :projetoId="projetoIdAtual" />
         <AlteraçõesPendentes_new v-else :produto_cod="produto.produto_cod" :somenteVisualizacao="true"
-          :isCadastro="false" :isTemplate="isTemplate" />
+          :isCadastro="false" :isTemplate="isTemplate" :projetoId="projetoIdAtual" />
       </div>
       <!-- <div class="bloco margem">
           <header class="alinha-centro">
@@ -33,9 +34,20 @@
           </header>
           <ListaComponent @enviarParaEstrutura="adicionarItemNaEstrutura"></ListaComponent>
         </div> -->
-      <div class="bloco2 sheet margem " v-if="exibirEstruturaERoteiro">
+      <div class="bloco2 sheet margem " v-if="exibirEstrutura">
         <div class="section">
-          <div class="section__title">ESTRUTURA DO PRODUTO</div>
+          <div class="section__title section__title-estrutura">
+            <span>ESTRUTURA DO PRODUTO</span>
+            <button
+              type="button"
+              class="btn-exportar-estrutura"
+              title="Baixar planilha da estrutura completa"
+              :disabled="exportandoEstrutura || !produto?.produto_cod"
+              @click="exportarEstrutura"
+            >
+              <i :class="exportandoEstrutura ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-excel'"></i>
+            </button>
+          </div>
           <br />
           <div v-if="mostrarEstrutura" style="display: flex; justify-content: space-between">
             <div class="legenda-item"><span class="produto-tipo-indicador materia-prima"></span>Matéria Prima</div>
@@ -43,19 +55,32 @@
             </div>
             <div class="legenda-item"><span class="produto-tipo-indicador produto-acabado"></span>Produto Acabado</div>
           </div>
-          <EstruturaComponent v-if="mostrarEstrutura && produto" :iniciarAberto="true" :item="produto"
-            @atualizar="getEstrutura" :editavel="false" :unidades="unidades" />
+          <EstruturaComponent
+            v-if="mostrarEstrutura && produto"
+            :iniciarAberto="true"
+            :item="produto"
+            @atualizar="atualizarEstrutura"
+            :editavel="estruturaEditavel"
+            :unidades="unidades"
+          />
           <div class="alinha-centro" v-else>
             <span style="color: var(--cor-erro); font-size: 20px">Estrutura não encontrada</span>
           </div>
         </div>
       </div>
-      <div class="bloco2 sheet margem" v-if="exibirEstruturaERoteiro">
+      <div class="bloco2 sheet margem" v-if="exibirRoteiro">
         <div class="section">
           <div>
-            <div class="section__title">ROTEIRO DE PRODUÇÃO</div>
+            <div class="section__title section__title-roteiro">
+              <span>ROTEIRO DE PRODUÇÃO</span>
+              <span v-if="roteiroVersao != null" class="roteiro-versao-label"> — Versão {{ roteiroVersao }}<span v-if="roteiroStatus" class="roteiro-status-label"> ({{ roteiroStatus }})</span></span>
+            </div>
             <!-- <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" /> -->
-            <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="somenteVisualizacao" />
+            <RoteiroComponent_2
+              :produto_cod="produto.produto_cod"
+              :readonly="somenteVisualizacao"
+              @versao-atual="onRoteiroVersaoAtual"
+            />
             <!-- <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="false"/> -->
           </div>
         </div>
@@ -78,6 +103,7 @@ import serviceProdutos from "@/services/serviceProdutos";
 import { sso } from "roboflex-thalamus-sso-lib";
 import AlteraçõesPendentes_new from "./AlteraçõesPendentes_new.vue";
 import RoteiroComponent_2 from "@/components/Roteiro_2.0/RoteiroComponent_2.vue";
+import { useToast } from "vue-toastification";
 
 export default {
   name: "CadastroProduto",
@@ -89,12 +115,17 @@ export default {
     RoteiroComponent_2
     // ListaComponent
   },
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
   props: {
     id: { required: true },
     produto_cod: { type: String, required: false, default: null },
     isTemplate: { required: false },
     isCadastro: { required: true },
     somenteVisualizacao: { type: Boolean, default: false },
+    projetoId: { type: [String, Number], required: false, default: null },
   },
 
 
@@ -103,6 +134,7 @@ export default {
       tiposProduto: ["Produto em Processo", "Produto Acabado"],
       produto: null,
       mostrarEstrutura: true,
+      exportandoEstrutura: false,
       mostrarModal: false,
       novoItem: {
         codigo: "",
@@ -115,15 +147,27 @@ export default {
       usuarioLogado: "",
 
       unidades: [],
+      roteiroVersao: null,
+      roteiroVersaoMaisRecente: true,
+      roteiroStatus: null,
     };
   },
   computed: {
+    /** Id do projeto quando a tela foi aberta a partir de um projeto (query ?projetoId= ou prop). */
+    projetoIdAtual() {
+      return this.projetoId ?? this.$route?.query?.projetoId ?? null;
+    },
     isEdicao() {
       return !!this.id && /^\d+$/.test(String(this.id));
     },
-    exibirEstruturaERoteiro() {
-      const tipoId = this.produto?.tipo?.id;
-      return this.isEdicao && (tipoId === 4 || tipoId === 5);
+    exibirEstrutura() {
+      return this.isEdicao && !!this.produto?.tipo?.possui_estrutura;
+    },
+    exibirRoteiro() {
+      return this.isEdicao && !!this.produto?.tipo?.possui_roteiro;
+    },
+    estruturaEditavel() {
+      return !this.somenteVisualizacao && this.isEdicao;
     },
   },
 
@@ -132,6 +176,13 @@ export default {
     this.usuarioId = this.usuarioLogado.id;
     this.unidades = await getUnidades();
     await this.getProduto();
+  },
+  watch: {
+    id(novoId, antigoId) {
+      if (novoId && String(novoId) !== String(antigoId)) {
+        this.getProduto();
+      }
+    },
   },
   methods: {
     listarProdutos(payload) {
@@ -173,7 +224,8 @@ export default {
         // edição existente
         const produtoEditado = await serviceProdutos.getProdutoByCod(this.id);
         this.produto = produtoEditado ?? { filhos: [] };
-        if (produtoEditado) {
+        const exibeEstrutura = !!produtoEditado?.tipo?.possui_estrutura;
+        if (produtoEditado && exibeEstrutura) {
           this.getEstrutura(produtoEditado.produto_cod);
           this.mostrarEstrutura = true;
         } else {
@@ -190,11 +242,34 @@ export default {
       var estrutura = await serviceProdutos.getEstrutura(id);
       this.produto.filhos = estrutura;
     },
+    async atualizarEstrutura() {
+      if (!this.produto?.produto_cod) return;
+      await this.getEstrutura(this.produto.produto_cod);
+    },
+    async exportarEstrutura() {
+      if (this.exportandoEstrutura || !this.produto?.produto_cod) return;
+      this.exportandoEstrutura = true;
+      try {
+        const sugestao = `estrutura_produto_${this.produto.cod || this.produto.produto_cod}.xlsx`;
+        await serviceProdutos.exportarEstrutura(this.produto.produto_cod, sugestao);
+        this.toast.success("Planilha da estrutura baixada.");
+      } catch (e) {
+        console.error("Erro ao exportar estrutura:", e);
+        this.toast.error(e?.message || "Não foi possível baixar a estrutura.");
+      } finally {
+        this.exportandoEstrutura = false;
+      }
+    },
     abrirModal() {
       this.mostrarModal = true;
     },
     fecharModal() {
       this.mostrarModal = false;
+    },
+    onRoteiroVersaoAtual({ versao, isMaisRecente, status }) {
+      this.roteiroVersao = versao;
+      this.roteiroVersaoMaisRecente = isMaisRecente;
+      this.roteiroStatus = status ?? null;
     },
   },
 };
@@ -293,6 +368,50 @@ export default {
   padding-bottom: 8px;
   border-bottom: 3px solid var(--cor-primaria-media);
   font-weight: 800;
+}
+
+.section__title-estrutura {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.btn-exportar-estrutura {
+  border: none;
+  background: transparent;
+  color: #217346;
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.btn-exportar-estrutura:hover:not(:disabled) {
+  background: rgba(33, 115, 70, 0.1);
+}
+
+.btn-exportar-estrutura:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.section__title-roteiro {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.roteiro-versao-label {
+  font-weight: 600;
+  color: var(--cor-fonte, #1565c0);
+}
+
+.roteiro-status-label {
+  font-weight: 500;
+  color: var(--cor-cinza-escuro, #555);
 }
 
 .sheet {

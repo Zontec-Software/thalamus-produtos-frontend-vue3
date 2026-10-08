@@ -77,6 +77,39 @@ export default {
         }
     },
 
+    async getHistoricoVersoes(produto_cod) {
+        try {
+            const response = await api.get(`roteiro_2/buscar/${produto_cod}/versoes`);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async getRoteiroPorId(id) {
+        try {
+            const response = await api.get(`roteiro_2/roteiro/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    async copiarRoteiroDeVersao(produto_cod, roteiro_origem_id, etapas_origem_ids = []) {
+        try {
+            const response = await api.post(`roteiro_2/${produto_cod}/copiar-roteiro-de-versao`, {
+                roteiro_origem_id,
+                etapas_origem_ids
+            });
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
     async cadastrarEtapa(payload) {
         try {
             const response = await api.post(`roteiro_2/etapa`, payload);

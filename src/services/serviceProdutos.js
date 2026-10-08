@@ -1,18 +1,35 @@
 import { api } from "roboflex-thalamus-request-handler";
 
+function paramsTipo(filtroTipo) {
+  const bruto = Array.isArray(filtroTipo)
+    ? filtroTipo
+    : filtroTipo === undefined || filtroTipo === null || filtroTipo === ""
+      ? []
+      : [filtroTipo];
+  const ids = [...new Set(bruto.map((v) => Number(v)).filter((id) => Number.isFinite(id) && id > 0))];
+  if (!ids.length) return {};
+  return { tipo: ids };
+}
+
+let omieHabilitadoCache = null;
+
 const funções = {
-  // '1',  'Mercadoria para Revenda'
-  // '2', 'Matéria Prima'
-  // '3', 'Embalagem'
-  // '4', 'Produto em Processo'
-  // '5', 'Produto Acabado'
-  // '6', 'Subproduto',
-  // '7', 'Produto Intermediário',
-  // '8' , 'Material de Uso e Consumo',
-  // '9', 'Ativo Imobilizado',
-  // '10, 'Serviços',
-  // '11', 'Outros Insumos',
-  // '12, 'Outras',
+  paramsTipo,
+
+  async empresaTemOmie({ force = false } = {}) {
+    if (omieHabilitadoCache !== null && !force) {
+      return omieHabilitadoCache;
+    }
+    try {
+      const { data } = await api.get("/auth/me");
+      omieHabilitadoCache = !!data?.omie_habilitado;
+      return omieHabilitadoCache;
+    } catch (error) {
+      console.error("Erro ao consultar integração Omie da empresa:", error);
+      return false;
+    }
+  },
+
   async filtrarProdutos(payload) {
     return await api.get("/produto-filtrar", { params: payload });
   },
@@ -47,13 +64,8 @@ const funções = {
   async getProdutos(pagina = 1) {
     try {
       const payload = {
-        // temp produtos acabados e em processo
-        //tipo: [4, 5],
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        aprovado: true,
         paginacao: 1,
         page: pagina,
-        //editavel: false, //comentado para nova lógica
       };
 
       const response = await api.get("/produto-filtrar", { params: payload });
@@ -64,12 +76,25 @@ const funções = {
     }
   },
 
+  /** Busca no servidor por código/descrição. Sem `paginacao`, o backend devolve todos os resultados do termo. */
+  async buscarProdutosPorTermo(termo, { signal } = {}) {
+    try {
+      const params = { termo: String(termo ?? "").trim() };
+      const response = await api.get("/produto-filtrar", { params, signal });
+      const dados = response.data;
+
+      return Array.isArray(dados?.data) ? dados.data : Array.isArray(dados) ? dados : [];
+    } catch (error) {
+      if (error?.code !== "ERR_CANCELED") {
+        console.error("Erro ao buscar produtos por termo:", error);
+      }
+      throw error;
+    }
+  },
+
   async getProdutosEditaveis(pagina = 1) {
     try {
       const payload = {
-        // temp produtos acabados e em processo
-        //tipo: [4, 5],
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         paginacao: 1,
         page: pagina,
         editavel: true,
@@ -100,6 +125,48 @@ const funções = {
     } catch (error) {
       console.error(error);
       throw error;
+    }
+  },
+
+  async exportarEstrutura(produtoCod, nomeArquivoSugerido) {
+    try {
+      const response = await api.get(`/estrutura/produto/${produtoCod}/exportar`, {
+        responseType: "blob",
+      });
+
+      const disposition = response.headers?.["content-disposition"] || "";
+      const match = /filename\*?=(?:UTF-8''|")?([^";]+)/i.exec(disposition);
+      const nomeArquivo = match
+        ? decodeURIComponent(match[1].replace(/"/g, ""))
+        : nomeArquivoSugerido || `estrutura_produto_${produtoCod}.xlsx`;
+
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nomeArquivo;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      let msg = "Erro ao exportar estrutura.";
+      const data = error?.response?.data;
+      if (data instanceof Blob) {
+        try {
+          const text = await data.text();
+          const json = JSON.parse(text);
+          msg = json.error || json.message || msg;
+        } catch (_) {
+          /* ignore */
+        }
+      } else if (data?.error || data?.message) {
+        msg = data.error || data.message;
+      } else if (error?.message) {
+        msg = error.message;
+      }
+      console.error(error);
+      throw new Error(msg);
     }
   },
 
@@ -142,7 +209,7 @@ const funções = {
     try {
       // base de filtros: sempre manda "tipo"
       const base = {
-        tipo: filtroTipo ? [filtroTipo] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        ...paramsTipo(filtroTipo),
       };
 
       // manda "termo"
@@ -174,9 +241,7 @@ const funções = {
 
   async getTipoeFamilias() {
     try {
-      const payload = {
-        tipo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      };
+      const payload = {};
 
       const responseProdutos = await api.get("/produto-filtrar", {
         params: payload,
@@ -352,6 +417,10 @@ const funções = {
       console.error("Erro ao finalizar cadastro:", error);
       throw error;
     }
+  },
+
+  async finalizarCadastro(id, payload) {
+    return this.finalizarAtualizacao(id, payload);
   },
 
   //ALTERA APENAS NO THALAMUS

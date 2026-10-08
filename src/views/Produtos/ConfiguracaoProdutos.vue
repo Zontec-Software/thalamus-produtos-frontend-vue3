@@ -17,6 +17,26 @@
         </div>
         <br />
         <div class="bloco2 margem" v-if="nomeFamiliaSelecionada">
+            <h3>Campos fixos da ficha de produto</h3>
+            <p class="texto-ajuda-fixos">Sempre presentes no cadastro — apenas consulta, não configuráveis por família.</p>
+            <div class="checkbox-grid campos-fixos-ficha">
+                <div v-for="campo in camposFixosFicha" :key="'fixo-' + campo.id" class="toggle-wrapper desativado-wrapper">
+                    <div class="card-titulo obrigatorio">
+                        <span class="obrigatorio-dot" title="Campo obrigatório na ficha"></span>
+                        <strong>{{ campo.label }}</strong><br />
+                        <span class="chip chip-ficha">Ficha</span>
+                    </div>
+                    <div class="card-opções">
+                        <div style="margin-left:auto">
+                            <label class="desativado">Habilitar</label>
+                            <a class="switch-habilitar ativo is-locked" title="Campo fixo da ficha">
+                                <span class="toggle direita"></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
             <div class="cabecalho-campos-lista">
                 <h3>Campos de Lista para {{ nomeFamiliaSelecionada }}</h3>
                 <button class="acao-secundaria" @click="showModal = true">Novo Campo</button>
@@ -30,7 +50,8 @@
                         <span v-if="campo.obrigatorio && camposSelecionados.includes(campo.id)" class="obrigatorio-dot"
                             title="Campo obrigatório"></span>
                         <strong>{{ campo.label }}</strong><br />
-                        <span v-if="campo.omie" class="chip">Omie</span>
+                        <span v-if="campo.fixo_ficha" class="chip chip-ficha">Ficha</span>
+                        <span v-else-if="campo.omie" class="chip">Omie</span>
                     </div>
                     <div class="card-opções">
                         <div v-if="!campo.omie && ['Lista', 'MultiLista'].includes(campo.tipo)">
@@ -51,10 +72,12 @@
                         </div>
                         <div style="margin-left:auto">
                             <label :class="{ desativado: campo.disabled }">Habilitar</label>
-                            <a v-if="campo.habilitarToggle && !campo.disabled" @click="toggleCampo(campo.id)"
-                                :class="{ ativo: camposSelecionados.includes(campo.id) }"><span
-                                    class="toggle direita"></span></a>
-                            <span v-else><a class="ativo"><span class="toggle direita"></span></a></span>
+                            <a class="switch-habilitar"
+                                :class="{ ativo: campoEstaHabilitado(campo), 'is-locked': campo.disabled }"
+                                :title="campo.disabled ? 'Campo fixo da ficha' : 'Habilitar ou desabilitar na ficha'"
+                                @click.prevent="toggleCampo(campo.id)">
+                                <span class="toggle direita"></span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -70,7 +93,8 @@
                         <span v-if="campo.obrigatorio && camposSelecionados.includes(campo.id)" class="obrigatorio-dot"
                             title="Campo obrigatório"></span>
                         <strong>{{ campo.label }}</strong><br />
-                        <span v-if="campo.omie" class="chip">Omie</span>
+                        <span v-if="campo.fixo_ficha" class="chip chip-ficha">Ficha</span>
+                        <span v-else-if="campo.omie" class="chip">Omie</span>
                     </div>
                     <div class="card-opções">
                         <div>
@@ -93,10 +117,12 @@
                         </div>
                         <div style="margin-left:auto">
                             <label :class="{ desativado: campo.disabled }">Habilitar</label>
-                            <a v-if="campo.habilitarToggle && !campo.disabled" @click="toggleCampo(campo.id)"
-                                :class="{ ativo: camposSelecionados.includes(campo.id) }"><span
-                                    class="toggle direita"></span></a>
-                            <span v-else><a class="ativo"><span class="toggle direita"></span></a></span>
+                            <a class="switch-habilitar"
+                                :class="{ ativo: campoEstaHabilitado(campo), 'is-locked': campo.disabled }"
+                                :title="campo.disabled ? 'Campo fixo da ficha' : 'Habilitar ou desabilitar na ficha'"
+                                @click.prevent="toggleCampo(campo.id)">
+                                <span class="toggle direita"></span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -295,6 +321,7 @@ import associacaoService from "@/services/camposPorFamilia-service";
 import { useToast } from "vue-toastification";
 
 const STORAGE_KEY_FAMILIA = "config_campos_familia_id";
+const CHAVES_FIXAS = ["familia_id", "tipoProduto_id", "cod", "desc", "und", "ncm", "status"];
 
 export default {
     name: "ConfigurarCamposPorTipo",
@@ -308,6 +335,7 @@ export default {
                 terceira_parte: [],
             },
             familias: [],
+            camposFixosFicha: [],
             camposSelecionados: [],
             filtro: {
                 familia_id: "",
@@ -547,34 +575,25 @@ export default {
                 lista.primeira_parte = [];
                 lista.segunda_parte = [];
                 this.camposSelecionados = [];
-
-                const regras = {
-                    obrigatorio_omie_lista: { disabled: true, sempreAtivo: true },
-                    opcional_omie_lista: { habilitarToggle: true },
-                    opcional_usuario_lista: { habilitarToggle: true },
-
-                    obrigatorio_omie_outro: { disabled: true, sempreAtivo: true },
-                    opcional_omie_outro: { habilitarToggle: true },
-                    opcional_usuario_outro: { habilitarToggle: true },
-
-                    opcional_usuario_fiscal: { habilitarToggle: true },
-                };
+                this.camposFixosFicha = (dados.campos_fixos_ficha ?? []).map((c) => ({
+                    ...c,
+                    fixo_ficha: true,
+                }));
 
                 ["primeira_parte", "segunda_parte", "terceira_parte"].forEach(
                     (parte) => {
                         Object.entries(dados[parte]).forEach(([categoria, itens]) => {
                             itens.forEach((c) => {
-                                const rule = regras[categoria] || {};
-                                const sel = c.associado || rule.sempreAtivo;
-                                if (sel) this.camposSelecionados.push(c.id);
+                                const isFixo = CHAVES_FIXAS.includes(c.chave);
+                                if (c.associado || isFixo) this.camposSelecionados.push(c.id);
                                 const destino = ["Lista", "MultiLista"].includes(c.tipo)
                                     ? lista.primeira_parte
                                     : lista.segunda_parte;
                                 destino.push({
                                     ...c,
-                                    disabled: !!rule.disabled,
-                                    habilitarToggle: !!rule.habilitarToggle,
-                                    sempreAtivo: !!rule.sempreAtivo,
+                                    disabled: isFixo,
+                                    habilitarToggle: !isFixo,
+                                    sempreAtivo: isFixo,
                                     categoria,
                                 });
                             });
@@ -584,6 +603,10 @@ export default {
             } catch {
                 this.toast.error("Erro ao buscar campos");
             }
+        },
+
+        campoEstaHabilitado(campo) {
+            return campo.disabled || this.camposSelecionados.includes(campo.id);
         },
 
         toggleCampo(id) {
@@ -742,6 +765,21 @@ export default {
     background-color: var(--toggle-cor-ativo, var(--cor-primaria));
 }
 
+.switch-habilitar {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.switch-habilitar :deep(.toggle) {
+    float: none;
+    display: block;
+}
+
+.switch-habilitar.is-locked,
+.switch-habilitar.is-locked :deep(.toggle) {
+    cursor: not-allowed;
+}
+
 .card-titulo {
     width: 100%;
     text-align: center;
@@ -858,5 +896,16 @@ input[type="text"] {
     border-radius: 50%;
     vertical-align: middle;
     float: left;
+}
+
+.texto-ajuda-fixos {
+    margin: 0 0 1rem;
+    color: var(--cor-texto-secundario, #666);
+    font-size: 0.9rem;
+}
+
+.chip-ficha {
+    background: var(--cor-primaria, #1976d2);
+    color: #fff;
 }
 </style>

@@ -88,7 +88,7 @@ body {
   background: url(../img/grafismo2-dark.svg) center bottom/cover no-repeat, linear-gradient(var(--cor-cinza), var(--cor-cinza)) var(--cor-bg);
 }
 
-input[type=text], input[type=date], input[type=time], input[type=number], input[type=password], input[type=search], textarea {
+input[type=text], input[type=date], input[type=time], input[type=number], input[type=password], input[type=search], input[type=url], textarea {
   border: 1px solid var(--cor-separador);
   border-radius: 6px;
   padding: 12px 16px;
@@ -96,7 +96,7 @@ input[type=text], input[type=date], input[type=time], input[type=number], input[
   width: 100%;
   transition: background-color 0.25s, border 0.25s;
 }
-.tabela input[type=text], .tabela input[type=date], .tabela input[type=time], .tabela input[type=number], .tabela input[type=password], .tabela input[type=search], .tabela textarea {
+.tabela input[type=text], .tabela input[type=date], .tabela input[type=time], .tabela input[type=number], .tabela input[type=password], .tabela input[type=search], .tabela input[type=url], .tabela textarea {
   margin: calc(var(--margem) * -0.5) 0;
   padding: 6px 12px;
 }

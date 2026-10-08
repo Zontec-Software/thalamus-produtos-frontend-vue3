@@ -20,11 +20,13 @@
                         <tr>
                             <th>ID</th>
                             <th>Nome</th>
+                            <th>Produtos</th>
                             <th>Ações</th>
                         </tr>
                         <tr v-for="familia in filteredFamilias" :key="familia.id">
                             <td>{{ familia.id }}</td>
-                            <td>{{ familia.nome }}</td>
+                            <td>{{ familia.nome || familia.familia_nome }}</td>
+                            <td>{{ familia.produtos_count ?? 0 }}</td>
                             <td style=" justify-content:center;">
                                 <div style="display: flex;">
                                     <a style="transform: scale(0.8)" class="icone-editar" title="Editar"
@@ -32,6 +34,9 @@
                                     <a class="icone-lixeira" title="Excluir" @click="abrirModalExcluir(familia)"></a>
                                 </div>
                             </td>
+                        </tr>
+                        <tr v-if="filteredFamilias.length === 0">
+                            <td colspan="4" style="text-align: center;">Nenhuma família cadastrada</td>
                         </tr>
                     </tbody>
                 </table>
@@ -136,13 +141,20 @@ export default {
 
         async carregarFamilias() {
             try {
-                const response = await serviceFamilia.listarFamilias();
-                this.familias = (response.data || response).map(f => ({
+                const response = await serviceFamilia.listarFamilias({ incluirInativas: true });
+                const lista = Array.isArray(response)
+                    ? response
+                    : Array.isArray(response?.data)
+                        ? response.data
+                        : [];
+                this.familias = lista.map((f) => ({
                     ...f,
                     familia_nome: f.familia_nome || f.nome,
                     familia_cod: f.familia_cod || f.cod,
+                    abreviacao: f.abreviacao ?? "",
                 }));
             } catch (error) {
+                this.familias = [];
                 this.toast.error('Erro ao listar famílias')
                 console.error("Erro ao listar famílias:", error);
             }
@@ -172,7 +184,10 @@ export default {
                 this.fecharModal();
                 this.carregarFamilias();
             } catch (e) {
-                this.toast.error("Erro ao excluir família");
+                const data = e?.response?.data;
+                const detalhe = data?.error || data?.details?.faultstring || data?.details?.message;
+                const mensagem = [data?.message, detalhe].filter(Boolean).join(" — ") || "Erro ao excluir família";
+                this.toast.error(mensagem);
                 console.error(e);
                 this.excluindo = false;
             }
@@ -188,15 +203,22 @@ export default {
             this.showModal = true;
         },
 
-        editarFamilia(familia) {
+        async editarFamilia(familia) {
             this.modoAdicao = false;
-            this.familiaSelecionada = {
-                id: familia.id,
-                familia_nome: familia.familia_nome || familia.nome,
-                abreviacao: familia.abreviacao || "",
-                status: familia.status ?? 1,
-            };
-            this.showModal = true;
+            try {
+                const response = await serviceFamilia.obterPorId(familia.id);
+                const dados = response?.data ?? response;
+                this.familiaSelecionada = {
+                    id: dados.id,
+                    familia_nome: dados.familia_nome || dados.nome,
+                    abreviacao: dados.abreviacao ?? "",
+                    status: dados.status ?? 1,
+                };
+                this.showModal = true;
+            } catch (error) {
+                this.toast.error("Erro ao carregar dados da família");
+                console.error("Erro ao buscar família:", error);
+            }
         },
 
         async salvarFamilia() {

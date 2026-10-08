@@ -5,7 +5,14 @@ function applyReadonly(el, on) {
 
   const nodes = el.querySelectorAll("input, textarea, select, button, a");
   nodes.forEach((n) => {
-    if (n.closest(allowSelector) || n.matches(allowSelector)) return;
+    const isAllowed = n.closest(allowSelector) || n.matches(allowSelector);
+    if (isAllowed) {
+      n.disabled = false;
+      n.readOnly = false;
+      n.removeAttribute("tabindex");
+      n.classList.remove("is-readonly");
+      return;
+    }
 
     const tag = n.tagName.toLowerCase();
     const type = (n.getAttribute("type") || "").toLowerCase();

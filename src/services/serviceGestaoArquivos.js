@@ -1,5 +1,7 @@
 import { api } from "roboflex-thalamus-request-handler";
 
+const MAX_FILE_SIZE_MB = 20;
+
 const TIPOS_ARQUIVO = [
   { value: "documentacao_comercial", label: "Documentação da Proposta Comercial" },
   { value: "documentacao_produto", label: "Documentação do Produto" },
@@ -20,14 +22,53 @@ async function buscarProduto(produtoCod) {
  * @param {string} produtoCod - produto_cod do produto
  * @param {File} file - arquivo
  * @param {string} tipo - documentacao_comercial | documentacao_produto | documentos_producao
+ * @param {number|null} pastaId - id da pasta (null = raiz)
  */
-async function uploadArquivo(produtoCod, file, tipo) {
+async function uploadArquivo(produtoCod, file, tipo, pastaId = null) {
   const formData = new FormData();
   formData.append("arquivo", file);
   formData.append("tipo", tipo);
+  if (pastaId != null) formData.append("pasta_id", pastaId);
   const { data } = await api.post(`/gestao-arquivos/produto/${encodeURIComponent(produtoCod)}/upload`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+  return data;
+}
+
+/**
+ * Cadastra um link (URL) para um produto.
+ * @param {string} produtoCod
+ * @param {string} url - URL do link
+ * @param {string} nome - título/nome do link
+ * @param {string} tipo
+ * @param {number|null} pastaId
+ */
+async function cadastrarLink(produtoCod, url, nome, tipo, pastaId = null) {
+  const payload = { url, nome, tipo };
+  if (pastaId != null) payload.pasta_id = pastaId;
+  const { data } = await api.post(`/gestao-arquivos/produto/${encodeURIComponent(produtoCod)}/upload`, payload);
+  return data;
+}
+
+/**
+ * Cria uma nova pasta.
+ * @param {string} produtoCod
+ * @param {string} tipo
+ * @param {string} nome - nome da pasta
+ * @param {number|null} pastaPaiId - id da pasta pai (null = raiz)
+ */
+async function criarPasta(produtoCod, tipo, nome, pastaPaiId = null) {
+  const payload = { produto_cod: produtoCod, tipo, nome };
+  if (pastaPaiId != null) payload.pasta_pai_id = pastaPaiId;
+  const { data } = await api.post("/gestao-arquivos/pasta", payload);
+  return data;
+}
+
+/**
+ * Exclui uma pasta (arquivos dentro passam para a raiz).
+ */
+async function excluirPasta(pastaId) {
+  const { data } = await api.delete(`/gestao-arquivos/pasta/${pastaId}`);
   return data;
 }
 
@@ -85,6 +126,24 @@ async function downloadArquivo(arquivoId, nomeArquivo = "arquivo") {
   return downloadArquivoPorUrl(arquivoId, nomeArquivo, "download-simples");
 }
 
+/**
+ * Abre o arquivo em nova aba (pré-visualização, ex.: PDF no navegador).
+ * Usa a mesma autenticação da API.
+ */
+async function abrirArquivoEmNovaAba(arquivoId) {
+  const response = await api.get(`/gestao-arquivos/arquivo/${arquivoId}/download-simples`, {
+    responseType: "blob",
+  });
+  if (response.status >= 400) {
+    const msg = await lerErroBlob(response.data);
+    const err = new Error(msg);
+    err.response = { data: { error: msg }, status: response.status };
+    throw err;
+  }
+  const url = window.URL.createObjectURL(response.data);
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 /** Download para edição (marca como em edição e baixa). */
 async function downloadParaEdicao(arquivoId, nomeArquivo = "arquivo") {
   return downloadArquivoPorUrl(arquivoId, nomeArquivo, "download-edicao");
@@ -111,6 +170,42 @@ async function atualizarVersao(arquivoId, file) {
 }
 
 /**
+ * Move arquivo (raiz e todas as versões) para outra pasta ou para a raiz.
+ * @param {number} arquivoRaizId - id do arquivo raiz (ou de qualquer versão)
+ * @param {number|null} pastaId - id da pasta de destino; null = raiz
+ */
+// eslint-disable-next-line no-unused-vars -- exportado e usado em GestaoArquivosDetalheView
+async function moverArquivo(arquivoRaizId, pastaId) {
+  const payload = pastaId != null ? { pasta_id: pastaId } : { pasta_id: null };
+  const { data } = await api.patch(`/gestao-arquivos/arquivo/${arquivoRaizId}/mover`, payload);
+  return data;
+}
+
+/**
+ * Atualiza o flag incluir_na_op do arquivo (raiz e versões).
+ * @param {number} arquivoId - id do arquivo raiz ou de qualquer versão
+ * @param {boolean} incluirNaOp
+ */
+async function atualizarIncluirNaOp(arquivoId, incluirNaOp) {
+  const { data } = await api.patch(`/gestao-arquivos/arquivo/${arquivoId}/incluir-na-op`, {
+    incluir_na_op: !!incluirNaOp,
+  });
+  return data;
+}
+
+/**
+ * Atualiza incluir_na_op para todos os arquivos de uma pasta (e subpastas).
+ * @param {number} pastaId - id da pasta
+ * @param {boolean} incluirNaOp
+ */
+async function atualizarIncluirNaOpPasta(pastaId, incluirNaOp) {
+  const { data } = await api.patch(`/gestao-arquivos/pasta/${pastaId}/incluir-na-op`, {
+    incluir_na_op: !!incluirNaOp,
+  });
+  return data;
+}
+
+/**
  * Exclui arquivo (raiz) e todas as versões.
  * @param {number} arquivoId - id do arquivo raiz ou de qualquer versão
  */
@@ -120,13 +215,21 @@ async function excluirArquivo(arquivoId) {
 }
 
 export default {
+  MAX_FILE_SIZE_MB,
   TIPOS_ARQUIVO,
   buscarProduto,
   uploadArquivo,
+  cadastrarLink,
+  criarPasta,
+  excluirPasta,
   getUrlDownload,
   downloadArquivo,
+  abrirArquivoEmNovaAba,
   downloadParaEdicao,
   cancelarEdicao,
   atualizarVersao,
+  moverArquivo,
+  atualizarIncluirNaOp,
+  atualizarIncluirNaOpPasta,
   excluirArquivo,
 };

@@ -1,4 +1,35 @@
 <template>
+  <div class="filtro-tipos">
+    <v-menu v-model="menuTiposAberto" :close-on-content-click="false">
+      <template v-slot:activator="{ props }">
+        <v-btn
+          class="acao-secundaria filtro-tipos__botao"
+          :class="{ ativo: !filtroTipoCompleto }"
+          icon
+          variant="outlined"
+          v-bind="props"
+          title="Filtrar por tipo"
+        >
+          <i class="fa-solid fa-filter"></i>
+          <span v-if="!filtroTipoCompleto" class="filtro-tipos__qtd">{{ qtdFiltrosTipo }}</span>
+        </v-btn>
+      </template>
+      <v-list class="filtro-tipos__menu">
+        <div class="filtro-tipos__lista">
+          <label class="filtro-tipos__opcao" v-for="tipo in tiposProduto" :key="tipo.id">
+            <input type="checkbox" v-model="filtroTiposRascunho" :value="Number(tipo.id)" />
+            <span>{{ tipo.tipo_cod }} - {{ tipo.nome }}</span>
+          </label>
+        </div>
+        <div class="filtro-tipos__acoes">
+          <span class="chip bg-sucesso" style="cursor: pointer" @click="aplicarFiltroTipo">Filtrar</span>
+        </div>
+      </v-list>
+    </v-menu>
+    <div class="filtro-tipos__direita">
+      <slot name="acoes"></slot>
+    </div>
+  </div>
   <table class="tabela">
     <tbody>
       <tr>
@@ -23,7 +54,34 @@
           <i class="fa-solid fa-caret-down" id="setaBaixoFamiliaProduto" style="display: none"></i>
         </th>
         <th v-if="!exibirAcoes" scope="col" style="white-space: nowrap">
+          <span>Publicação</span>
+        </th>
+        <th scope="col" style="white-space: nowrap">
           <span>Status</span>
+          <v-menu v-model="menuStatusAberto" :close-on-content-click="false">
+            <template v-slot:activator="{ props }">
+              <span
+                class="mdi mdi-filter-variant fonte-maior icone"
+                :class="{ ativo: !filtroStatusCompleto }"
+                v-bind="props"
+                @click.stop
+                title="Filtrar status"
+              ></span>
+            </template>
+            <v-list>
+              <v-list-item>
+                <div style="display: flex; flex-flow: column; gap: 0.5rem">
+                  <div class="alinha-v" v-for="s in statusDisponiveis" :key="s">
+                    <input type="checkbox" :id="'status-' + s" v-model="filtroStatusRascunho" :value="s" />
+                    <label :for="'status-' + s" style="margin-bottom: 0">{{ s }}</label>
+                  </div>
+                </div>
+              </v-list-item>
+              <div style="display: flex; justify-content: center; padding: 0.5rem">
+                <span class="chip bg-sucesso" style="cursor: pointer" @click="aplicarFiltroStatus">Filtrar</span>
+              </div>
+            </v-list>
+          </v-menu>
         </th>
         <th v-if="exibirAcoes">Ações</th>
         <!-- <th v-if="exibirAcoes" style="text-align: center">Revisão</th> -->
@@ -38,10 +96,15 @@
             <span v-if="item.editavel">Em edição</span>
             <span v-else>Publicado</span>
           </td>
+          <td>
+            <span :style="{ color: Number(item.status) === 1 ? 'var(--cor-sucesso)' : 'var(--cor-erro)' }">
+              {{ Number(item.status) === 1 ? "Ativo" : "Inativo" }}
+            </span>
+          </td>
           <!-- teste -->
           <td @click.stop v-if="exibirAcoes">
             <div>
-              <span @click="abrirTemplate(item.id)" title="Copiar Template" class="ação"><i class="fa-regular fa-copy"></i></span>
+              <span @click="abrirTemplate(item.produto_cod)" title="Copiar Template" class="ação"><i class="fa-regular fa-copy"></i></span>
             </div>
           </td>
           <!--           <td v-if="exibirAcoes" style="text-align: center" @click.stop>
@@ -75,14 +138,13 @@
 </template>
 <script>
 import serviceProdutos from "@/services/serviceProdutos";
-import { sso } from "roboflex-thalamus-sso-lib";
 
 export default {
   name: "TabelaProdutos",
   props: {
     searchQuery: { required: true },
     filtro: { type: String, default: "" },
-    filtroTipo: { type: [String, Number], default: "" },
+    filtroTipo: { type: [String, Number, Array], default: "" },
     filtroFamilia: { type: String, default: "" },
     useModal: { type: Boolean, default: false },
     exibirAcoes: { type: Boolean, default: true },
@@ -102,9 +164,45 @@ export default {
       debounceTimer: null,
       debounceMs: 400,
       ultimoPayloadStr: "",
+      filtroStatus: ["Ativo"],
+      filtroStatusRascunho: ["Ativo"],
+      statusDisponiveis: ["Ativo", "Inativo"],
+      tiposProduto: [],
+      filtroTipos: [],
+      filtroTiposRascunho: [],
+      menuTiposAberto: false,
+      menuStatusAberto: false,
     };
   },
+  computed: {
+    filtroStatusCompleto() {
+      return this.statusDisponiveis.every((v) => this.filtroStatus.includes(v));
+    },
+    filtroTipoCompleto() {
+      if (!this.filtroTipos.length) return true;
+      if (!this.tiposProduto.length) return true;
+      return this.tiposProduto.every((t) => this.filtroTipos.some((id) => Number(id) === Number(t.id)));
+    },
+    qtdFiltrosTipo() {
+      if (this.filtroTipoCompleto) return 0;
+      return this.filtroTipos.length;
+    },
+    statusApi() {
+      const temAtivo = this.filtroStatus.includes("Ativo");
+      const temInativo = this.filtroStatus.includes("Inativo");
+      if (temAtivo && temInativo) return "all";
+      if (temInativo && !temAtivo) return "0";
+      return "1";
+    },
+  },
   async mounted() {
+    try {
+      const lista = await serviceProdutos.listarTiposProduto();
+      this.tiposProduto = (Array.isArray(lista) ? lista : []).slice().sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt"));
+    } catch (error) {
+      console.error("Erro ao buscar tipos de produto:", error);
+      this.tiposProduto = [];
+    }
     this.carregarPagina(1);
   },
   watch: {
@@ -115,14 +213,58 @@ export default {
       this.dispararPesquisaDebounced();
     },
     filtroTipo() {
+      this.sincronizarFiltroTipoProp();
       this.dispararPesquisaDebounced();
     },
     filtroFamilia() {
       this.dispararPesquisaDebounced();
     },
+    menuTiposAberto(aberto) {
+      if (aberto) this.filtroTiposRascunho = [...this.filtroTipos];
+    },
+    menuStatusAberto(aberto) {
+      if (aberto) this.filtroStatusRascunho = [...this.filtroStatus];
+    },
   },
 
   methods: {
+    statusNoPayload(payload) {
+      payload.status = this.statusApi;
+      return payload;
+    },
+
+    aplicarFiltroStatus() {
+      this.filtroStatus = this.filtroStatusRascunho.length ? [...this.filtroStatusRascunho] : ["Ativo"];
+      this.filtroStatusRascunho = [...this.filtroStatus];
+      this.menuStatusAberto = false;
+      this.ultimoPayloadStr = "";
+      this.carregarPagina(1);
+    },
+
+    aplicarFiltroTipo() {
+      this.filtroTipos = [...this.filtroTiposRascunho];
+      this.menuTiposAberto = false;
+      this.ultimoPayloadStr = "";
+      this.carregarPagina(1);
+    },
+
+    sincronizarFiltroTipoProp() {
+      if (Array.isArray(this.filtroTipo)) {
+        this.filtroTipos = this.filtroTipo.map((v) => Number(v)).filter((id) => Number.isFinite(id) && id > 0);
+      } else if (this.filtroTipo === "" || this.filtroTipo == null) {
+        this.filtroTipos = [];
+      } else {
+        const id = Number(this.filtroTipo);
+        this.filtroTipos = Number.isFinite(id) && id > 0 ? [id] : [];
+      }
+      this.filtroTiposRascunho = [...this.filtroTipos];
+    },
+
+    tiposNoPayload() {
+      if (this.filtroTipoCompleto) return {};
+      return serviceProdutos.paramsTipo(this.filtroTipos);
+    },
+
     toListaProdutos(resp) {
       if (Array.isArray(resp)) return resp;
       if (resp && Array.isArray(resp.data)) return resp.data;
@@ -138,12 +280,10 @@ export default {
     },
 
     async pesquisarProdutosGuard() {
-      const payload = {
-        // temp produtos acabados e em processo
-        // tipo: [4, 5],
-        tipo: (this.filtroTipo && this.filtroTipo !== "") ? [Number(this.filtroTipo)] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      const payload = this.statusNoPayload({
+        ...this.tiposNoPayload(),
         ...(this.exibirApenasEditavel ? { editavel: true } : {}),
-      };
+      });
       if (this.searchQuery) payload.termo = this.searchQuery;
       else if (this.filtroFamilia) payload.termo = this.filtroFamilia;
       else if (this.filtro) payload.termo = this.filtro;
@@ -165,29 +305,28 @@ export default {
         this.carregando = true;
 
         let resp;
-        const temFiltro = !!this.searchQuery || (!!this.filtroTipo && this.filtroTipo !== "") || !!this.filtroFamilia || !!this.filtro;
+        const temFiltroTipo = !this.filtroTipoCompleto;
+        const temFiltro = !!this.searchQuery || temFiltroTipo || !!this.filtroFamilia || !!this.filtro;
+
+        const payloadBase = this.statusNoPayload({
+          ...this.tiposNoPayload(),
+          paginacao: 1,
+          page: pagina,
+        });
+
+        if (this.exibirApenasEditavel) {
+          payloadBase.editavel = true;
+        } else if (!this.somenteVisualizacao) {
+          payloadBase.aprovado = true;
+        }
 
         if (temFiltro) {
-          // temp produtos acabados e em processo ((search na pagina de catalogo))
-          // const payload = { tipo: [4, 5] };
-          const payload = { 
-            tipo: (this.filtroTipo && this.filtroTipo !== "") ? [Number(this.filtroTipo)] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-            paginacao: 1,
-            page: pagina,
-          };
-          if (this.exibirApenasEditavel) {
-            payload.editavel = true;
-          } else {
-            payload.aprovado = true;
-          }
-          if (this.searchQuery) payload.termo = this.searchQuery;
-          else if (this.filtroFamilia) payload.termo = this.filtroFamilia;
-          else if (this.filtro) payload.termo = this.filtro;
-
-          resp = await serviceProdutos.filtrarProdutos(payload);
-        } else {
-          resp = this.exibirApenasEditavel ? await serviceProdutos.getProdutosEditaveis(pagina) : await serviceProdutos.getProdutos(pagina);
+          if (this.searchQuery) payloadBase.termo = this.searchQuery;
+          else if (this.filtroFamilia) payloadBase.termo = this.filtroFamilia;
+          else if (this.filtro) payloadBase.termo = this.filtro;
         }
+
+        resp = await serviceProdutos.filtrarProdutos(payloadBase);
 
         if (reqId !== this._reqId) return;
 
@@ -225,12 +364,12 @@ export default {
       }
     },
 
-    atualizarStatus(id, status) {
-      var payload = {
-        usuario_id: sso.getUsuarioLogado().id,
-        status_produto: status,
-      };
-      serviceProdutos.finalizarCadastro(id, payload);
+    async atualizarStatus(id, status) {
+      try {
+        await serviceProdutos.finalizarCadastro(id, { status });
+      } catch (e) {
+        console.error("Erro ao atualizar status do produto:", e);
+      }
     },
 
     filtrarProdutos() {
@@ -359,5 +498,129 @@ export default {
 .ação {
   font-size: 18px;
   color: var(--cor-fonte-fraca);
+}
+
+.icone {
+  cursor: pointer;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.icone.ativo {
+  border-bottom: 2px solid var(--cor-ok, var(--cor-primaria));
+}
+
+.alinha-v {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filtro-tipos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.filtro-tipos__direita {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+button.filtro-tipos__botao,
+.v-btn.filtro-tipos__botao {
+  position: relative;
+  background: transparent;
+  color: var(--cor-fonte-fraca, #888);
+  font-weight: 400;
+  box-shadow: none;
+  border: 1px solid var(--cor-fonte-fraca, #8a8a8a);
+}
+
+button.filtro-tipos__botao :deep(i),
+button.filtro-tipos__botao i {
+  color: inherit;
+  font-size: 1.1rem;
+}
+
+button.filtro-tipos__botao:hover,
+button.filtro-tipos__botao:not([disabled]):hover,
+.v-btn.filtro-tipos__botao:hover {
+  background: transparent;
+  border: 1px solid var(--cor-primaria, #3b82f6);
+  color: var(--cor-primaria, #3b82f6);
+}
+
+button.filtro-tipos__botao.ativo,
+.v-btn.filtro-tipos__botao.ativo {
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22), 0 0 14px rgba(59, 130, 246, 0.5);
+}
+
+button.filtro-tipos__botao.ativo:hover,
+button.filtro-tipos__botao.ativo:not([disabled]):hover {
+  background: rgba(59, 130, 246, 0.18);
+  border: 1px solid #3b82f6;
+  color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3), 0 0 18px rgba(59, 130, 246, 0.6);
+}
+
+.filtro-tipos__qtd {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.filtro-tipos__menu {
+  padding: 4px 0 0;
+}
+
+.filtro-tipos__lista {
+  display: flex;
+  flex-flow: column;
+  max-height: 280px;
+  overflow: auto;
+  min-width: 260px;
+}
+
+.filtro-tipos__opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  margin: 0;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filtro-tipos__opcao:hover {
+  background: var(--cor-primaria-media, #edf2f7);
+}
+
+.filtro-tipos__opcao input {
+  pointer-events: none;
+}
+
+.filtro-tipos__acoes {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  border-top: 1px solid #eee;
 }
 </style>
