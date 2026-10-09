@@ -94,6 +94,17 @@
                 <option value="sim">Sim</option>
               </select>
             </div>
+            <div class="col-4">
+              <label>Observações</label>
+              <textarea
+                rows="4"
+                maxlength="5000"
+                v-model="produto_original.observacoes"
+                :disabled="isReadOnly && !isCadastro"
+                placeholder="Observações do produto"
+                @input="atualizarPayLoad('observacoes', produto_original.observacoes)"
+              ></textarea>
+            </div>
           </div>
           <br />
           <div class="grid">
@@ -287,6 +298,7 @@ export default {
         seriavel: false,
         produto_padrao: false,
         criticidade: "",
+        observacoes: "",
       },
 
       // produto_editado: {},
@@ -522,7 +534,7 @@ export default {
         this.toast.error("Produto inválido para finalizar.");
         return;
       }
-      if (!this.normalizarCriticidade()) return;
+      if (!this.normalizarCriticidade() || !this.normalizarObservacoes()) return;
       this.finalizandoAtualizacao = true;
       try {
         // salvar oque está na tela no staging (indica finalizar para gravar aprovador)
@@ -985,6 +997,7 @@ export default {
       if (chave === "seriavel") return "Seriável";
       if (chave === "produto_padrao") return "Produto padrão";
       if (chave === "criticidade") return "Criticidade";
+      if (chave === "observacoes") return "Observações";
       if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
         return chave;
       }
@@ -1000,6 +1013,17 @@ export default {
       }
       this.produto_original.criticidade = valor;
       this.payLoad.criticidade = valor || null;
+      return true;
+    },
+
+    normalizarObservacoes() {
+      const valor = String(this.produto_original?.observacoes ?? this.payLoad?.observacoes ?? "").trim();
+      if (valor.length > 5000) {
+        this.toast.error("Observações deve ter no máximo 5000 caracteres.");
+        return false;
+      }
+      this.produto_original.observacoes = valor;
+      this.payLoad.observacoes = valor || null;
       return true;
     },
 
@@ -1065,7 +1089,7 @@ export default {
       this.salvandoProduto = true;
       try {
         this.errors = {};
-        if (!this.normalizarCriticidade()) return;
+        if (!this.normalizarCriticidade() || !this.normalizarObservacoes()) return;
 
         const campoCest = this.camposSelects.find((c) => c.chave === "id_cest");
         const cest = campoCest ? this.valoresSelecionados[campoCest.id] : null;
@@ -1083,6 +1107,7 @@ export default {
           const bruto = {
             ...this.payLoad,
             criticidade: this.produto_original.criticidade,
+            observacoes: this.produto_original.observacoes,
             editavel: true,
             estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
             patrimoniavel: this.produto_original.patrimoniavel ?? this.payLoad.patrimoniavel ?? false,
@@ -1226,6 +1251,8 @@ export default {
         this.produto_original.produto_padrao = padrao === true || padrao === 1 || padrao === "1";
         this.payLoad.produto_padrao = this.produto_original.produto_padrao;
         this.payLoad.criticidade = this.produto_original.criticidade ?? null;
+        this.produto_original.observacoes = this.produto_original.observacoes ?? "";
+        this.payLoad.observacoes = this.produto_original.observacoes || null;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
       }

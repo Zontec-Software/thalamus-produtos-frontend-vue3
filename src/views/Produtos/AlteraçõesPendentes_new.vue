@@ -193,6 +193,19 @@
           <input v-else :type="campo.tipo === 'Data' ? 'date' : 'text'" v-model="valoresSelecionados[campo.id]" :required="campo.obrigatorio" @input="atualizarPayLoad(campo.chave, valoresSelecionados[campo.id])" :placeholder="campo.tipo === 'Decimal' ? 'Ex: 10.99' : ''" />
         </div>
       </div>
+      <div class="form-grid form-grid--1 m-t-12">
+        <div class="field field--full">
+          <label>Observações</label>
+          <textarea
+            rows="4"
+            maxlength="5000"
+            v-model="produto_original.observacoes"
+            :disabled="isReadOnly && !isCadastro"
+            placeholder="Observações do produto"
+            @input="atualizarPayLoad('observacoes', produto_original.observacoes)"
+          ></textarea>
+        </div>
+      </div>
     </div>
 
     <div>
@@ -316,6 +329,7 @@ export default {
         seriavel: false,
         produto_padrao: false,
         criticidade: "",
+        observacoes: "",
       },
 
       alteracoes: {},
@@ -565,7 +579,7 @@ export default {
           this.toast.error("Produto inválido para finalizar.");
           return;
         }
-        if (!this.normalizarCriticidade()) return;
+        if (!this.normalizarCriticidade() || !this.normalizarObservacoes()) return;
         const payloadStaging = this.buildStagingPayload();
         // enviar flag finalizar para que o backend grave aprovador_id
         await serviceProdutos.salvarLocal(this.produto_cod, { ...payloadStaging, finalizar: true });
@@ -986,6 +1000,7 @@ export default {
       if (chave === "seriavel") return "Seriável";
       if (chave === "produto_padrao") return "Produto padrão";
       if (chave === "criticidade") return "Criticidade";
+      if (chave === "observacoes") return "Observações";
       if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
         return chave;
       }
@@ -1001,6 +1016,17 @@ export default {
       }
       this.produto_original.criticidade = valor;
       this.payLoad.criticidade = valor || null;
+      return true;
+    },
+
+    normalizarObservacoes() {
+      const valor = String(this.produto_original?.observacoes ?? this.payLoad?.observacoes ?? "").trim();
+      if (valor.length > 5000) {
+        this.toast.error("Observações deve ter no máximo 5000 caracteres.");
+        return false;
+      }
+      this.produto_original.observacoes = valor;
+      this.payLoad.observacoes = valor || null;
       return true;
     },
 
@@ -1065,7 +1091,7 @@ export default {
 
       try {
         this.errors = {};
-        if (!this.normalizarCriticidade()) return;
+        if (!this.normalizarCriticidade() || !this.normalizarObservacoes()) return;
 
         const campoCest = this.camposSelects.find((c) => c.chave === "id_cest");
         const cest = campoCest ? this.valoresSelecionados[campoCest.id] : null;
@@ -1087,6 +1113,7 @@ export default {
             ...this.payLoad,
             cod,
             criticidade: this.produto_original.criticidade,
+            observacoes: this.produto_original.observacoes,
             editavel: true,
             estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
             patrimoniavel: this.produto_original.patrimoniavel ?? this.payLoad.patrimoniavel ?? false,
@@ -1246,6 +1273,8 @@ export default {
         this.produto_original.produto_padrao = padrao === true || padrao === 1 || padrao === "1";
         this.payLoad.produto_padrao = this.produto_original.produto_padrao;
         this.payLoad.criticidade = this.produto_original.criticidade ?? null;
+        this.produto_original.observacoes = this.produto_original.observacoes ?? "";
+        this.payLoad.observacoes = this.produto_original.observacoes || null;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
       }
@@ -1411,6 +1440,7 @@ label {
 
 input,
 select,
+textarea,
 .quill .ql-container {
   background: var(--cor-bg);
   border: 1px solid var(--cor-separador);
@@ -1420,12 +1450,20 @@ select,
   color: var(--cor-fonte);
 }
 
-input::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: var(--cor-fonte-fraca);
 }
 
+textarea {
+  min-height: 96px;
+  resize: vertical;
+  font: inherit;
+}
+
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: none;
   border-color: var(--cor-primaria);
   box-shadow: 0 0 0 3px var(--cor-primaria-media);
