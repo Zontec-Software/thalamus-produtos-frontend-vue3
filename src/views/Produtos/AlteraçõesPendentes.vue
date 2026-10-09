@@ -70,6 +70,30 @@
                 <option value="sim">Sim</option>
               </select>
             </div>
+            <div class="col-1">
+              <label>Seriável</label>
+              <select
+                :disabled="isReadOnly"
+                :value="produto_original.seriavel ? 'sim' : 'nao'"
+                @change="onSeriavelSelect($event)"
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+              <small v-if="produto_original.seriavel && produto_original.prefixo_serie">Prefixo {{ produto_original.prefixo_serie }}</small>
+              <small v-else-if="produto_original.seriavel">O prefixo é atribuído ao finalizar a edição.</small>
+            </div>
+            <div class="col-1">
+              <label>Produto padrão</label>
+              <select
+                :disabled="isReadOnly"
+                :value="produto_original.produto_padrao ? 'sim' : 'nao'"
+                @change="onProdutoPadraoSelect($event)"
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
           </div>
           <br />
           <div class="grid">
@@ -260,6 +284,8 @@ export default {
         familia_id: null,
         estocavel: true,
         patrimoniavel: false,
+        seriavel: false,
+        produto_padrao: false,
         criticidade: "",
       },
 
@@ -277,6 +303,8 @@ export default {
         ncm: "",
         estocavel: true,
         patrimoniavel: false,
+        seriavel: false,
+        produto_padrao: false,
       },
       em_edicao: [],
       blocoVisivel: "informacoes",
@@ -502,7 +530,10 @@ export default {
         await serviceProdutos.salvarLocal(this.produto_cod, { ...payloadStaging, finalizar: true });
 
         // aplica staging no produto + envia ao Omie
-        await serviceProdutos.finalizarAtualizacao(this.produto_cod);
+        const resposta = await serviceProdutos.finalizarAtualizacao(this.produto_cod);
+        if (resposta?.produto?.prefixo_serie) {
+          this.produto_original.prefixo_serie = resposta.produto.prefixo_serie;
+        }
 
         this.toast.success(this.omieHabilitado ? "Atualização finalizada e enviada ao Omie!" : "Atualização finalizada!");
         this.$router.push({ name: "ProdutosView" });
@@ -910,6 +941,16 @@ export default {
       this.produto_original.patrimoniavel = sim;
       this.atualizarPayLoad("patrimoniavel", sim);
     },
+    onSeriavelSelect(event) {
+      const sim = event?.target?.value === "sim";
+      this.produto_original.seriavel = sim;
+      this.atualizarPayLoad("seriavel", sim);
+    },
+    onProdutoPadraoSelect(event) {
+      const sim = event?.target?.value === "sim";
+      this.produto_original.produto_padrao = sim;
+      this.atualizarPayLoad("produto_padrao", sim);
+    },
 
     async atualizarPayLoad(chave, valor) {
       if (!chave) return;
@@ -941,6 +982,8 @@ export default {
     obterNomeCampo(chave) {
       if (chave === "estocavel") return "Item Estocável";
       if (chave === "patrimoniavel") return "Patrimoniável";
+      if (chave === "seriavel") return "Seriável";
+      if (chave === "produto_padrao") return "Produto padrão";
       if (chave === "criticidade") return "Criticidade";
       if (!this.camposSelects || !Array.isArray(this.camposSelects)) {
         return chave;
@@ -1043,6 +1086,8 @@ export default {
             editavel: true,
             estocavel: this.produto_original.estocavel ?? this.payLoad.estocavel ?? true,
             patrimoniavel: this.produto_original.patrimoniavel ?? this.payLoad.patrimoniavel ?? false,
+            seriavel: this.produto_original.seriavel ?? this.payLoad.seriavel ?? false,
+            produto_padrao: this.produto_original.produto_padrao ?? this.payLoad.produto_padrao ?? false,
             familia_id: this.produto_original.familia_id ?? this.payLoad.familia_id ?? null,
             id_categoria_orcamento:
               this.produto_original.id_categoria_orcamento ?? this.payLoad.id_categoria_orcamento ?? null,
@@ -1073,6 +1118,8 @@ export default {
           familia_id: this.produto_original.familia_id ?? null,
           estocavel: !!this.produto_original.estocavel,
           patrimoniavel: !!this.produto_original.patrimoniavel,
+          seriavel: !!this.produto_original.seriavel,
+          produto_padrao: !!this.produto_original.produto_padrao,
         };
         this.camposSelects
           .filter((campo) => campo.omie === 1)
@@ -1172,6 +1219,12 @@ export default {
         const pat = this.produto_original.patrimoniavel;
         this.produto_original.patrimoniavel = pat === true || pat === 1 || pat === "1";
         this.payLoad.patrimoniavel = this.produto_original.patrimoniavel;
+        const ser = this.produto_original.seriavel;
+        this.produto_original.seriavel = ser === true || ser === 1 || ser === "1";
+        this.payLoad.seriavel = this.produto_original.seriavel;
+        const padrao = this.produto_original.produto_padrao;
+        this.produto_original.produto_padrao = padrao === true || padrao === 1 || padrao === "1";
+        this.payLoad.produto_padrao = this.produto_original.produto_padrao;
         this.payLoad.criticidade = this.produto_original.criticidade ?? null;
       } catch (error) {
         console.error("Erro ao carregar alterações", error);
