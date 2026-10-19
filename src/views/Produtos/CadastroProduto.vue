@@ -75,10 +75,15 @@
               <span>ROTEIRO DE PRODUÇÃO</span>
               <span v-if="roteiroVersao != null" class="roteiro-versao-label"> — Versão {{ roteiroVersao }}<span v-if="roteiroStatus" class="roteiro-status-label"> ({{ roteiroStatus }})</span></span>
             </div>
+            <div class="abas-roteiro" role="tablist">
+              <button type="button" class="acao-secundaria aba-roteiro" :class="{ 'aba-roteiro--ativa': abaRoteiro === 'etapas' }" :aria-selected="abaRoteiro === 'etapas'" @click="abaRoteiro = 'etapas'">Etapas</button>
+              <button type="button" class="acao-secundaria aba-roteiro" :class="{ 'aba-roteiro--ativa': abaRoteiro === 'inspecao' }" :aria-selected="abaRoteiro === 'inspecao'" @click="abaRoteiro = 'inspecao'">Inspeção de primeira peça</button>
+            </div>
             <!-- <RoteiroComponente v-if="produto" :produto_cod="produto.produto_cod" :produtos="listarProdutos(produto)" /> -->
             <RoteiroComponent_2
               :produto_cod="produto.produto_cod"
               :readonly="somenteVisualizacao"
+              :aba="abaRoteiro"
               @versao-atual="onRoteiroVersaoAtual"
             />
             <!-- <RoteiroComponent_2 :produto_cod="produto.produto_cod" :readonly="false"/> -->
@@ -150,6 +155,7 @@ export default {
       roteiroVersao: null,
       roteiroVersaoMaisRecente: true,
       roteiroStatus: null,
+      abaRoteiro: "etapas",
     };
   },
   computed: {
@@ -412,6 +418,38 @@ export default {
 .roteiro-status-label {
   font-weight: 500;
   color: var(--cor-cinza-escuro, #555);
+}
+
+.abas-roteiro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px 0 16px;
+  padding: 4px;
+  background: #e8edf5;
+  border: 1px solid #c5d0e0;
+  border-radius: 14px;
+}
+
+.abas-roteiro button.aba-roteiro {
+  width: auto !important;
+  min-height: 36px;
+  margin: 0 !important;
+  padding: 8px 16px !important;
+  border-radius: 10px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: #1e293b !important;
+  box-shadow: none !important;
+  font-weight: 700;
+}
+
+.abas-roteiro button.aba-roteiro.aba-roteiro--ativa {
+  background: #ffffff !important;
+  color: #1565c0 !important;
+  border-color: #d0d7e2 !important;
 }
 
 .sheet {

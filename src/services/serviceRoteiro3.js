@@ -280,4 +280,42 @@ export default {
             throw error;
         }
     },
+
+    async listarInspecaoPrimeiraPeca(roteiroId) {
+        const response = await api.get(`roteiro_2/${roteiroId}/inspecao-passos`);
+        return response.data;
+    },
+
+    async criarPassoInspecao(roteiroId, descricao) {
+        const response = await api.post(`roteiro_2/${roteiroId}/inspecao-passos`, { descricao });
+        return response.data;
+    },
+
+    async atualizarPassoInspecao(passoId, descricao) {
+        const response = await api.put(`roteiro_2/inspecao-passos/${passoId}`, { descricao });
+        return response.data;
+    },
+
+    async excluirPassoInspecao(passoId) {
+        const response = await api.delete(`roteiro_2/inspecao-passos/${passoId}`);
+        return response.data;
+    },
+
+    async ordenarPassosInspecao(roteiroId, ids) {
+        const response = await api.post(`roteiro_2/${roteiroId}/inspecao-passos/ordem`, { ids });
+        return response.data;
+    },
+
+    async anexarImagemPassoInspecao(passoId, arquivo) {
+        const form = new FormData();
+        form.append("arquivo", arquivo);
+        form.append("categoria", "geral");
+        const response = await api.post(`/anexar/roteiro-inspecao-passo/${passoId}`, form);
+        return response.data;
+    },
+
+    async removerImagemPassoInspecao(passoId, anexoId) {
+        const response = await api.delete(`/anexos/roteiro-inspecao-passo/${passoId}/${anexoId}`);
+        return response.data;
+    },
 }
