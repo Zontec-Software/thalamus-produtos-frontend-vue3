@@ -6,6 +6,7 @@
                 <span>Visualizando versão {{ roteiroVisualizado.versao }} ({{ roteiroVisualizado.status }})</span>
                 <button type="button" class="acao-secundaria" data-allow-when-readonly @click="sairVisualizacaoVersao">Voltar ao roteiro atual</button>
             </div>
+            <div v-show="aba === 'etapas'">
             <div class="table-wrapper">
                 <table class="tabela">
                     <thead>
@@ -140,6 +141,13 @@
             <div v-else class="alinha-centro botoes-oficial">
                 <button v-if="!roteiroVisualizado" type="button" class="acao-secundaria" data-allow-when-readonly @click="abrirModalHistorico">Ver outras versões</button>
             </div>
+            </div>
+            <InspecaoPrimeiraPeca
+                v-if="aba === 'inspecao'"
+                :key="roteiroAtual.id"
+                :roteiro-id="roteiroAtual.id"
+                :editavel="!readonly && versaoEdicao && !roteiroVisualizado"
+            />
         </div>
         <div class="loading" v-else-if="loading">
             <div></div>
@@ -180,6 +188,9 @@
             </div>
         </div>
     </section>
+    <div v-else-if="!loading && aba === 'inspecao'" class="alinha-centro">
+        <span>Crie o roteiro para cadastrar a inspeção de primeira peça.</span>
+    </div>
     <div v-else-if="!loading" class="alinha-centro">
         <button v-if="!readonly" @click="criarRoteiro()">Criar Roteiro</button>
         <span v-else style="color: var(--cor-erro); font-size: 20px">Roteiro não encontrado</span>
@@ -192,6 +203,7 @@ import ModalNovaEtapa from './ModalNovaEtapa.vue';
 import ModalInstrucao from './ModalInstrucao.vue';
 import ModalVisualizacaoInstrucao from './ModalVisualizacaoInstrucao.vue';
 import ModalCopiarRoteiroDeProduto from './ModalCopiarRoteiroDeProduto.vue';
+import InspecaoPrimeiraPeca from './InspecaoPrimeiraPeca.vue';
 import draggable from 'vuedraggable'
 import { useToast } from 'vue-toastification'
 
@@ -248,6 +260,7 @@ export default {
         ModalInstrucao,
         ModalVisualizacaoInstrucao,
         ModalCopiarRoteiroDeProduto,
+        InspecaoPrimeiraPeca,
         draggable
     },
 
@@ -257,6 +270,10 @@ export default {
         },
         readonly: {
             required: true
+        },
+        aba: {
+            type: String,
+            default: 'etapas'
         }
     },
 
@@ -697,6 +714,7 @@ select:disabled {
 .btn-ver {
     flex-shrink: 0;
 }
+
 
 .versao-atual-label {
     flex-shrink: 0;
