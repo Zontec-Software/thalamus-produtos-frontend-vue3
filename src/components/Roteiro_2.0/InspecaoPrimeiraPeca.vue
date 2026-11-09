@@ -1,10 +1,9 @@
 <template>
   <div class="inspecao">
     <p class="inspecao-ajuda">
-      Estes passos aparecem no documento de inspeção do setup, no tablet, para o produto deste roteiro.
+      Estes passos aparecem no documento de inspeção do setup, no tablet, para este produto.
       Cada passo leva uma descrição e uma imagem ilustrativa.
     </p>
-    <p v-if="!editavel" class="inspecao-aviso">Para alterar, inicie uma nova versão do roteiro.</p>
     <p v-if="erro" class="inspecao-erro">{{ erro }}</p>
     <div v-if="carregando" class="loading"><div></div></div>
     <template v-else>
@@ -57,7 +56,7 @@ export default {
   name: "InspecaoPrimeiraPeca",
   components: { draggable },
   props: {
-    roteiroId: { required: true },
+    produtoCod: { required: true },
     editavel: { type: Boolean, default: false },
   },
   data() {
@@ -70,7 +69,7 @@ export default {
     };
   },
   watch: {
-    roteiroId: {
+    produtoCod: {
       immediate: true,
       handler() {
         this.carregar();
@@ -83,11 +82,11 @@ export default {
       return `${base}${String(caminho || "").replace(/^\//, "")}`;
     },
     async carregar() {
-      if (!this.roteiroId) return;
+      if (!this.produtoCod) return;
       this.carregando = true;
       this.erro = "";
       try {
-        const data = await service.listarInspecaoPrimeiraPeca(this.roteiroId);
+        const data = await service.listarInspecaoPrimeiraPeca(this.produtoCod);
         this.passos = Array.isArray(data?.passos) ? data.passos : [];
       } catch (error) {
         this.passos = [];
@@ -102,7 +101,7 @@ export default {
       this.salvando = true;
       this.erro = "";
       try {
-        const passo = await service.criarPassoInspecao(this.roteiroId, descricao);
+        const passo = await service.criarPassoInspecao(this.produtoCod, descricao);
         this.passos.push(passo);
         this.novaDescricao = "";
       } catch (error) {
@@ -127,7 +126,7 @@ export default {
     },
     async salvarOrdem() {
       try {
-        const data = await service.ordenarPassosInspecao(this.roteiroId, this.passos.map((passo) => passo.id));
+        const data = await service.ordenarPassosInspecao(this.produtoCod, this.passos.map((passo) => passo.id));
         this.passos = Array.isArray(data?.passos) ? data.passos : this.passos;
       } catch (error) {
         this.erro = error?.response?.data?.message || "Não foi possível reordenar os passos.";

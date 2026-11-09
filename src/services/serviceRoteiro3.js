@@ -281,13 +281,13 @@ export default {
         }
     },
 
-    async listarInspecaoPrimeiraPeca(roteiroId) {
-        const response = await api.get(`roteiro_2/${roteiroId}/inspecao-passos`);
+    async listarInspecaoPrimeiraPeca(produtoCod) {
+        const response = await api.get(`roteiro_2/inspecao-primeira-peca/produto/${encodeURIComponent(produtoCod)}`);
         return response.data;
     },
 
-    async criarPassoInspecao(roteiroId, descricao) {
-        const response = await api.post(`roteiro_2/${roteiroId}/inspecao-passos`, { descricao });
+    async criarPassoInspecao(produtoCod, descricao) {
+        const response = await api.post(`roteiro_2/inspecao-primeira-peca/produto/${encodeURIComponent(produtoCod)}`, { descricao });
         return response.data;
     },
 
@@ -301,8 +301,8 @@ export default {
         return response.data;
     },
 
-    async ordenarPassosInspecao(roteiroId, ids) {
-        const response = await api.post(`roteiro_2/${roteiroId}/inspecao-passos/ordem`, { ids });
+    async ordenarPassosInspecao(produtoCod, ids) {
+        const response = await api.post(`roteiro_2/inspecao-primeira-peca/produto/${encodeURIComponent(produtoCod)}/ordem`, { ids });
         return response.data;
     },
 
