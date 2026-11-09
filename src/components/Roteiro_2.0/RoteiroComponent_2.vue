@@ -1,5 +1,5 @@
 <template>
-    <section v-readonly="readonly || !versaoEdicao || !!roteiroVisualizado" v-if="roteiro.id">
+    <section v-readonly="readonly || !versaoEdicao || !!roteiroVisualizado" v-if="roteiro.id && aba !== 'inspecao'">
         <div v-if="!loading">
             <!-- Banner ao visualizar uma versão antiga -->
             <div v-if="roteiroVisualizado" class="banner-versao-antiga">
@@ -142,12 +142,6 @@
                 <button v-if="!roteiroVisualizado" type="button" class="acao-secundaria" data-allow-when-readonly @click="abrirModalHistorico">Ver outras versões</button>
             </div>
             </div>
-            <InspecaoPrimeiraPeca
-                v-if="aba === 'inspecao'"
-                :key="roteiroAtual.id"
-                :roteiro-id="roteiroAtual.id"
-                :editavel="!readonly && versaoEdicao && !roteiroVisualizado"
-            />
         </div>
         <div class="loading" v-else-if="loading">
             <div></div>
@@ -188,9 +182,11 @@
             </div>
         </div>
     </section>
-    <div v-else-if="!loading && aba === 'inspecao'" class="alinha-centro">
-        <span>Crie o roteiro para cadastrar a inspeção de primeira peça.</span>
-    </div>
+    <InspecaoPrimeiraPeca
+        v-else-if="aba === 'inspecao'"
+        :produto-cod="produto_cod"
+        :editavel="!readonly"
+    />
     <div v-else-if="!loading" class="alinha-centro">
         <button v-if="!readonly" @click="criarRoteiro()">Criar Roteiro</button>
         <span v-else style="color: var(--cor-erro); font-size: 20px">Roteiro não encontrado</span>
