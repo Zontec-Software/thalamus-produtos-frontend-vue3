@@ -1,7 +1,18 @@
 <template>
     <div class="modal-mask" @click.self="$emit('fechar')">
         <div class="jm margem" style="max-width: 80vw; min-width: 50vw">
-            <h2>Instrução técnica - {{ etapa.operacao }}</h2>
+            <div class="cabecalho-it">
+                <h2>Instrução técnica - {{ etapa.operacao }}</h2>
+                <button
+                    type="button"
+                    class="acao-secundaria"
+                    data-allow-when-readonly
+                    :disabled="baixandoPdf || !etapa?.id"
+                    @click="baixarPdf"
+                >
+                    {{ baixandoPdf ? "Gerando PDF…" : "Baixar PDF" }}
+                </button>
+            </div>
             <template v-if="instrucao.id">
                 <div class="bloco2 margem">
                     <fieldset class="grid-4">
@@ -88,7 +99,7 @@ export default {
             instrucao: {},
             novaOrientacao: null,
             idOrientaçãoEditada: null,
-
+            baixandoPdf: false,
             storageUrl: process.env.VUE_APP_ROOT_STORAGE,
             toast: useToast(),
         }
@@ -99,6 +110,19 @@ export default {
     },
 
     methods: {
+        async baixarPdf() {
+            if (!this.etapa?.id || this.baixandoPdf) return;
+            this.baixandoPdf = true;
+            try {
+                const sugestao = `IT_${this.produto?.cod || 'produto'}_${this.etapa?.operacao || this.etapa.id}.pdf`;
+                await service.baixarPdfInstrucaoTecnica(this.etapa.id, sugestao);
+            } catch (error) {
+                this.toast.error(error?.message || 'Não foi possível baixar o PDF da IT.');
+            } finally {
+                this.baixandoPdf = false;
+            }
+        },
+
         async inicializarInstrucao() {
             let instr = escolherInstrucaoDaEtapa(this.etapa);
             if (!instr) {
@@ -180,6 +204,18 @@ export default {
 .jm {
     max-height: 80vh;
     overflow: auto;
+}
+
+.cabecalho-it {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.cabecalho-it h2 {
+    margin: 0;
 }
 
 tr {
