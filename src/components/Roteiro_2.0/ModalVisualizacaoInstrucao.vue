@@ -1,6 +1,18 @@
 <template>
     <div class="modal-mask" @click.self="$emit('fechar')">
         <div class="jm margem">
+            <div class="cabecalho-it">
+                <h2>Instrução técnica — {{ etapa?.operacao || etapa?.tipo?.nome }}</h2>
+                <button
+                    type="button"
+                    class="acao-secundaria"
+                    data-allow-when-readonly
+                    :disabled="baixandoPdf || !etapa?.id"
+                    @click="baixarPdf"
+                >
+                    {{ baixandoPdf ? "Gerando PDF…" : "Baixar PDF" }}
+                </button>
+            </div>
             <fieldset class="grid-2 margem bloco2" style="background-color: var(--cor-primaria-fraca);">
                 <div><label>Código da instrução</label><input type="text" :value="instrucao.id" readonly></div>
                 <div><label>Setor</label><input type="text" :value="etapa?.setor?.nome" readonly></div>
@@ -40,6 +52,8 @@
 </template>
 
 <script>
+import service from '@/services/serviceRoteiro3';
+import { useToast } from 'vue-toastification';
 import { escolherInstrucaoDaEtapa } from './escolherInstrucaoEtapa';
 
 export default {
@@ -59,7 +73,8 @@ export default {
             instrucao: {},
             novaOrientacao: null,
             idOrientaçãoEditada: null,
-
+            baixandoPdf: false,
+            toast: useToast(),
             storageUrl: process.env.VUE_APP_ROOT_STORAGE,
         }
     },
@@ -81,7 +96,20 @@ export default {
         getAnexoUrl(anexo) {
             if (typeof anexo === 'string') return anexo;
             return `${this.storageUrl}${anexo.caminho}`;
-        }
+        },
+
+        async baixarPdf() {
+            if (!this.etapa?.id || this.baixandoPdf) return;
+            this.baixandoPdf = true;
+            try {
+                const sugestao = `IT_${this.produto?.cod || 'produto'}_${this.etapa?.operacao || this.etapa.id}.pdf`;
+                await service.baixarPdfInstrucaoTecnica(this.etapa.id, sugestao);
+            } catch (error) {
+                this.toast.error(error?.message || "Não foi possível baixar o PDF da IT.");
+            } finally {
+                this.baixandoPdf = false;
+            }
+        },
     }
 }
 </script>
@@ -92,6 +120,18 @@ export default {
     min-width: 50vw;
     max-height: 80vh;
     overflow: auto;
+}
+
+.cabecalho-it {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.cabecalho-it h2 {
+    margin: 0;
 }
 
 .orientacoes {

@@ -201,6 +201,56 @@ export default {
         }
     },
 
+    async baixarPdfInstrucaoTecnica(etapaId, nomeArquivoSugerido) {
+        try {
+            const response = await api.get(`roteiro_2/etapa/${etapaId}/instrucao-tecnica/pdf`, {
+                responseType: "blob",
+            });
+
+            const disposition = response.headers?.["content-disposition"] || "";
+            const match = /filename\*?=(?:UTF-8''|")?([^";]+)/i.exec(disposition);
+            const nomeArquivo = match
+                ? decodeURIComponent(match[1].replace(/"/g, ""))
+                : nomeArquivoSugerido || `IT_etapa_${etapaId}.pdf`;
+
+            const blob = response.data;
+            if (blob?.type && blob.type.includes("application/json")) {
+                const text = await blob.text();
+                let msg = "Erro ao baixar PDF da instrução técnica.";
+                try {
+                    const json = JSON.parse(text);
+                    msg = json.message || json.error || msg;
+                } catch (_) {
+                    /* ignore */
+                }
+                throw new Error(msg);
+            }
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = nomeArquivo;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } catch (error) {
+            const data = error?.response?.data;
+            if (data instanceof Blob) {
+                try {
+                    const text = await data.text();
+                    const json = JSON.parse(text);
+                    throw new Error(json.message || json.error || "Erro ao baixar PDF da instrução técnica.");
+                } catch (e) {
+                    if (e.message && !e.message.includes("JSON")) throw e;
+                }
+            }
+            if (error?.message) throw error;
+            console.error(error);
+            throw error;
+        }
+    },
+
     async cadastrarOrientacao(payload) {
         try {
             const response = await api.post(`roteiro_2/orientacao`, payload);

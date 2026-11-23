@@ -71,7 +71,6 @@
                                         @click="etapaDestacada = element">Inst.
                                         Técnica</button>
                                     </div>
-                                    
                                 </td>
                                 <td><input type="text" v-model="element.tempo"
                                         @focusout="atualizarEtapa(element.id, { tempo: element.tempo })">
@@ -288,7 +287,7 @@ export default {
             historicoVersoes: [],
             loadingHistorico: false,
             roteiroVisualizado: null,
-            modalCopiarRoteiroAberto: false
+            modalCopiarRoteiroAberto: false,
         }
     },
 
@@ -331,6 +330,7 @@ export default {
             }
             etapa.instrucoes.push(instrucao);
         },
+
         async iniciarEdicao() {
             await service.iniciarEdicao(this.produto_cod);
             this.getRoteiro()
